@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "flowbite-react";
 import SignupEmailPasswordForm from "../components/SignupEmailPasswordForm";
+import GoogleOAuth from "../components/GoogleOAuth";
 
 export default function Signup() {
   return (
@@ -32,9 +33,7 @@ export default function Signup() {
           </div>
 
           {/* Google Sign-Up Button */}
-          <Button gradientDuoTone="purpleToPink" className="w-full">
-            Sign Up with Google
-          </Button>
+          <GoogleOAuth />
 
           {/* Already Have an Account Link */}
           <div className="text-center mt-6 text-gray-600">

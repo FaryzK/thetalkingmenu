@@ -1,6 +1,5 @@
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
-import jwt from "jsonwebtoken";
 
 export const signup = async (req, res, next) => {
   const { uid, username, email } = req.body;
@@ -17,11 +16,33 @@ export const signup = async (req, res, next) => {
     await newUser.save();
 
     // Send a success response
-    res.status(201).json({ message: "Signup successful", user: newUser });
+    res.status(201).json({
+      message: "Signup with email and password successful",
+      user: newUser,
+    });
   } catch (error) {
     // Handle database errors
     return next(errorHandler(500, "Error saving user"));
   }
 };
 
-export const signin = async (req, res, next) => {};
+export const google = async (req, res, next) => {
+  const { uid, username, email, googlePhotoUrl } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      res.status(201).json({ message: "Signin successful" });
+    } else {
+      const newUser = new User({
+        uid,
+        username,
+        email,
+        profilePicture: googlePhotoUrl,
+      });
+      await newUser.save();
+      res
+        .status(201)
+        .json({ message: "Signup with Google successful", user: newUser });
+    }
+  } catch {}
+};
