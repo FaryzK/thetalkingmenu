@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
+import jwt from "jsonwebtoken";
 
 export const signup = async (req, res, next) => {
   const { uid, username, email } = req.body;
@@ -22,3 +23,5 @@ export const signup = async (req, res, next) => {
     return next(errorHandler(500, "Error saving user"));
   }
 };
+
+export const signin = async (req, res, next) => {};

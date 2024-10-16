@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "flowbite-react";
+import SigninEmailPasswordForm from "../components/SigninEmailPasswordForm";
 
 export default function Signin() {
   return (
@@ -21,27 +22,7 @@ export default function Signin() {
         {/* Sign-In Form Section */}
         <div className="w-full lg:w-1/2 max-w-md p-8 bg-white rounded-md shadow-md mx-auto">
           {/* Email and Password Form */}
-          <form className="flex flex-col space-y-4">
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <Button
-              type="submit"
-              gradientDuoTone="purpleToPink"
-              className="w-full"
-            >
-              Sign In
-            </Button>
-          </form>
+          <SigninEmailPasswordForm />
 
           {/* OR Divider */}
           <div className="flex items-center my-6">
