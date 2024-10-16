@@ -31,9 +31,18 @@ const SigninEmailPasswordForm = () => {
         formData.email,
         formData.password
       );
-      const user = userCredential.user;
-      dispatch(signInSuccess(user));
-      console.log("User signed in:", user);
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        dispatch(signInSuccess(data));
+      }
+      console.log("User signed in:", data);
     } catch (error) {
       dispatch(signInFailure(error.message));
       console.error("Sign-in error:", error);

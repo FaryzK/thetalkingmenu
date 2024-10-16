@@ -1,10 +1,40 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Button, Dropdown, Navbar } from "flowbite-react";
 import React from "react";
 import thetalkingmenulogo from "../assets/thetalkingmenulogo.png";
+import { useSelector, useDispatch } from "react-redux";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import { signOutSuccess } from "../redux/user/userSlice";
 
 export default function Header() {
+  const { currentUser } = useSelector((state) => state.user);
+  const userRoles = currentUser?.user?.roles || [];
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const path = useLocation().pathname;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth); // Sign out the user from Firebase
+      dispatch(signOutSuccess()); // Dispatch an action to update Redux state
+      navigate("/sign-in");
+    } catch (error) {
+      console.log("Error signing out: ", error);
+    }
+  };
+
+  // Define roles that are allowed to see the dashboard
+  const allowedRoles = [
+    "restaurant admin",
+    "restaurant main admin",
+    "the talking menu admin",
+  ];
+  const canViewDashboard = userRoles.some((role) =>
+    allowedRoles.includes(role)
+  );
+
   return (
     <Navbar className="bg-gray-900" fluid>
       <Navbar.Brand href="/">
@@ -18,7 +48,7 @@ export default function Header() {
         </span>
       </Navbar.Brand>
       <div className="flex md:order-2">
-        {false ? (
+        {currentUser ? (
           <Dropdown
             arrowIcon={false}
             inline
@@ -31,16 +61,19 @@ export default function Header() {
             }
           >
             <Dropdown.Header>
-              <span className="block text-sm">Bonnie Green</span>
+              <span className="block text-sm">
+                {currentUser?.user?.username}
+              </span>
               <span className="block truncate text-sm font-medium">
-                name@flowbite.com
+                {currentUser?.user?.email}
               </span>
             </Dropdown.Header>
-            <Dropdown.Item>Dashboard</Dropdown.Item>
-            <Dropdown.Item>Settings</Dropdown.Item>
-            <Dropdown.Item>Earnings</Dropdown.Item>
-            <Dropdown.Divider />
-            <Dropdown.Item>Sign out</Dropdown.Item>
+            {canViewDashboard && (
+              <Dropdown.Item onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </Dropdown.Item>
+            )}
+            <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/sign-in">

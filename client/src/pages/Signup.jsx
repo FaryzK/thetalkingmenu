@@ -14,8 +14,10 @@ export default function Signup() {
             Join The Talking Menu
           </h1>
           <p className="text-white text-center lg:text-left">
-            Sign up now to chat with your menu, discover chef insights, and find
-            dishes tailored to your dietary needs—all in one platform.
+            Sign up now to personalise yyour customers' experience in your
+            restaurant by allowing them to chat with your menu, discover chef
+            insights, and find dishes tailored to your dietary needs—all in one
+            platform.
           </p>
         </div>
 

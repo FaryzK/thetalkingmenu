@@ -11,8 +11,17 @@ const userSchema = new mongoose.Schema(
     email: String,
     profilePicture: {
       type: String,
-      default:
-        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
+      default: "https://cdn-icons-png.flaticon.com/512/17492/17492071.png",
+    },
+    roles: {
+      type: [String],
+      default: ["diner"], // By default, the user is assigned the "diner" role
+      enum: [
+        "diner",
+        "restaurant admin",
+        "restaurant main admin",
+        "talking menu admin",
+      ],
     },
   },
   { timestamps: true }

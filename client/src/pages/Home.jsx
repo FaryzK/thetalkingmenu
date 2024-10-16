@@ -8,7 +8,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center p-8 w-full h-screen bg-gray-900">
-      <h1 className="text-center text-3xl mt-[60px] mb-[40px]">
+      <h1 className="text-center text-3xl mt-[60px] mb-[40px] lg:px-8 max-w-4xl">
         <strong className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
           Transform
         </strong>{" "}

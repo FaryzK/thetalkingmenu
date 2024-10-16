@@ -14,9 +14,10 @@ export default function Signin() {
             The Talking Menu
           </h1>
           <p className="text-white text-center lg:text-left">
-            Experience an AI-powered dining companion that lets you chat with
-            your menu, discover chef insights, and find dishes tailored to your
-            dietary needs—all in one platform.
+            Let your customers experience a personalised dining experience in
+            your restaurant by experiencing an AI-powered dining companion that
+            lets them chat with your menu, discover chef insights, and find
+            dishes tailored to their dietary needs—all in one platform.
           </p>
         </div>
 
