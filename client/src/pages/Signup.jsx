@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "flowbite-react";
+import SignupEmailPasswordForm from "../components/SignupEmailPasswordForm";
 
 export default function Signup() {
   return (
@@ -20,39 +21,8 @@ export default function Signup() {
         {/* Sign-Up Form Section */}
         <div className="w-full lg:w-1/2 max-w-md p-8 bg-white rounded-md shadow-md mx-auto">
           {/* Sign-Up Form */}
-          <form className="flex flex-col space-y-4">
-            <input
-              type="text"
-              placeholder="Full Name"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-purple-500"
-              required
-            />
-            <Button
-              type="submit"
-              gradientDuoTone="purpleToPink"
-              className="w-full"
-            >
-              Sign Up
-            </Button>
-          </form>
+
+          <SignupEmailPasswordForm />
 
           {/* OR Divider */}
           <div className="flex items-center my-6">

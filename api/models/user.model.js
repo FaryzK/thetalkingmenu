@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true, // This ensures no duplicate Firebase UID exists
     },
-    name: String,
+    username: String,
     email: String,
     profileImage: String,
   },
