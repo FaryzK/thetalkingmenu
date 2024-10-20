@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "flowbite-react";
 import SigninEmailPasswordForm from "../components/SigninEmailPasswordForm";
 import GoogleOAuth from "../components/GoogleOAuth";
+import ResetPassword from "./ResetPassword";
+import SigninResetPassword from "../components/SigninResetPassword";
 
 export default function Signin() {
   return (
@@ -39,12 +41,13 @@ export default function Signin() {
           {/* Create New Account Link */}
           <div className="text-center mt-6 text-gray-600">
             Don’t have an account?{" "}
-            <a
-              href="/sign-up"
-              className="text-purple-500 font-bold hover:underline"
-            >
-              CREATE NEW ACCOUNT
+            <a href="/sign-up" className="text-purple-500 hover:underline">
+              Create Account
             </a>
+          </div>
+          {/* Reset password */}
+          <div>
+            <SigninResetPassword />
           </div>
         </div>
       </div>
