@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { signOutSuccess } from "../redux/user/userSlice";
+import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
 
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
@@ -25,19 +26,26 @@ export default function Header() {
     }
   };
 
-  // Define roles that are allowed to see the dashboard
-  const allowedRoles = [
-    "restaurant admin",
-    "restaurant main admin",
-    "the talking menu admin",
-  ];
-  const canViewDashboard = userRoles.some((role) =>
-    allowedRoles.includes(role)
+  // Define roles that are allowed to see the dashboards
+  const canViewDashboards = userRoles.some((role) =>
+    dashboardAllowedRoles.includes(role)
   );
+
+  // Handle navigation based on roles when clicking the Navbar.Brand
+  const handleBrandClick = () => {
+    if (canViewDashboards) {
+      navigate("/dashboards");
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <Navbar className="bg-gray-900" fluid>
-      <Navbar.Brand href="/">
+      <Navbar.Brand
+        onClick={handleBrandClick} // Replacing href with onClick handler
+        style={{ cursor: "pointer" }} // Make the brand clickable
+      >
         <img
           src={thetalkingmenulogo}
           className="mr-3 h-6 sm:h-9"
@@ -47,6 +55,7 @@ export default function Header() {
           The Talking Menu
         </span>
       </Navbar.Brand>
+
       <div className="flex md:order-2">
         {currentUser ? (
           <Dropdown
@@ -55,11 +64,16 @@ export default function Header() {
             label={
               <Avatar
                 alt="User settings"
-                img="https://cdn-icons-png.flaticon.com/512/17492/17492071.png"
+                img={
+                  currentUser?.user?.profilePicture ||
+                  "https://cdn-icons-png.flaticon.com/512/17492/17492071.png"
+                }
                 rounded
               />
             }
           >
+            {console.log(currentUser?.user?.profilePicture)}{" "}
+            {/* Add this line to log the URL */}
             <Dropdown.Header>
               <span className="block text-sm">
                 {currentUser?.user?.username}
@@ -68,9 +82,9 @@ export default function Header() {
                 {currentUser?.user?.email}
               </span>
             </Dropdown.Header>
-            {canViewDashboard && (
-              <Dropdown.Item onClick={() => navigate("/dashboard")}>
-                Dashboard
+            {canViewDashboards && (
+              <Dropdown.Item onClick={() => navigate("/dashboards")}>
+                Dashboards
               </Dropdown.Item>
             )}
             <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>

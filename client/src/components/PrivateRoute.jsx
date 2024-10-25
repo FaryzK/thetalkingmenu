@@ -2,16 +2,9 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { Outlet, Navigate } from "react-router-dom";
 
-export default function PrivateRoute() {
+export default function PrivateRoute({ allowedRoles }) {
   const { currentUser } = useSelector((state) => state.user);
   const userRoles = currentUser?.user?.roles || [];
-
-  // Define the roles allowed to access the private routes
-  const allowedRoles = [
-    "restaurant admin",
-    "restaurant main admin",
-    "the talking menu admin",
-  ];
 
   // Check if the user has any of the allowed roles (case-insensitive)
   const hasAccess = userRoles.some((role) =>
@@ -20,5 +13,5 @@ export default function PrivateRoute() {
     )
   );
 
-  return hasAccess ? <Outlet /> : <Navigate to="/sign-in" />;
+  return hasAccess ? <Outlet /> : <Navigate to="/" />;
 }

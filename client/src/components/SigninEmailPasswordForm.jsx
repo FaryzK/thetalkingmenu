@@ -8,11 +8,14 @@ import {
   signInSuccess,
   signInFailure,
 } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
+import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import the allowed roles list
 
 const SigninEmailPasswordForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const { loading, error } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -39,8 +42,21 @@ const SigninEmailPasswordForm = () => {
         }),
       });
       const data = await res.json();
+
       if (res.ok) {
         dispatch(signInSuccess(data));
+
+        // Check if the user's roles include any allowed role
+        const userRoles = data.user.roles || [];
+        const hasAllowedRole = userRoles.some((role) =>
+          dashboardAllowedRoles.includes(role)
+        );
+
+        if (hasAllowedRole) {
+          navigate("/dashboards"); // Navigate to dashboard if user has allowed roles
+        } else {
+          navigate("/"); // Navigate to home page otherwise
+        }
       }
       console.log("User signed in:", data);
     } catch (error) {

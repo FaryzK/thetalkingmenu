@@ -3,10 +3,15 @@ import Home from "./pages/Home";
 import Chat from "./pages/Chat";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import Dashboards from "./pages/Dashboards";
 import Header from "./components/Header";
 import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./pages/ResetPassword";
+import SubscriptionManagement from "./pages/SubscriptionManagement";
+import {
+  dashboardAllowedRoles,
+  subscriptionManagementAllowedRoles,
+} from "./utils/allowedRoles";
 
 export default function App() {
   return (
@@ -18,8 +23,22 @@ export default function App() {
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/chat" element={<Chat />} />
-        <Route element={<PrivateRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Protect the /dashboards route with dashboardAllowedRoles */}
+        <Route element={<PrivateRoute allowedRoles={dashboardAllowedRoles} />}>
+          <Route path="/dashboards" element={<Dashboards />} />
+        </Route>
+
+        {/* Protect the /subscription-management route with subscriptionManagementAllowedRoles */}
+        <Route
+          element={
+            <PrivateRoute allowedRoles={subscriptionManagementAllowedRoles} />
+          }
+        >
+          <Route
+            path="/subscription-management"
+            element={<SubscriptionManagement />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
