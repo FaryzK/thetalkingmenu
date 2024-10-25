@@ -1,57 +1,71 @@
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { dashboardAllowedRoles } from "../utils/allowedRoles";
-import { getAuth } from "firebase/auth";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  fetchDashboards,
+  createDashboard,
+  clearDashboardsState,
+} from "../redux/user/dashboardsSlice";
+import { useNavigate } from "react-router-dom";
 
-export default function Dashboard() {
-  const { currentUser } = useSelector((state) => state.user); // Access currentUser from Redux state
-  const [dashboards, setDashboards] = useState([]);
-  const [userRole, setUserRole] = useState("");
+export default function Dashboards() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  // Access dashboards and status from Redux store
+  const dashboards = useSelector((state) => state.dashboards.data);
+  const status = useSelector((state) => state.dashboards.status);
+  let error = useSelector((state) => state.dashboards.error);
+
+  // Convert error to string if it’s an object
+  if (typeof error === "object") {
+    error = JSON.stringify(error);
+  }
+
+  // Helper function to capitalize the first letter of each word
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return ""; // Return an empty string if str is undefined or empty
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+  // Fetch dashboards when the component mounts
   useEffect(() => {
-    // Set the user role if currentUser exists and has roles
-    if (currentUser && dashboardAllowedRoles.includes(currentUser.role)) {
-      setUserRole(currentUser.role);
-    }
-    // Fetch existing dashboards logic here (if needed)
-  }, [currentUser]);
+    const auth = getAuth();
 
-  const createDashboard = async () => {
-    try {
-      const auth = getAuth(); // Get the Firebase auth instance
-      const firebaseUser = auth.currentUser; // Get the currently authenticated user
+    const fetchData = async (user) => {
+      const token = await user.getIdToken();
+      dispatch(fetchDashboards(token));
+    };
 
-      if (!firebaseUser) {
-        alert("No user is logged in");
-        return;
-      }
-
-      // Get the user's ID token from Firebase
-      const token = await firebaseUser.getIdToken();
-
-      const response = await fetch("/api/dashboards", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-        },
-        body: JSON.stringify({
-          subscriptionId: null, // You can pass the actual subscription plan ID here
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Add the new dashboard to the list
-        setDashboards([...dashboards, data.dashboard]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchData(user);
       } else {
-        alert(data.message || "Failed to create dashboard");
+        dispatch(clearDashboardsState());
       }
-    } catch (error) {
-      console.error("Error creating dashboard", error);
-      alert("An error occurred while creating the dashboard");
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
+
+  // Create a new dashboard
+  const handleCreateDashboard = async () => {
+    const auth = getAuth();
+    const firebaseUser = auth.currentUser;
+
+    if (!firebaseUser) {
+      alert("No user is logged in");
+      return;
     }
+
+    const token = await firebaseUser.getIdToken();
+    dispatch(createDashboard(token));
+  };
+
+  const handleDashboardClick = (dashboardId) => {
+    navigate(`/dashboard/${dashboardId}`);
   };
 
   return (
@@ -59,16 +73,37 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         MY DASHBOARDS
       </h1>
-      {dashboards.map((dashboard, index) => (
-        <div key={index} className="bg-white p-4 rounded-lg shadow-md">
+
+      {/* Handle Loading and Error States */}
+      {status === "loading" && <p>Loading dashboards...</p>}
+      {status === "failed" && <p>Error: {error}</p>}
+
+      {/* Render the list of dashboards */}
+      {dashboards.map((dashboard) => (
+        <button
+          key={dashboard._id}
+          onClick={() => handleDashboardClick(dashboard._id)}
+          className="bg-white p-4 rounded-lg shadow-md w-full text-left mb-4 hover:bg-gray-200 transition"
+        >
           <h2 className="text-xl font-semibold text-gray-700">
-            {dashboard.email}
+            {dashboard.dashboardOwnerName}'s Dashboard
           </h2>
-          <p className="text-gray-500">Role: {userRole}</p>
-        </div>
+          <p className="text-gray-500">
+            Your Role: {capitalizeFirstLetter(dashboard.role || "")}
+          </p>
+          <p className="text-gray-500">
+            Subscription:{" "}
+            {capitalizeFirstLetter(dashboard.subscriptionId?.name || "N/A")} -
+            Token Limit: {dashboard.subscriptionId?.tokenLimitperMonth || 0} -
+            Price: ${dashboard.subscriptionId?.price || 0}/
+            {dashboard.subscriptionId?.paymentSchedule?.slice(0, -2) || ""}
+          </p>
+        </button>
       ))}
+
+      {/* Button to create a new dashboard */}
       <button
-        onClick={createDashboard}
+        onClick={handleCreateDashboard}
         className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-lg"
       >
         Create Dashboard

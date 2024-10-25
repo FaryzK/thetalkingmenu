@@ -8,7 +8,9 @@ const SubscriptionManagement = () => {
     name: "",
     tokenLimitPerMonth: 0,
     price: 0,
+    paymentSchedule: "monthly", // Default to monthly
   });
+
   const [authToken, setAuthToken] = useState(null);
 
   console.log(subscriptions);
@@ -146,6 +148,9 @@ const SubscriptionManagement = () => {
               Token Limit/Month
             </th>
             <th className="py-2 px-4 bg-gray-200 text-center">Price ($)</th>
+            <th className="py-2 px-4 bg-gray-200 text-center">
+              Payment Schedule
+            </th>
             <th className="py-2 px-4 bg-gray-200 text-center">Actions</th>
           </tr>
         </thead>
@@ -181,6 +186,17 @@ const SubscriptionManagement = () => {
                     />
                   </td>
                   <td className="text-center">
+                    <select
+                      name="paymentSchedule"
+                      value={editingSubscription.paymentSchedule}
+                      onChange={handleEditChange}
+                      className="text-center"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="annually">Annually</option>
+                    </select>
+                  </td>
+                  <td className="text-center">
                     <button
                       onClick={() => handleSaveEdit(subscription)}
                       className="px-2 py-1 bg-green-500 text-white rounded"
@@ -205,6 +221,9 @@ const SubscriptionManagement = () => {
                     ${subscription.price}
                   </td>
                   <td className="py-2 px-4 text-center">
+                    {subscription.paymentSchedule}
+                  </td>
+                  <td className="py-2 px-4 text-center">
                     <button
                       onClick={() => handleEdit(subscription)}
                       className="w-16 px-2 py-1 bg-blue-500 text-white rounded mr-2"
@@ -226,14 +245,13 @@ const SubscriptionManagement = () => {
       </table>
 
       {/* Create New Subscription */}
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create New Subscription</h2>
+      <div className="bg-gray-100 p-4 rounded-lg flex items-center space-x-4">
         <input
           name="name"
           placeholder="Name"
           value={newSubscription.name}
           onChange={handleNewSubscriptionChange}
-          className="px-4 py-2 mr-2 border rounded"
+          className="px-4 py-2 border rounded w-1/4"
         />
         <input
           name="tokenLimitPerMonth"
@@ -241,7 +259,7 @@ const SubscriptionManagement = () => {
           placeholder="Token Limit per Month"
           value={newSubscription.tokenLimitPerMonth}
           onChange={handleNewSubscriptionChange}
-          className="px-4 py-2 mr-2 border rounded"
+          className="px-4 py-2 border rounded w-1/4"
         />
         <input
           name="price"
@@ -249,13 +267,22 @@ const SubscriptionManagement = () => {
           placeholder="Price"
           value={newSubscription.price}
           onChange={handleNewSubscriptionChange}
-          className="px-4 py-2 mr-2 border rounded"
+          className="px-4 py-2 border rounded w-1/4"
         />
+        <select
+          name="paymentSchedule"
+          value={newSubscription.paymentSchedule}
+          onChange={handleNewSubscriptionChange}
+          className="px-4 py-2 border rounded w-1/4"
+        >
+          <option value="monthly">Monthly</option>
+          <option value="annually">Annually</option>
+        </select>
         <button
           onClick={handleCreateSubscription}
-          className="px-4 py-2 bg-green-500 text-white rounded mt-4"
+          className="px-4 py-2 bg-green-500 text-white rounded"
         >
-          Create Subscription
+          Create
         </button>
       </div>
     </div>

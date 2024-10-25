@@ -2,16 +2,11 @@ import mongoose from "mongoose";
 
 const dashboardSchema = new mongoose.Schema(
   {
-    dashboardId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     dashboardOwnerId: {
-      type: String,
+      type: String, // Use String for Firebase UID
       ref: "User",
       required: true,
-      unique: true, // Each owner should have only one dashboard
+      unique: true,
     },
     restaurants: [
       {
@@ -23,9 +18,9 @@ const dashboardSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
     },
-    employees: [
+    restaurantAdmins: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String, // Use String for Firebase UID
         ref: "User",
       },
     ],

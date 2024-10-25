@@ -12,7 +12,12 @@ const subscriptionSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    default: 0, // Since it's a test plan
+    default: 0, // Default price for a test plan
+  },
+  paymentSchedule: {
+    type: String,
+    enum: ["monthly", "annually"],
+    default: "monthly",
   },
 });
 

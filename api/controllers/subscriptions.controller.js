@@ -13,16 +13,18 @@ export const getAllSubscriptions = async (req, res, next) => {
 
 // Create a new subscription
 export const createSubscription = async (req, res, next) => {
-  let { name, tokenLimitPerMonth, price } = req.body;
+  let { name, tokenLimitPerMonth, price, paymentSchedule } = req.body;
 
   // Standardize name to lowercase to match schema enum values
   name = name.toLowerCase();
+  paymentSchedule = paymentSchedule?.toLowerCase() || "monthly"; // Default to "monthly" if not provided
 
   try {
     const newSubscription = new Subscription({
       name,
       tokenLimitPerMonth,
       price,
+      paymentSchedule,
     });
 
     const savedSubscription = await newSubscription.save();
