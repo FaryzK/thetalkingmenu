@@ -66,10 +66,12 @@ export const getDashboards = async (req, res, next) => {
     // Fetch dashboards where the user is the owner or a restaurant admin
     const dashboards = await Dashboard.find({
       $or: [{ dashboardOwnerId: uid }, { restaurantAdmins: uid }],
-    }).populate(
-      "subscriptionId",
-      "name tokenLimitPerMonth price paymentSchedule"
-    );
+    })
+      .populate(
+        "subscriptionId",
+        "name tokenLimitPerMonth price paymentSchedule"
+      )
+      .populate("restaurants", "name location"); // Populate restaurants with name and location fields
 
     // Fetch usernames for dashboardOwnerId and restaurantAdmins
     const formattedDashboards = await Promise.all(
@@ -88,6 +90,11 @@ export const getDashboards = async (req, res, next) => {
           dashboardOwnerName: owner ? owner.username : "Unknown",
           role,
           subscriptionId: dashboard.subscriptionId,
+          restaurants: dashboard.restaurants.map((restaurant) => ({
+            _id: restaurant._id,
+            name: restaurant.name,
+            location: restaurant.location,
+          })),
         };
       })
     );

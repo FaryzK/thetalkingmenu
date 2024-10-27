@@ -7,7 +7,7 @@ import {
   resetStart,
   resetSuccess,
   resetFailure,
-} from "../redux/user/userSlice.js";
+} from "../redux/slices/userSlice.js";
 import { useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {

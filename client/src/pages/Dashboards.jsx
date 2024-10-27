@@ -5,7 +5,7 @@ import {
   fetchDashboards,
   createDashboard,
   clearDashboardsState,
-} from "../redux/user/dashboardsSlice";
+} from "../redux/slices/dashboardsSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboards() {

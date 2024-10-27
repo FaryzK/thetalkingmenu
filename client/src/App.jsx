@@ -13,6 +13,7 @@ import {
   dashboardAllowedRoles,
   subscriptionManagementAllowedRoles,
 } from "./utils/allowedRoles";
+import Restaurant from "./pages/Restaurant";
 
 export default function App() {
   return (
@@ -30,6 +31,10 @@ export default function App() {
           <Route path="/dashboards" element={<Dashboards />} />
           {/* Dynamic route for individual dashboard */}
           <Route path="/dashboard/:dashboardId" element={<Dashboard />} />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId"
+            element={<Restaurant />}
+          />
         </Route>
 
         {/* Protect the /subscription-management route with subscriptionManagementAllowedRoles */}

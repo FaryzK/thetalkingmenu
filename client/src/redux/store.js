@@ -1,18 +1,21 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import userReducer from "./user/userSlice";
-import dashboardsReducer from "./user/dashboardsSlice"; // Import the dashboards slice
+import userReducer from "./slices/userSlice";
+import dashboardsReducer from "./slices/dashboardsSlice";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import restaurantReducer from "./slices/restaurantSlice";
 
 const rootReducer = combineReducers({
   user: userReducer,
-  dashboards: dashboardsReducer, // Add the dashboards reducer
+  dashboards: dashboardsReducer,
+  restaurant: restaurantReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
   version: 1,
+  blacklist: ["dashboards", "restaurant"], // Exclude dashboards from persistence
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

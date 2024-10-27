@@ -7,7 +7,7 @@ import {
   signInStart,
   signInSuccess,
   signInFailure,
-} from "../redux/user/userSlice";
+} from "../redux/slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import the allowed roles list
 

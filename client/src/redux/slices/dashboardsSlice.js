@@ -63,6 +63,13 @@ const dashboardsSlice = createSlice({
       state.status = "idle";
       state.error = null;
     },
+    addRestaurantToDashboard: (state, action) => {
+      const { dashboardId, restaurant } = action.payload;
+      const dashboard = state.data.find((d) => d._id === dashboardId);
+      if (dashboard) {
+        dashboard.restaurants.push(restaurant);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -94,6 +101,7 @@ const dashboardsSlice = createSlice({
   },
 });
 
-export const { clearDashboardsState } = dashboardsSlice.actions;
+export const { clearDashboardsState, addRestaurantToDashboard } =
+  dashboardsSlice.actions;
 
 export default dashboardsSlice.reducer;

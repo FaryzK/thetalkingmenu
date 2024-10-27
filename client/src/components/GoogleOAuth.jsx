@@ -4,7 +4,7 @@ import { AiFillGoogleCircle } from "react-icons/ai";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase";
 import { useDispatch } from "react-redux";
-import { signInSuccess } from "../redux/user/userSlice";
+import { signInSuccess } from "../redux/slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
 

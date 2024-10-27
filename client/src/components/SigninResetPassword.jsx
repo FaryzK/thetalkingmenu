@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux"; // Import useDispatch
-import { clearError } from "../redux/user/userSlice"; // Import clearError action
+import { clearError } from "../redux/slices/userSlice"; // Import clearError action
 
 export default function SigninResetPassword() {
   const dispatch = useDispatch();

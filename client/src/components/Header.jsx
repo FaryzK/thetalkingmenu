@@ -5,7 +5,7 @@ import thetalkingmenulogo from "../assets/thetalkingmenulogo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import { signOutSuccess } from "../redux/user/userSlice";
+import { signOutSuccess } from "../redux/slices/userSlice";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
 
 export default function Header() {
