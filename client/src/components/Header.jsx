@@ -72,7 +72,6 @@ export default function Header() {
               />
             }
           >
-            {console.log(currentUser?.user?.profilePicture)}{" "}
             {/* Add this line to log the URL */}
             <Dropdown.Header>
               <span className="block text-sm">

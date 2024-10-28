@@ -10,7 +10,7 @@ export const createRestaurant = async (req, res, next) => {
   const restaurantOwnerId = req.user.uid; // assuming user UID from auth
 
   try {
-    // Step 1: Create and save the restaurant first
+    // Step 1: Create and save the restaurant
     const newRestaurant = new Restaurant({ name, location, restaurantOwnerId });
     await newRestaurant.save();
 
@@ -28,14 +28,20 @@ export const createRestaurant = async (req, res, next) => {
     });
     await initialMenu.save();
 
-    // Step 3: Return response with the new restaurant, chat, and menu data if needed
-    res
-      .status(201)
-      .json({
-        restaurant: newRestaurant,
-        chat: initialChat,
-        menu: initialMenu,
-      });
+    // Step 3: Find the dashboard associated with the restaurant owner and add the new restaurant ID to the 'restaurants' array
+    const updatedDashboard = await Dashboard.findOneAndUpdate(
+      { dashboardOwnerId: restaurantOwnerId }, // Find dashboard by owner ID
+      { $push: { restaurants: newRestaurant._id } }, // Add new restaurant ID to 'restaurants' array
+      { new: true } // Return the updated document
+    );
+
+    // Step 4: Return response with the new restaurant, chat, and menu data if needed
+    res.status(201).json({
+      restaurant: newRestaurant,
+      chat: initialChat,
+      menu: initialMenu,
+      dashboard: updatedDashboard,
+    });
   } catch (error) {
     console.error("Error creating restaurant:", error);
     next(errorHandler(500, "Failed to create restaurant"));

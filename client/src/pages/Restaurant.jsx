@@ -8,7 +8,7 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function Restaurant() {
-  const { restaurantId } = useParams();
+  const { dashboardId, restaurantId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -59,9 +59,17 @@ export default function Restaurant() {
           <button className="w-full bg-blue-500 text-white py-2 rounded">
             Update Prefilled Questions
           </button>
-          <button className="w-full bg-blue-500 text-white py-2 rounded">
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              navigate(
+                `/dashboard/${dashboardId}/restaurant/${restaurantId}/menu`
+              )
+            }
+          >
             Update Menu
           </button>
+
           <button className="w-full bg-blue-500 text-white py-2 rounded">
             Update Prompt
           </button>

@@ -4,7 +4,7 @@ import Chat from "./pages/Chat";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import Dashboards from "./pages/Dashboards";
-import Dashboard from "./pages/Dashboard"; // Page component for individual dashboard
+import Dashboard from "./pages/Dashboard";
 import Header from "./components/Header";
 import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./pages/ResetPassword";
@@ -14,6 +14,9 @@ import {
   subscriptionManagementAllowedRoles,
 } from "./utils/allowedRoles";
 import Restaurant from "./pages/Restaurant";
+import Menu from "./pages/Menu";
+import MenuItem from "./pages/MenuItem";
+import MenuAddItem from "./pages/MenuAddItem";
 
 export default function App() {
   return (
@@ -29,11 +32,22 @@ export default function App() {
         {/* Protect the /dashboards route with dashboardAllowedRoles */}
         <Route element={<PrivateRoute allowedRoles={dashboardAllowedRoles} />}>
           <Route path="/dashboards" element={<Dashboards />} />
-          {/* Dynamic route for individual dashboard */}
           <Route path="/dashboard/:dashboardId" element={<Dashboard />} />
           <Route
             path="/dashboard/:dashboardId/restaurant/:restaurantId"
             element={<Restaurant />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu"
+            element={<Menu />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu/:itemId"
+            element={<MenuItem />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu/add"
+            element={<MenuAddItem />}
           />
         </Route>
 
