@@ -52,7 +52,7 @@ export default function Dashboard() {
     const token = await firebaseUser.getIdToken();
     const restaurantData = { name, location };
 
-    dispatch(createRestaurant({ token, dashboardId, restaurantData }));
+    dispatch(createRestaurant({ token, dashboardId, restaurantData })).unwrap();
   };
 
   if (!dashboard) return <div>Loading...</div>;

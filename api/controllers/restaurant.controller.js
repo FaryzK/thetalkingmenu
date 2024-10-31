@@ -1,8 +1,29 @@
+import pkg from "draft-js";
+
 import Restaurant from "../models/restaurant.model.js";
 import Menu from "../models/menu.model.js";
 import Chat from "../models/chat.model.js";
+import ChatBot from "../models/chatBot.model.js";
 import Dashboard from "../models/dashboard.model.js";
 import { errorHandler } from "../utils/error.js";
+
+const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
+  pkg;
+
+const createFormattedContent = (textArray) => {
+  const contentState = ContentState.createFromText(textArray.join("\n"));
+  let editorState = EditorState.createWithContent(contentState);
+
+  // Apply bold style to the first line
+  const selection = SelectionState.createEmpty(
+    contentState.getFirstBlock().getKey()
+  ).merge({ focusOffset: textArray[0].length });
+
+  editorState = EditorState.acceptSelection(editorState, selection);
+  editorState = RichUtils.toggleInlineStyle(editorState, "BOLD");
+
+  return convertToRaw(editorState.getCurrentContent());
+};
 
 // Create a new restaurant
 export const createRestaurant = async (req, res, next) => {
@@ -14,7 +35,25 @@ export const createRestaurant = async (req, res, next) => {
     const newRestaurant = new Restaurant({ name, location, restaurantOwnerId });
     await newRestaurant.save();
 
-    // Step 2: Initialize Chat and Menu documents with the new restaurant's ID
+    // Step 2: Initialize Chatbot, Chat and Menu documents with the new restaurant's ID
+    const defaultQuestions = [
+      createFormattedContent([
+        "I want a meal around $15",
+        "to keep within my budget.",
+      ]),
+      createFormattedContent([
+        "I’m feeling for something light",
+        "so I won’t get bloated.",
+      ]),
+    ];
+
+    const initialChatBot = new ChatBot({
+      restaurantId: newRestaurant._id,
+      systemPrompt: "Welcome! How can I assist you?",
+      suggestedQuestions: defaultQuestions,
+    });
+    await initialChatBot.save();
+
     const initialChat = new Chat({
       restaurantId: newRestaurant._id,
       userId: restaurantOwnerId,
@@ -38,6 +77,7 @@ export const createRestaurant = async (req, res, next) => {
     // Step 4: Return response with the new restaurant, chat, and menu data if needed
     res.status(201).json({
       restaurant: newRestaurant,
+      chatBot: initialChatBot,
       chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,

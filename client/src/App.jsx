@@ -17,6 +17,9 @@ import Restaurant from "./pages/Restaurant";
 import Menu from "./pages/Menu";
 import MenuItem from "./pages/MenuItem";
 import MenuAddItem from "./pages/MenuAddItem";
+import QRCode from "./pages/QRCode";
+import SystemPrompt from "./pages/SystemPrompt";
+import SuggestedQuestions from "./pages/SuggestedQuestions";
 
 export default function App() {
   return (
@@ -48,6 +51,18 @@ export default function App() {
           <Route
             path="/dashboard/:dashboardId/restaurant/:restaurantId/menu/add"
             element={<MenuAddItem />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/qrcode"
+            element={<QRCode />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/system-prompt"
+            element={<SystemPrompt />}
+          />
+          <Route
+            path="/dashboard/:dashboardId/restaurant/:restaurantId/suggested-questions"
+            element={<SuggestedQuestions />}
           />
         </Route>
 

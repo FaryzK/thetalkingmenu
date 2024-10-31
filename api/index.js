@@ -7,6 +7,7 @@ import dashboardsRoutes from "./routes/dashboards.route.js";
 import subscriptionsRoutes from "./routes/subscriptions.route.js";
 import restaurantsRoutes from "./routes/restaurant.route.js";
 import menuRoutes from "./routes/menu.route.js";
+import chatBotRoutes from "./routes/chatBot.route.js";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use("/api/dashboards", dashboardsRoutes);
 app.use("/api/subscriptions", subscriptionsRoutes);
 app.use("/api", restaurantsRoutes);
 app.use("/api", menuRoutes);
+app.use("/api/chatbot", chatBotRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
