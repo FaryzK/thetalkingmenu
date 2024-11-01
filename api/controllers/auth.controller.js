@@ -5,23 +5,19 @@ export const signup = async (req, res, next) => {
   const { uid, username, email } = req.body;
 
   if (!uid || !email || !username) {
-    // Return after handling the error
     return next(errorHandler(400, "All fields are required"));
   }
 
   const newUser = new User({ uid, username, email });
 
   try {
-    // Save the user to the database
     await newUser.save();
 
-    // Send a success response
     res.status(201).json({
       message: "Signup with email and password successful",
       user: newUser,
     });
   } catch (error) {
-    // Handle database errors
     return next(errorHandler(500, "Error saving user"));
   }
 };
@@ -36,9 +32,15 @@ export const signin = async (req, res, next) => {
     }
     res.status(201).json({
       message: "Sign in successful",
-      user: validUser,
+      user: {
+        ...validUser.toObject(),
+        accessibleDashboards: validUser.accessibleDashboards,
+        accessibleRestaurants: validUser.accessibleRestaurants,
+      },
     });
-  } catch {}
+  } catch (error) {
+    next(errorHandler(500, "Sign in failed"));
+  }
 };
 
 export const google = async (req, res, next) => {
@@ -46,7 +48,14 @@ export const google = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
     if (user) {
-      res.status(201).json({ message: "Signin successful", user: user });
+      res.status(201).json({
+        message: "Signin successful",
+        user: {
+          ...user.toObject(),
+          accessibleDashboards: user.accessibleDashboards,
+          accessibleRestaurants: user.accessibleRestaurants,
+        },
+      });
     } else {
       const newUser = new User({
         uid,
@@ -55,11 +64,16 @@ export const google = async (req, res, next) => {
         profilePicture: googlePhotoUrl,
       });
       await newUser.save();
-      res
-        .status(201)
-        .json({ message: "Signup with Google successful", user: newUser });
+      res.status(201).json({
+        message: "Signup with Google successful",
+        user: {
+          ...newUser.toObject(),
+          accessibleDashboards: newUser.accessibleDashboards,
+          accessibleRestaurants: newUser.accessibleRestaurants,
+        },
+      });
     }
-  } catch {
-    return next(errorHandler(500, "Error signin user with Google"));
+  } catch (error) {
+    next(errorHandler(500, "Error signing in with Google"));
   }
 };

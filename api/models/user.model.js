@@ -1,3 +1,4 @@
+// models/user.model.js
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -5,7 +6,7 @@ const userSchema = new mongoose.Schema(
     uid: {
       type: String,
       required: true,
-      unique: true, // This ensures no duplicate Firebase UID exists
+      unique: true,
     },
     username: String,
     email: String,
@@ -15,14 +16,24 @@ const userSchema = new mongoose.Schema(
     },
     roles: {
       type: [String],
-      default: ["diner"], // By default, the user is assigned the "diner" role
+      default: ["diner"],
       enum: [
         "diner",
         "restaurant admin",
         "restaurant main admin",
-        "talking menu admin",
+        "the talking menu admin",
       ],
     },
+    accessibleDashboards: [
+      {
+        type: String, // Store dashboard IDs as an array of strings
+      },
+    ],
+    accessibleRestaurants: [
+      {
+        type: String, // Store restaurant IDs as an array of strings
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -5,6 +5,7 @@ import Menu from "../models/menu.model.js";
 import Chat from "../models/chat.model.js";
 import ChatBot from "../models/chatBot.model.js";
 import Dashboard from "../models/dashboard.model.js";
+import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
@@ -49,7 +50,8 @@ export const createRestaurant = async (req, res, next) => {
 
     const initialChatBot = new ChatBot({
       restaurantId: newRestaurant._id,
-      systemPrompt: "Welcome! How can I assist you?",
+      systemPrompt:
+        "Your job is to help answer questions, provide information, and engage in conversations about the restaurant.",
       suggestedQuestions: defaultQuestions,
     });
     await initialChatBot.save();
@@ -74,13 +76,19 @@ export const createRestaurant = async (req, res, next) => {
       { new: true } // Return the updated document
     );
 
-    // Step 4: Return response with the new restaurant, chat, and menu data if needed
+    // Step 4: Update the user model
+    const user = await User.findOne({ uid: restaurantOwnerId });
+    user.accessibleRestaurants.push(newRestaurant._id.toString());
+    await user.save();
+
+    // Step 5: Return response with the new restaurant, chat, and menu data if needed
     res.status(201).json({
       restaurant: newRestaurant,
       chatBot: initialChatBot,
       chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,
+      accessibleRestaurants: user.accessibleRestaurants,
     });
   } catch (error) {
     console.error("Error creating restaurant:", error);

@@ -20,6 +20,7 @@ import MenuAddItem from "./pages/MenuAddItem";
 import QRCode from "./pages/QRCode";
 import SystemPrompt from "./pages/SystemPrompt";
 import SuggestedQuestions from "./pages/SuggestedQuestions";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -33,7 +34,9 @@ export default function App() {
         <Route path="/chat" element={<Chat />} />
 
         {/* Protect the /dashboards route with dashboardAllowedRoles */}
-        <Route element={<PrivateRoute allowedRoles={dashboardAllowedRoles} />}>
+        <Route
+          element={<ProtectedRoute allowedRoles={dashboardAllowedRoles} />}
+        >
           <Route path="/dashboards" element={<Dashboards />} />
           <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
           <Route
@@ -69,7 +72,7 @@ export default function App() {
         {/* Protect the /subscription-management route with subscriptionManagementAllowedRoles */}
         <Route
           element={
-            <PrivateRoute allowedRoles={subscriptionManagementAllowedRoles} />
+            <ProtectedRoute allowedRoles={subscriptionManagementAllowedRoles} />
           }
         >
           <Route

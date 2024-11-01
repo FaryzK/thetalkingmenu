@@ -1,6 +1,7 @@
 // restaurantSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { addRestaurantToDashboard } from "./dashboardsSlice"; // Action to update dashboards
+import { updateAccessibleRestaurants } from "./userSlice";
 
 // Thunk to fetch restaurant details by ID
 export const fetchRestaurant = createAsyncThunk(
@@ -53,6 +54,9 @@ export const createRestaurant = createAsyncThunk(
       dispatch(
         addRestaurantToDashboard({ dashboardId, restaurant: data.restaurant })
       );
+
+      // Dispatch to update accessibleDashboards in userSlice
+      dispatch(updateAccessibleRestaurants(data.accessibleRestaurants));
 
       return data.restaurant; // Return the new restaurant data
     } catch (error) {

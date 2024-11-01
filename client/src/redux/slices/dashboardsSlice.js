@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { updateAccessibleDashboards } from "./userSlice";
 
 // Thunk to fetch dashboards
 export const fetchDashboards = createAsyncThunk(
@@ -27,7 +28,7 @@ export const fetchDashboards = createAsyncThunk(
 // Thunk to create a dashboard
 export const createDashboard = createAsyncThunk(
   "dashboards/createDashboard",
-  async (token, { rejectWithValue }) => {
+  async (token, { dispatch, rejectWithValue }) => {
     try {
       const response = await fetch("/api/dashboards", {
         method: "POST",
@@ -42,6 +43,9 @@ export const createDashboard = createAsyncThunk(
       if (!response.ok) {
         return rejectWithValue(data);
       }
+
+      // Dispatch to update accessibleDashboards in userSlice
+      dispatch(updateAccessibleDashboards(data.accessibleDashboards));
 
       return data.dashboard; // Return the new dashboard
     } catch (error) {

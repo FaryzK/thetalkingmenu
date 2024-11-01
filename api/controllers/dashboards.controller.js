@@ -48,9 +48,15 @@ export const createDashboard = async (req, res, next) => {
     });
 
     await newDashboard.save();
+
+    // Add the new dashboard ID to the user's accessibleDashboards
+    user.accessibleDashboards.push(newDashboard._id.toString());
+    await user.save();
+
     res.status(201).json({
       message: "Dashboard created successfully",
       dashboard: newDashboard,
+      accessibleDashboards: user.accessibleDashboards,
     });
   } catch (error) {
     console.error("Error creating dashboard:", error);
