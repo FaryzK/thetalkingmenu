@@ -35,7 +35,7 @@ export default function App() {
         {/* Protect the /dashboards route with dashboardAllowedRoles */}
         <Route element={<PrivateRoute allowedRoles={dashboardAllowedRoles} />}>
           <Route path="/dashboards" element={<Dashboards />} />
-          <Route path="/dashboard/:dashboardId" element={<Dashboard />} />
+          <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
           <Route
             path="/dashboard/:dashboardId/restaurant/:restaurantId"
             element={<Restaurant />}

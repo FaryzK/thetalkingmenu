@@ -65,7 +65,7 @@ export default function Dashboards() {
   };
 
   const handleDashboardClick = (dashboardId) => {
-    navigate(`/dashboard/${dashboardId}`);
+    navigate(`/dashboards/${dashboardId}`);
   };
 
   return (

@@ -25,21 +25,15 @@ export default function SuggestedQuestions() {
     error,
   } = useSelector((state) => state.chatBot);
 
-  // Initialize editor states
   const [questions, setQuestions] = useState(() => {
-    // If no suggested questions, start with two empty editors
     if (!chatBot?.suggestedQuestions?.length) {
       return [EditorState.createEmpty(), EditorState.createEmpty()];
     }
-
-    // Safely convert suggested questions to EditorState
     return chatBot.suggestedQuestions.map((question) => {
       try {
-        // Check if the question is a valid Draft.js raw content state
         if (question && question.blocks && Array.isArray(question.blocks)) {
           return EditorState.createWithContent(convertFromRaw(question));
         }
-        // Fallback to empty editor state if invalid
         return EditorState.createEmpty();
       } catch (error) {
         console.error("Error creating editor state:", error);
@@ -47,6 +41,8 @@ export default function SuggestedQuestions() {
       }
     });
   });
+
+  const [savedQuestions, setSavedQuestions] = useState([]);
 
   useEffect(() => {
     const auth = getAuth();
@@ -60,13 +56,9 @@ export default function SuggestedQuestions() {
             ).unwrap();
 
             if (result && result.suggestedQuestions) {
-              // Enhanced logging and validation for each question
               const questionsData = result.suggestedQuestions.map(
                 (question, index) => {
-                  console.log(`Processing question ${index}:`, question);
-
                   try {
-                    // Check if question has the required structure for convertFromRaw
                     if (
                       question &&
                       typeof question === "object" &&
@@ -74,18 +66,14 @@ export default function SuggestedQuestions() {
                       question.blocks.length > 0 &&
                       typeof question.blocks[0].text === "string"
                     ) {
-                      // Ensure entityMap is defined
                       const validQuestion = {
                         ...question,
-                        entityMap: question.entityMap || {}, // Default to an empty object if undefined
+                        entityMap: question.entityMap || {},
                       };
                       return EditorState.createWithContent(
                         convertFromRaw(validQuestion)
                       );
                     } else {
-                      console.warn(
-                        `Question ${index} is empty or incorrectly formatted.`
-                      );
                       return EditorState.createEmpty();
                     }
                   } catch (error) {
@@ -95,7 +83,6 @@ export default function SuggestedQuestions() {
                 }
               );
 
-              // Ensure there are at least two editor states
               const finalQuestions =
                 questionsData.length < 2
                   ? [
@@ -107,6 +94,7 @@ export default function SuggestedQuestions() {
                   : questionsData;
 
               setQuestions(finalQuestions);
+              setSavedQuestions(result.suggestedQuestions); // Set saved questions for preview
             }
           } catch (error) {
             console.error("Fetch error:", error);
@@ -131,7 +119,6 @@ export default function SuggestedQuestions() {
     const auth = getAuth();
     const token = await auth.currentUser.getIdToken();
 
-    // Convert each EditorState to raw content, ensuring valid structure
     const formattedQuestions = questions.map((q) => {
       const contentState = q.getCurrentContent();
       return convertToRaw(contentState);
@@ -144,6 +131,8 @@ export default function SuggestedQuestions() {
         suggestedQuestions: formattedQuestions,
       })
     );
+
+    setSavedQuestions(formattedQuestions); // Update saved questions for preview
   };
 
   const toggleInlineStyle = (index, style) => {
@@ -160,33 +149,99 @@ export default function SuggestedQuestions() {
   return (
     <div className="min-h-screen p-6">
       <h2 className="text-2xl font-bold mb-4">Update Suggested Questions</h2>
-      {questions.map((editorState, index) => (
-        <div key={index} className="mb-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 className="font-semibold mb-2">Editor</h3>
+          {questions.map((editorState, index) => (
+            <div key={index} className="mb-4">
+              {/* <button
+                onClick={() => toggleInlineStyle(index, "BOLD")}
+                className="mb-2 px-3 py-1 bg-gray-200 rounded"
+              >
+                Bold
+              </button> */}
+              <Editor
+                editorState={editorState}
+                onChange={(newState) =>
+                  setQuestions(
+                    questions.map((q, i) => (i === index ? newState : q))
+                  )
+                }
+                handleKeyCommand={(command) =>
+                  handleKeyCommand(command, editorState, index)
+                }
+              />
+            </div>
+          ))}
           <button
-            onClick={() => toggleInlineStyle(index, "BOLD")}
-            className="mb-2 px-3 py-1 bg-gray-200 rounded"
+            onClick={handleSave}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
           >
-            Bold
+            Save Questions
           </button>
-          <Editor
-            editorState={editorState}
-            onChange={(newState) =>
-              setQuestions(
-                questions.map((q, i) => (i === index ? newState : q))
-              )
-            }
-            handleKeyCommand={(command) =>
-              handleKeyCommand(command, editorState, index)
-            }
-          />
         </div>
-      ))}
-      <button
-        onClick={handleSave}
-        className="px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Save Questions
-      </button>
+
+        <div className="mt-8 md:mt-0">
+          <h3 className="font-semibold mb-2">Mobile Preview</h3>
+          <div className="border rounded-lg shadow-lg p-4 max-w-xs mx-auto bg-white">
+            {savedQuestions.map((question, index) => (
+              <div key={index} className="mb-2 text-sm">
+                {question.blocks.map((block, idx) => {
+                  const elements = [];
+                  let lastOffset = 0;
+
+                  // Sort inline styles by offset to process sequentially
+                  const sortedRanges = block.inlineStyleRanges.sort(
+                    (a, b) => a.offset - b.offset
+                  );
+
+                  sortedRanges.forEach((range, rangeIndex) => {
+                    // Add unstyled text before the styled range
+                    if (range.offset > lastOffset) {
+                      elements.push(
+                        <span key={`${idx}-${rangeIndex}-unstyled`}>
+                          {block.text.slice(lastOffset, range.offset)}
+                        </span>
+                      );
+                    }
+
+                    // Add styled text
+                    elements.push(
+                      <span
+                        key={`${idx}-${rangeIndex}-bold`}
+                        style={{
+                          fontWeight:
+                            range.style === "BOLD" ? "bold" : "normal",
+                        }}
+                      >
+                        {block.text.slice(
+                          range.offset,
+                          range.offset + range.length
+                        )}
+                      </span>
+                    );
+
+                    // Update lastOffset to the end of the current range
+                    lastOffset = range.offset + range.length;
+                  });
+
+                  // Add remaining unstyled text if any
+                  if (lastOffset < block.text.length) {
+                    elements.push(
+                      <span key={`${idx}-remaining-unstyled`}>
+                        {block.text.slice(lastOffset)}
+                      </span>
+                    );
+                  }
+
+                  return <p key={idx}>{elements}</p>;
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
