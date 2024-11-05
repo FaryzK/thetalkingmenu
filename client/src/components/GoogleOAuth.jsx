@@ -5,6 +5,10 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase";
 import { useDispatch } from "react-redux";
 import { signInSuccess } from "../redux/slices/userSlice";
+import {
+  setAccessibleDashboards,
+  setAccessibleRestaurants,
+} from "../redux/slices/userAccessSlice";
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
 
@@ -33,20 +37,26 @@ export default function GoogleOAuth() {
       const data = await res.json();
 
       if (res.ok) {
-        dispatch(signInSuccess(data));
+        const {
+          accessibleDashboards,
+          accessibleRestaurants,
+          ...remainingData
+        } = data.user;
+        // Dispatch general user data to userSlice
+        dispatch(signInSuccess(remainingData));
 
-        // Check if the user's roles include any allowed role
-        const userRoles = data.user.roles || [];
+        // Dispatch access data to userAccessSlice
+        dispatch(setAccessibleDashboards(accessibleDashboards));
+        dispatch(setAccessibleRestaurants(accessibleRestaurants));
+
+        // Navigate based on user roles
+        const userRoles = remainingData.roles || [];
+
         const hasAllowedRole = userRoles.some((role) =>
           dashboardAllowedRoles.includes(role)
         );
 
-        // Navigate to dashboards if allowed roles match, otherwise to home
-        if (hasAllowedRole) {
-          navigate("/dashboards");
-        } else {
-          navigate("/");
-        }
+        navigate(hasAllowedRole ? "/dashboards" : "/");
       }
     } catch (error) {
       console.log(error);

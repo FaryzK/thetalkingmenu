@@ -30,10 +30,20 @@ const restaurantSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  employeesWithAccess: [
+  userAccess: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      userId: {
+        type: String, // Use String for Firebase UID
+        required: true,
+      },
+      userEmail: {
+        type: String,
+        required: true,
+      },
+      role: {
+        type: String, //role in the give restaurant, either restaurant main admin or restaurant admin
+        required: true,
+      },
     },
   ],
 });

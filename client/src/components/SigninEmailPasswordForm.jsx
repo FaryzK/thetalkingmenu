@@ -8,6 +8,10 @@ import {
   signInSuccess,
   signInFailure,
 } from "../redux/slices/userSlice";
+import {
+  setAccessibleDashboards,
+  setAccessibleRestaurants,
+} from "../redux/slices/userAccessSlice";
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import the allowed roles list
 
@@ -34,6 +38,8 @@ const SigninEmailPasswordForm = () => {
         formData.email,
         formData.password
       );
+
+      // Send user details to backend
       const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,21 +50,28 @@ const SigninEmailPasswordForm = () => {
       const data = await res.json();
 
       if (res.ok) {
-        dispatch(signInSuccess(data));
+        // Destructure to separate access fields
+        const {
+          accessibleDashboards,
+          accessibleRestaurants,
+          ...remainingData
+        } = data.user;
+
+        // Dispatch general user data to userSlice
+        dispatch(signInSuccess(remainingData));
+
+        // Dispatch access data to userAccessSlice
+        dispatch(setAccessibleDashboards(accessibleDashboards));
+        dispatch(setAccessibleRestaurants(accessibleRestaurants));
 
         // Check if the user's roles include any allowed role
-        const userRoles = data.user.roles || [];
+        const userRoles = remainingData.roles || [];
         const hasAllowedRole = userRoles.some((role) =>
           dashboardAllowedRoles.includes(role)
         );
 
-        if (hasAllowedRole) {
-          navigate("/dashboards"); // Navigate to dashboard if user has allowed roles
-        } else {
-          navigate("/"); // Navigate to home page otherwise
-        }
+        navigate(hasAllowedRole ? "/dashboards" : "/");
       }
-      console.log("User signed in:", data);
     } catch (error) {
       dispatch(signInFailure(error.message));
       console.error("Sign-in error:", error);

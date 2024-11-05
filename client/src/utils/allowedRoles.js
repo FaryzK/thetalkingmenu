@@ -4,4 +4,4 @@ export const dashboardAllowedRoles = [
   "the talking menu admin",
 ];
 
-export const subscriptionManagementAllowedRoles = ["the talking menu admin"];
+export const platformControlPanelAllowedRoles = ["the talking menu admin"];

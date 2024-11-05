@@ -67,7 +67,7 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboard/${dashboardId}/restaurant/${restaurantId}/qrcode`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/qrcode`
               )
             }
           >
@@ -78,7 +78,7 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboard/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
               )
             }
           >
@@ -88,7 +88,7 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboard/${dashboardId}/restaurant/${restaurantId}/menu`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/menu`
               )
             }
           >
@@ -99,13 +99,20 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboard/${dashboardId}/restaurant/${restaurantId}/system-prompt`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/system-prompt`
               )
             }
           >
             Update Prompt
           </button>
-          <button className="w-full bg-blue-500 text-white py-2 rounded">
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              navigate(
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access`
+              )
+            }
+          >
             Manage Employee Access
           </button>
         </div>

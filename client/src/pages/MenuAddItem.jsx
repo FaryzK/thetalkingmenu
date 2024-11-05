@@ -41,7 +41,7 @@ export default function MenuAddItem() {
 
       // Only navigate if the action was successful
       if (resultAction) {
-        navigate(`/dashboard/${dashboardId}/restaurant/${restaurantId}/menu`);
+        navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}/menu`);
       }
     } catch (err) {
       console.error("Failed to add menu item:", err);

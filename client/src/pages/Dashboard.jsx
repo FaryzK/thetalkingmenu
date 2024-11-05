@@ -37,7 +37,7 @@ export default function Dashboard() {
   }, [dispatch]);
 
   const handleRestaurantClick = (restaurantId) => {
-    navigate(`/dashboard/${dashboardId}/restaurant/${restaurantId}`);
+    navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}`);
   };
 
   const handleAddRestaurant = async ({ name, location }) => {

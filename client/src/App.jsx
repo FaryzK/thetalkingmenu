@@ -6,12 +6,13 @@ import Signup from "./pages/Signup";
 import Dashboards from "./pages/Dashboards";
 import Dashboard from "./pages/Dashboard";
 import Header from "./components/Header";
-import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./pages/ResetPassword";
-import SubscriptionManagement from "./pages/SubscriptionManagement";
+import PlatformControlPanel from "./pages/platform/PlatformControlPanel.jsx";
+import SubscriptionManager from "./pages/platform/SubscriptionManager";
+import RestaurantManager from "./pages/platform/RestaurantManager";
 import {
   dashboardAllowedRoles,
-  subscriptionManagementAllowedRoles,
+  platformControlPanelAllowedRoles,
 } from "./utils/allowedRoles";
 import Restaurant from "./pages/Restaurant";
 import Menu from "./pages/Menu";
@@ -21,6 +22,9 @@ import QRCode from "./pages/QRCode";
 import SystemPrompt from "./pages/SystemPrompt";
 import SuggestedQuestions from "./pages/SuggestedQuestions";
 import ProtectedRoute from "./components/ProtectedRoute";
+import EmployeeAccessOverview from "./pages/EmployeeAccessOverview";
+import EmployeeAccessAdd from "./pages/EmployeeAccessAdd.jsx";
+import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 
 export default function App() {
   return (
@@ -40,45 +44,68 @@ export default function App() {
           <Route path="/dashboards" element={<Dashboards />} />
           <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId"
             element={<Restaurant />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu"
             element={<Menu />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu/:itemId"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/:itemId"
             element={<MenuItem />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/menu/add"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/add"
             element={<MenuAddItem />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/qrcode"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/qrcode"
             element={<QRCode />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/system-prompt"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/system-prompt"
             element={<SystemPrompt />}
           />
           <Route
-            path="/dashboard/:dashboardId/restaurant/:restaurantId/suggested-questions"
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/suggested-questions"
             element={<SuggestedQuestions />}
+          />
+          <Route
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access"
+            element={<EmployeeAccessOverview />}
+          />
+          <Route
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-add"
+            element={<EmployeeAccessAdd />}
+          />
+          <Route
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-revoke/:userId"
+            element={<EmployeeAccessRevoke />}
           />
         </Route>
 
-        {/* Protect the /subscription-management route with subscriptionManagementAllowedRoles */}
+        {/* Protect the /subscription-management route with platformControlPanelAllowedRoles  */}
         <Route
           element={
-            <ProtectedRoute allowedRoles={subscriptionManagementAllowedRoles} />
+            <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
           }
         >
           <Route
-            path="/subscription-management"
-            element={<SubscriptionManagement />}
-          />
+            element={
+              <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
+            }
+          >
+            <Route
+              path="/platform-control-panel"
+              element={<PlatformControlPanel />}
+            />
+            <Route
+              path="/subscription-manager"
+              element={<SubscriptionManager />}
+            />
+            <Route path="/restaurant-manager" element={<RestaurantManager />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

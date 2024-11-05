@@ -93,7 +93,7 @@ export default function Menu() {
           <button
             onClick={() =>
               navigate(
-                `/dashboard/${dashboardId}/restaurant/${restaurantId}/menu/add`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/menu/add`
               )
             }
             className="px-4 py-2 bg-green-500 text-white rounded"
@@ -109,7 +109,7 @@ export default function Menu() {
               key={item._id}
               onClick={() =>
                 navigate(
-                  `/dashboard/${dashboardId}/restaurant/${restaurantId}/menu/${item._id}`
+                  `/dashboards/${dashboardId}/restaurant/${restaurantId}/menu/${item._id}`
                 )
               }
               className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition text-left flex justify-between"

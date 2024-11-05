@@ -1,7 +1,7 @@
 // restaurantSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { addRestaurantToDashboard } from "./dashboardsSlice"; // Action to update dashboards
-import { updateAccessibleRestaurants } from "./userSlice";
+import { setAccessibleRestaurants } from "./userAccessSlice";
 
 // Thunk to fetch restaurant details by ID
 export const fetchRestaurant = createAsyncThunk(
@@ -55,8 +55,8 @@ export const createRestaurant = createAsyncThunk(
         addRestaurantToDashboard({ dashboardId, restaurant: data.restaurant })
       );
 
-      // Dispatch to update accessibleDashboards in userSlice
-      dispatch(updateAccessibleRestaurants(data.accessibleRestaurants));
+      // Dispatch to update accessibleRestaurants in userAccessSlice
+      dispatch(setAccessibleRestaurants(data.accessibleRestaurants));
 
       return data.restaurant; // Return the new restaurant data
     } catch (error) {
@@ -77,6 +77,14 @@ const restaurantSlice = createSlice({
       state.data = null;
       state.status = "idle";
       state.error = null;
+    },
+    removeEmployeeFromRestaurant: (state, action) => {
+      const { restaurantId, userId } = action.payload;
+      if (state.data && state.data._id === restaurantId) {
+        state.data.userAccess = state.data.userAccess.filter(
+          (emp) => emp.userId !== userId
+        );
+      }
     },
   },
   extraReducers: (builder) => {
@@ -109,6 +117,7 @@ const restaurantSlice = createSlice({
   },
 });
 
-export const { clearRestaurantState } = restaurantSlice.actions;
+export const { clearRestaurantState, removeEmployeeFromRestaurant } =
+  restaurantSlice.actions;
 
 export default restaurantSlice.reducer;

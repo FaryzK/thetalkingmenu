@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-const SubscriptionManagement = () => {
+const SubscriptionManager = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [editingSubscription, setEditingSubscription] = useState(null);
   const [newSubscription, setNewSubscription] = useState({
@@ -12,8 +12,6 @@ const SubscriptionManagement = () => {
   });
 
   const [authToken, setAuthToken] = useState(null);
-
-  console.log(subscriptions);
 
   // Fetch subscriptions from the database
   useEffect(() => {
@@ -138,7 +136,7 @@ const SubscriptionManagement = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Subscription Management</h1>
+      <h1 className="text-3xl font-bold mb-6">Subscription Manager</h1>
 
       <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden mb-6">
         <thead>
@@ -289,4 +287,4 @@ const SubscriptionManagement = () => {
   );
 };
 
-export default SubscriptionManagement;
+export default SubscriptionManager;

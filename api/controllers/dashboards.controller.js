@@ -15,14 +15,9 @@ export const createDashboard = async (req, res, next) => {
       return next(errorHandler(404, "User not found"));
     }
 
-    if (
-      !user.roles.some((role) => role.toLowerCase() === "restaurant main admin")
-    ) {
+    if (!user.roles.includes("restaurant main admin")) {
       return next(
-        errorHandler(
-          403,
-          "You do not have the required role to create a dashboard"
-        )
+        errorHandler(403, "You do not have permission to create a dashboard")
       );
     }
 
@@ -36,15 +31,23 @@ export const createDashboard = async (req, res, next) => {
     const plan = subscriptionId
       ? await Subscription.findById(subscriptionId)
       : await Subscription.findOne({ name: "test" });
+
     if (!plan) {
       return next(errorHandler(400, "No subscription plan found"));
     }
 
+    // Create new dashboard
     const newDashboard = new Dashboard({
       dashboardOwnerId: uid,
       restaurants: [],
       subscriptionId: plan._id,
-      restaurantAdmins: [], // using correct field name here
+      userAccess: [
+        {
+          userId: user.uid,
+          userEmail: user.email,
+          role: "restaurant main admin",
+        },
+      ],
     });
 
     await newDashboard.save();
@@ -69,34 +72,43 @@ export const getDashboards = async (req, res, next) => {
   try {
     const { uid } = req.user;
 
-    // Fetch dashboards where the user is the owner or a restaurant admin
+    // Fetch dashboards where the user is either the owner or an employee with access
     const dashboards = await Dashboard.find({
-      $or: [{ dashboardOwnerId: uid }, { restaurantAdmins: uid }],
+      $or: [{ dashboardOwnerId: uid }, { "userAccess.userId": uid }],
     })
       .populate(
         "subscriptionId",
         "name tokenLimitPerMonth price paymentSchedule"
       )
-      .populate("restaurants", "name location"); // Populate restaurants with name and location fields
+      .populate({
+        path: "restaurants",
+        select: "name location userAccess",
+      });
 
-    // Fetch usernames for dashboardOwnerId and restaurantAdmins
+    // Format response with filtered restaurants based on user access
     const formattedDashboards = await Promise.all(
       dashboards.map(async (dashboard) => {
-        const owner = await User.findOne(
-          { uid: dashboard.dashboardOwnerId },
-          "username"
-        );
-        const role =
-          dashboard.dashboardOwnerId === uid
-            ? "restaurant main admin"
-            : "restaurant admin";
+        const isMainAdmin = dashboard.dashboardOwnerId === uid;
+        const role = isMainAdmin ? "Restaurant Main Admin" : "Restaurant Admin";
+
+        // Fetch the dashboard owner's email
+        const owner = await User.findOne({ uid: dashboard.dashboardOwnerId });
+        const dashboardOwnerEmail = owner ? owner.email : "Unknown";
+
+        // Filter restaurants: Main Admin sees all, invited Admin sees only assigned restaurants
+        const accessibleRestaurants = isMainAdmin
+          ? dashboard.restaurants // Main Admin can see all restaurants
+          : dashboard.restaurants.filter((restaurant) =>
+              restaurant.userAccess.some((emp) => emp.userId === uid)
+            );
 
         return {
           _id: dashboard._id,
-          dashboardOwnerName: owner ? owner.username : "Unknown",
+          dashboardOwnerEmail, // Now showing the actual owner email
           role,
           subscriptionId: dashboard.subscriptionId,
-          restaurants: dashboard.restaurants.map((restaurant) => ({
+          userAccess: dashboard.userAccess,
+          restaurants: accessibleRestaurants.map((restaurant) => ({
             _id: restaurant._id,
             name: restaurant.name,
             location: restaurant.location,

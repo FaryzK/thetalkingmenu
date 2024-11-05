@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { updateAccessibleDashboards } from "./userSlice";
+import { setAccessibleDashboards } from "./userAccessSlice";
 
 // Thunk to fetch dashboards
 export const fetchDashboards = createAsyncThunk(
@@ -44,10 +44,10 @@ export const createDashboard = createAsyncThunk(
         return rejectWithValue(data);
       }
 
-      // Dispatch to update accessibleDashboards in userSlice
-      dispatch(updateAccessibleDashboards(data.accessibleDashboards));
+      // Dispatch to update accessibleDashboards in userAccessSlice
+      dispatch(setAccessibleDashboards(data.accessibleDashboards));
 
-      return data.dashboard; // Return the new dashboard
+      return data.dashboard; // Return the new dashboard data
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -72,6 +72,15 @@ const dashboardsSlice = createSlice({
       const dashboard = state.data.find((d) => d._id === dashboardId);
       if (dashboard) {
         dashboard.restaurants.push(restaurant);
+      }
+    },
+    removeEmployeeFromDashboard: (state, action) => {
+      const { dashboardId, userId } = action.payload;
+      const dashboard = state.data.find((d) => d._id === dashboardId);
+      if (dashboard) {
+        dashboard.userAccess = dashboard.userAccess.filter(
+          (emp) => emp.userId !== userId
+        );
       }
     },
   },
@@ -105,7 +114,10 @@ const dashboardsSlice = createSlice({
   },
 });
 
-export const { clearDashboardsState, addRestaurantToDashboard } =
-  dashboardsSlice.actions;
+export const {
+  clearDashboardsState,
+  addRestaurantToDashboard,
+  removeEmployeeFromDashboard,
+} = dashboardsSlice.actions;
 
 export default dashboardsSlice.reducer;

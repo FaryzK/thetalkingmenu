@@ -40,17 +40,6 @@ const userSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
-    updateAccessibleDashboards: (state, action) => {
-      if (state.currentUser) {
-        state.currentUser.accessibleDashboards = action.payload;
-      }
-    },
-    updateAccessibleRestaurants: (state, action) => {
-      // New action for restaurants
-      if (state.currentUser) {
-        state.currentUser.accessibleRestaurants = action.payload;
-      }
-    },
     clearError: (state) => {
       state.error = null; // Clear the error
     },
@@ -65,8 +54,6 @@ export const {
   signInSuccess,
   signInFailure,
   signOutSuccess,
-  updateAccessibleDashboards,
-  updateAccessibleRestaurants,
   clearError,
 } = userSlice.actions;
 

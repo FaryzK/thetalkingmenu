@@ -5,9 +5,13 @@ import { Outlet, Navigate, useParams } from "react-router-dom";
 export default function ProtectedRoute({ allowedRoles }) {
   const { dashboardId, restaurantId } = useParams();
   const { currentUser } = useSelector((state) => state.user);
-  const userRoles = currentUser?.user?.roles || [];
-  const accessibleDashboards = currentUser?.user?.accessibleDashboards || [];
-  const accessibleRestaurants = currentUser?.user?.accessibleRestaurants || [];
+  const userRoles = currentUser?.roles || [];
+
+  // Access accessible dashboards and restaurants from userAccessSlice
+  const accessibleDashboards =
+    useSelector((state) => state.userAccess.accessibleDashboards) || [];
+  const accessibleRestaurants =
+    useSelector((state) => state.userAccess.accessibleRestaurants) || [];
 
   // Check if the user has any of the allowed roles (case-insensitive)
   const hasRoleAccess =
@@ -24,10 +28,6 @@ export default function ProtectedRoute({ allowedRoles }) {
 
   // User has access if they have the right role or resource access
   const isAuthorized = hasRoleAccess && hasResourceAccess;
-
-  console.log("hasRoleAccess:", hasRoleAccess);
-  console.log("hasResourceAccess:", hasResourceAccess);
-  console.log("isAuthorized:", isAuthorized);
 
   return isAuthorized ? <Outlet /> : <Navigate to="/" />;
 }

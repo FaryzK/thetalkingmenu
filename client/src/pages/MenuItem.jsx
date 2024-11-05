@@ -78,7 +78,7 @@ export default function MenuItem() {
         updateMenuItem({ token, restaurantId, itemId, updatedItem })
       ).unwrap();
 
-      navigate(`/dashboard/${dashboardId}/restaurant/${restaurantId}/menu`);
+      navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}/menu`);
     } catch {
       setError("Failed to update the menu item. Please try again.");
     }
@@ -88,7 +88,7 @@ export default function MenuItem() {
     try {
       const token = await auth.currentUser.getIdToken();
       await dispatch(deleteMenuItem({ token, restaurantId, itemId })).unwrap();
-      navigate(`/dashboard/${dashboardId}/restaurant/${restaurantId}/menu`);
+      navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}/menu`);
     } catch (error) {
       console.error("Failed to delete menu item:", error);
       setError("Failed to delete the menu item. Please try again.");

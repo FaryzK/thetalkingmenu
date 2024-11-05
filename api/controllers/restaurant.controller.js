@@ -1,5 +1,4 @@
 import pkg from "draft-js";
-
 import Restaurant from "../models/restaurant.model.js";
 import Menu from "../models/menu.model.js";
 import Chat from "../models/chat.model.js";
@@ -11,18 +10,15 @@ import { errorHandler } from "../utils/error.js";
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
   pkg;
 
+// Helper for formatted content
 const createFormattedContent = (textArray) => {
   const contentState = ContentState.createFromText(textArray.join("\n"));
   let editorState = EditorState.createWithContent(contentState);
-
-  // Apply bold style to the first line
   const selection = SelectionState.createEmpty(
     contentState.getFirstBlock().getKey()
   ).merge({ focusOffset: textArray[0].length });
-
   editorState = EditorState.acceptSelection(editorState, selection);
   editorState = RichUtils.toggleInlineStyle(editorState, "BOLD");
-
   return convertToRaw(editorState.getCurrentContent());
 };
 
@@ -32,11 +28,24 @@ export const createRestaurant = async (req, res, next) => {
   const restaurantOwnerId = req.user.uid; // assuming user UID from auth
 
   try {
-    // Step 1: Create and save the restaurant
-    const newRestaurant = new Restaurant({ name, location, restaurantOwnerId });
+    const owner = await User.findOne({ uid: restaurantOwnerId });
+    const owner_role = "restaurant main admin";
+    if (!owner) return next(errorHandler(404, "Owner not found"));
+
+    const newRestaurant = new Restaurant({
+      name,
+      location,
+      restaurantOwnerId,
+      userAccess: [
+        {
+          userId: owner.uid,
+          userEmail: owner.email,
+          role: owner_role,
+        },
+      ],
+    });
     await newRestaurant.save();
 
-    // Step 2: Initialize Chatbot, Chat and Menu documents with the new restaurant's ID
     const defaultQuestions = [
       createFormattedContent([
         "I want a meal around $15",
@@ -59,36 +68,32 @@ export const createRestaurant = async (req, res, next) => {
     const initialChat = new Chat({
       restaurantId: newRestaurant._id,
       userId: restaurantOwnerId,
-      messages: [], // initialize empty messages array
+      messages: [],
     });
     await initialChat.save();
 
     const initialMenu = new Menu({
       restaurantId: newRestaurant._id,
-      menuItems: [], // initialize empty menuItems array
+      menuItems: [],
     });
     await initialMenu.save();
 
-    // Step 3: Find the dashboard associated with the restaurant owner and add the new restaurant ID to the 'restaurants' array
     const updatedDashboard = await Dashboard.findOneAndUpdate(
-      { dashboardOwnerId: restaurantOwnerId }, // Find dashboard by owner ID
-      { $push: { restaurants: newRestaurant._id } }, // Add new restaurant ID to 'restaurants' array
-      { new: true } // Return the updated document
+      { dashboardOwnerId: restaurantOwnerId },
+      { $push: { restaurants: newRestaurant._id } },
+      { new: true }
     );
 
-    // Step 4: Update the user model
-    const user = await User.findOne({ uid: restaurantOwnerId });
-    user.accessibleRestaurants.push(newRestaurant._id.toString());
-    await user.save();
+    owner.accessibleRestaurants.push(newRestaurant._id.toString());
+    await owner.save();
 
-    // Step 5: Return response with the new restaurant, chat, and menu data if needed
     res.status(201).json({
       restaurant: newRestaurant,
       chatBot: initialChatBot,
       chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,
-      accessibleRestaurants: user.accessibleRestaurants,
+      accessibleRestaurants: owner.accessibleRestaurants,
     });
   } catch (error) {
     console.error("Error creating restaurant:", error);
@@ -99,17 +104,75 @@ export const createRestaurant = async (req, res, next) => {
 // Get a specific restaurant by ID
 export const getRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;
-
   try {
     const restaurant = await Restaurant.findById(restaurantId)
       .populate("menu")
       .populate("chats");
-    if (!restaurant) {
-      return next(errorHandler(404, "Restaurant not found"));
-    }
+    if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
     res.status(200).json(restaurant);
   } catch (error) {
     console.error("Error fetching restaurant:", error);
     next(errorHandler(500, "Failed to fetch restaurant"));
+  }
+};
+
+// Fetch all restaurants (restricted to admin)
+export const getAllRestaurants = async (req, res, next) => {
+  try {
+    const restaurants = await Restaurant.find()
+      .populate("menu")
+      .populate("chats");
+
+    const ownerIds = restaurants.map(
+      (restaurant) => restaurant.restaurantOwnerId
+    );
+    const owners = await User.find({ uid: { $in: ownerIds } }, "uid email");
+
+    const ownerEmailMap = owners.reduce((acc, owner) => {
+      acc[owner.uid] = owner.email;
+      return acc;
+    }, {});
+
+    const restaurantsWithOwners = restaurants.map((restaurant) => ({
+      ...restaurant.toObject(),
+      ownerEmail:
+        ownerEmailMap[restaurant.restaurantOwnerId] || "Owner not found",
+    }));
+
+    res.status(200).json(restaurantsWithOwners);
+  } catch (error) {
+    console.error("Error fetching all restaurants:", error);
+    next(errorHandler(500, "Failed to fetch restaurants"));
+  }
+};
+
+// Delete restaurant by ID and associated data
+export const deleteRestaurant = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  try {
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
+
+    await ChatBot.deleteMany({ restaurantId: restaurant._id });
+    await Chat.deleteMany({ restaurantId: restaurant._id });
+    await Menu.deleteMany({ restaurantId: restaurant._id });
+
+    await User.updateMany(
+      { accessibleRestaurants: restaurant._id.toString() },
+      { $pull: { accessibleRestaurants: restaurant._id.toString() } }
+    );
+
+    await Dashboard.updateMany(
+      { restaurants: restaurant._id },
+      { $pull: { restaurants: restaurant._id } }
+    );
+
+    await restaurant.deleteOne();
+    res
+      .status(200)
+      .json({ message: "Restaurant and associated data deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting restaurant:", error);
+    next(errorHandler(500, "Failed to delete restaurant"));
   }
 };

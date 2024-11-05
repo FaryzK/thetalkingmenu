@@ -86,7 +86,7 @@ export default function Dashboards() {
           className="bg-white p-4 rounded-lg shadow-md w-full text-left mb-4 hover:bg-gray-200 transition"
         >
           <h2 className="text-xl font-semibold text-gray-700">
-            {dashboard.dashboardOwnerName}'s Dashboard
+            {dashboard.dashboardOwnerEmail}
           </h2>
           <p className="text-gray-500">
             Your Role: {capitalizeFirstLetter(dashboard.role || "")}

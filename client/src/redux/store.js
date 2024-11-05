@@ -6,6 +6,8 @@ import menuReducer from "./slices/menuSlice"; // Import menuReducer
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import chatBotReducer from "./slices/chatBotSlice";
+import userAccessReducer from "./slices/userAccessSlice";
+import platformControlPanelRestaurantsReducer from "./slices/platformControlPanelRestaurantsSlice";
 
 const rootReducer = combineReducers({
   user: userReducer,
@@ -13,13 +15,21 @@ const rootReducer = combineReducers({
   restaurant: restaurantReducer,
   menu: menuReducer,
   chatBot: chatBotReducer,
+  userAccess: userAccessReducer,
+  platformControlPanelRestaurants: platformControlPanelRestaurantsReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
   version: 1,
-  blacklist: ["dashboards", "restaurant", "menu", "chatBot"], // Exclude from persistence
+  blacklist: [
+    "dashboards",
+    "restaurant",
+    "menu",
+    "chatBot",
+    "platformControlPanelRestaurants",
+  ], // Exclude from persistence
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -10,7 +10,7 @@ import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed
 
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
-  const userRoles = currentUser?.user?.roles || [];
+  const userRoles = currentUser?.roles || [];
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ export default function Header() {
               <Avatar
                 alt="User settings"
                 img={
-                  currentUser?.user?.profilePicture ||
+                  currentUser?.profilePicture ||
                   "https://cdn-icons-png.flaticon.com/512/17492/17492071.png"
                 }
                 rounded
@@ -74,11 +74,9 @@ export default function Header() {
           >
             {/* Add this line to log the URL */}
             <Dropdown.Header>
-              <span className="block text-sm">
-                {currentUser?.user?.username}
-              </span>
+              <span className="block text-sm">{currentUser?.username}</span>
               <span className="block truncate text-sm font-medium">
-                {currentUser?.user?.email}
+                {currentUser?.email}
               </span>
             </Dropdown.Header>
             {canViewDashboards && (
