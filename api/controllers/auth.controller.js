@@ -77,3 +77,25 @@ export const google = async (req, res, next) => {
     next(errorHandler(500, "Error signing in with Google"));
   }
 };
+
+// New controller function to fetch user access data
+export const getUserAccessData = async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findOne(
+      { uid: userId },
+      "accessibleDashboards accessibleRestaurants"
+    );
+    if (!user) {
+      return next(errorHandler(404, "User not found"));
+    }
+
+    res.status(200).json({
+      accessibleDashboards: user.accessibleDashboards,
+      accessibleRestaurants: user.accessibleRestaurants,
+    });
+  } catch (error) {
+    next(errorHandler(500, "Failed to retrieve user access data"));
+  }
+};

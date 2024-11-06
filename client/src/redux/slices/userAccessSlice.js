@@ -4,6 +4,23 @@ import { addRestaurantToDashboard } from "./dashboardsSlice";
 import { removeEmployeeFromDashboard } from "./dashboardsSlice"; // Import the necessary action for dashboards
 import { removeEmployeeFromRestaurant } from "./restaurantSlice"; // Import the necessary action for restaurants
 
+//
+export const fetchUserAccessData = createAsyncThunk(
+  "userAccess/fetchUserAccessData",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/auth/user-access/${userId}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch user access data");
+      }
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Thunk to add employee access
 export const addEmployeeAccess = createAsyncThunk(
   "userAccess/addEmployeeAccess",
@@ -133,6 +150,19 @@ const userAccessSlice = createSlice({
       .addCase(revokeEmployeeAccess.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to revoke employee access";
+      })
+      .addCase(fetchUserAccessData.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchUserAccessData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.accessibleDashboards = action.payload.accessibleDashboards;
+        state.accessibleRestaurants = action.payload.accessibleRestaurants;
+        state.lastFetched = Date.now();
+      })
+      .addCase(fetchUserAccessData.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch access data";
       });
   },
 });

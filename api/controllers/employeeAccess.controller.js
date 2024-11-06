@@ -92,6 +92,7 @@ export const revokeEmployeeAccess = async (req, res, next) => {
   const { userId, dashboardId, restaurantId } = req.body;
 
   try {
+    // Remove user access from the specified restaurant
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
 
@@ -100,6 +101,7 @@ export const revokeEmployeeAccess = async (req, res, next) => {
     );
     await restaurant.save();
 
+    // Remove user access from the specified dashboard
     const dashboard = await Dashboard.findById(dashboardId);
     if (!dashboard) return next(errorHandler(404, "Dashboard not found"));
 
@@ -108,6 +110,7 @@ export const revokeEmployeeAccess = async (req, res, next) => {
     );
     await dashboard.save();
 
+    // Update user’s accessible dashboards and restaurants
     const user = await User.findOne({ uid: userId });
     if (user) {
       user.accessibleDashboards = user.accessibleDashboards.filter(
@@ -116,6 +119,15 @@ export const revokeEmployeeAccess = async (req, res, next) => {
       user.accessibleRestaurants = user.accessibleRestaurants.filter(
         (id) => id !== restaurantId
       );
+
+      // If no accessible dashboards or restaurants remain, set role to "diner"
+      if (
+        user.accessibleDashboards.length === 0 &&
+        user.accessibleRestaurants.length === 0
+      ) {
+        user.roles = ["diner"];
+      }
+
       await user.save();
     }
 
