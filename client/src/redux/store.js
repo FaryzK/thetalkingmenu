@@ -29,6 +29,7 @@ const persistConfig = {
     "menu",
     "chatBot",
     "platformControlPanelRestaurants",
+    "userAccess",
   ], // Exclude from persistence
 };
 
