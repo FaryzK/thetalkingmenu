@@ -1,9 +1,11 @@
+// restaurant.route.js
 import express from "express";
 import {
   createRestaurant,
   getRestaurant,
   getAllRestaurants,
   deleteRestaurant,
+  updateRestaurant, // Import the update function
 } from "../controllers/restaurant.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { isAdmin } from "../utils/isAdmin.js";
@@ -22,6 +24,9 @@ router.post(
 
 // GET route to fetch a specific restaurant by ID
 router.get("/restaurant/:restaurantId", isAuthenticated, getRestaurant);
+
+// PUT route to update restaurant info
+router.put("/restaurant/:restaurantId", isAuthenticated, updateRestaurant);
 
 // DELETE route to delete a specific restaurant by ID (admin only)
 router.delete(

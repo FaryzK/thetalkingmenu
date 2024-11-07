@@ -78,6 +78,17 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/info`
+              )
+            }
+          >
+            Restaurant Info
+          </button>
+
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              navigate(
                 `/dashboards/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
               )
             }

@@ -6,49 +6,42 @@ import { fetchUserAccessData } from "../redux/slices/userAccessSlice";
 export default function ProtectedRoute({ allowedRoles }) {
   const { dashboardId, restaurantId } = useParams();
   const dispatch = useDispatch();
-  const [isFetching, setIsFetching] = useState(true); // Initial fetching state
-  const [isAuthorized, setIsAuthorized] = useState(false); // Authorization state
-
+  const [isFetching, setIsFetching] = useState(false); // State to handle ongoing fetch
   const { currentUser } = useSelector((state) => state.user);
   const { accessibleDashboards, accessibleRestaurants } = useSelector(
     (state) => state.userAccess
   );
   const userRoles = currentUser?.roles || [];
 
-  // Check if the user has the necessary role access
+  // Check if user has any of the allowed roles
   const hasRoleAccess =
     Array.isArray(allowedRoles) &&
     allowedRoles.some((allowedRole) =>
       userRoles.some((role) => role.toLowerCase() === allowedRole.toLowerCase())
     );
 
-  // Function to update authorization based on fetched data
-  const updateAuthorization = () => {
-    const hasResourceAccess =
-      (!dashboardId && !restaurantId) ||
-      (dashboardId && accessibleDashboards.includes(dashboardId)) ||
-      (restaurantId && accessibleRestaurants.includes(restaurantId));
+  // Check if user has access to the specified dashboard or restaurant
+  const hasResourceAccess =
+    (!dashboardId && !restaurantId) ||
+    (dashboardId && accessibleDashboards.includes(dashboardId)) ||
+    (restaurantId && accessibleRestaurants.includes(restaurantId));
 
-    setIsAuthorized(hasRoleAccess && hasResourceAccess);
-  };
+  // Initial authorization check
+  const isAuthorized = hasRoleAccess && hasResourceAccess;
 
-  // Fetch user access data each time this component mounts or currentUser changes
+  // Fetch authorization data if `isAuthorized` is `false`, user is signed in, and data might be outdated
   useEffect(() => {
-    if (currentUser?.uid) {
-      setIsFetching(true);
-      dispatch(fetchUserAccessData(currentUser.uid))
-        .then(() => {
-          updateAuthorization();
-        })
-        .finally(() => {
-          setIsFetching(false);
-        });
+    if (!isAuthorized && !isFetching && currentUser?.uid) {
+      setIsFetching(true); // Avoid re-triggering fetch while fetching
+      dispatch(fetchUserAccessData(currentUser.uid)).finally(() =>
+        setIsFetching(false)
+      );
     }
-  }, [dispatch, currentUser, hasRoleAccess, dashboardId, restaurantId]);
+  }, [isAuthorized, isFetching, dispatch, currentUser]);
 
-  // Display loading indicator while fetching data
-  if (isFetching) return <div>Loading...</div>;
+  // Recalculate authorization after fetching if it was previously unauthorized
+  const recheckedAuthorization = hasRoleAccess && hasResourceAccess;
 
-  // Redirect if authorization is not granted, otherwise render the protected content
-  return isAuthorized ? <Outlet /> : <Navigate to="/" />;
+  // If still unauthorized after refetch, redirect to home
+  return recheckedAuthorization ? <Outlet /> : <Navigate to="/" />;
 }

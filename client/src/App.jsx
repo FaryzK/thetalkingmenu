@@ -25,6 +25,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import EmployeeAccessOverview from "./pages/EmployeeAccessOverview";
 import EmployeeAccessAdd from "./pages/EmployeeAccessAdd.jsx";
 import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
+import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 
 export default function App() {
   return (
@@ -82,6 +83,10 @@ export default function App() {
           <Route
             path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-revoke/:userId"
             element={<EmployeeAccessRevoke />}
+          />
+          <Route
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/info"
+            element={<RestaurantInfo />}
           />
         </Route>
 

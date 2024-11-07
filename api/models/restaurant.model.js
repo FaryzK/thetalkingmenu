@@ -41,11 +41,15 @@ const restaurantSchema = new mongoose.Schema({
         required: true,
       },
       role: {
-        type: String, //role in the give restaurant, either restaurant main admin or restaurant admin
+        type: String, //role in the given restaurant, either restaurant main admin or restaurant admin
         required: true,
       },
     },
   ],
+  logo: {
+    type: String,
+    default: "https://cdn-icons-png.flaticon.com/512/4904/4904233.png", // Default logo URL
+  },
 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

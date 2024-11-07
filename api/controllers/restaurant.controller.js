@@ -146,6 +146,32 @@ export const getAllRestaurants = async (req, res, next) => {
   }
 };
 
+// Update restaurant information by ID
+export const updateRestaurant = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  const { name, location, logo } = req.body; // Assume the updated data is sent in the body
+
+  try {
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
+
+    // Update fields if they are provided
+    if (name) restaurant.name = name;
+    if (location) restaurant.location = location;
+    if (logo) restaurant.logo = logo;
+
+    await restaurant.save();
+
+    res.status(200).json({
+      message: "Restaurant updated successfully",
+      restaurant,
+    });
+  } catch (error) {
+    console.error("Error updating restaurant:", error);
+    next(errorHandler(500, "Failed to update restaurant information"));
+  }
+};
+
 // Delete restaurant by ID and associated data
 export const deleteRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;

@@ -32,7 +32,12 @@ export default function SuggestedQuestions() {
     return chatBot.suggestedQuestions.map((question) => {
       try {
         if (question && question.blocks && Array.isArray(question.blocks)) {
-          return EditorState.createWithContent(convertFromRaw(question));
+          // Ensure `entityMap` is initialized to an empty object if missing
+          const validQuestion = {
+            ...question,
+            entityMap: question.entityMap || {},
+          };
+          return EditorState.createWithContent(convertFromRaw(validQuestion));
         }
         return EditorState.createEmpty();
       } catch (error) {
@@ -155,12 +160,6 @@ export default function SuggestedQuestions() {
           <h3 className="font-semibold mb-2">Editor</h3>
           {questions.map((editorState, index) => (
             <div key={index} className="mb-4">
-              {/* <button
-                onClick={() => toggleInlineStyle(index, "BOLD")}
-                className="mb-2 px-3 py-1 bg-gray-200 rounded"
-              >
-                Bold
-              </button> */}
               <Editor
                 editorState={editorState}
                 onChange={(newState) =>

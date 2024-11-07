@@ -65,6 +65,34 @@ export const createRestaurant = createAsyncThunk(
   }
 );
 
+// Thunk to update restaurant information
+export const updateRestaurantInfo = createAsyncThunk(
+  "restaurant/updateRestaurantInfo",
+  async ({ token, restaurantId, updatedData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/restaurant/${restaurantId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(
+          data.message || "Failed to update restaurant info"
+        );
+      }
+
+      return data.restaurant; // Return the updated restaurant data
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const restaurantSlice = createSlice({
   name: "restaurant",
   initialState: {
@@ -113,6 +141,19 @@ const restaurantSlice = createSlice({
       .addCase(createRestaurant.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to create restaurant";
+      })
+
+      // Handling updateRestaurantInfo
+      .addCase(updateRestaurantInfo.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateRestaurantInfo.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.data = { ...state.data, ...action.payload }; // Update the restaurant data with the payload
+      })
+      .addCase(updateRestaurantInfo.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to update restaurant";
       });
   },
 });
