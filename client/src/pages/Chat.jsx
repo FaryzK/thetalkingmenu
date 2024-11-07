@@ -8,7 +8,8 @@ export default function Chat() {
   const { restaurantId } = useParams();
   const dispatch = useDispatch();
   const [input, setInput] = useState("");
-  const [userId, setUserId] = useState(null); // Track userId if logged in
+  const [userId, setUserId] = useState(null);
+  const [tempAssistantMessage, setTempAssistantMessage] = useState(""); // Temporary state for streaming
   const messages = useSelector((state) => state.chat.messages);
 
   useEffect(() => {
@@ -22,11 +23,10 @@ export default function Chat() {
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
-    // Optimistically display user message
+    // Optimistically add user message
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
 
-    // Stream response with Fetch API and ReadableStream
     fetch(`/api/chat/send-message`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,16 +36,24 @@ export default function Chat() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        // Process streaming data chunks
+        let assistantMessage = ""; // Collect the full response here
+
+        // Process each chunk as it arrives
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
-              console.log("Stream finished.");
+              // Dispatch full response to Redux once complete
+              dispatch(
+                addMessage({ role: "assistant", content: assistantMessage })
+              );
+              setTempAssistantMessage(""); // Clear temporary state
               return;
             }
+
             const chunk = decoder.decode(value);
-            dispatch(addMessage({ role: "assistant", content: chunk }));
-            readChunk();
+            assistantMessage += chunk; // Accumulate the chunk
+            setTempAssistantMessage(assistantMessage); // Update UI with accumulated response
+            readChunk(); // Continue reading next chunk
           });
         }
 
@@ -67,6 +75,10 @@ export default function Chat() {
             {msg.content}
           </p>
         ))}
+        {/* Display the in-progress assistant message */}
+        {tempAssistantMessage && (
+          <p className="text-left">{tempAssistantMessage}</p>
+        )}
       </div>
       <input
         value={input}
