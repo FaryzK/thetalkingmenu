@@ -122,13 +122,7 @@ export default function RestaurantInfo() {
         <label className="block text-gray-700 font-semibold mb-2">
           Logo URL
         </label>
-        {logoUrl && (
-          <img
-            src={logoUrl}
-            alt="Restaurant Logo"
-            className="mb-4 w-24 h-24 object-cover rounded-lg mx-auto"
-          />
-        )}
+
         <input
           type="text"
           placeholder="Enter logo URL"
@@ -136,6 +130,13 @@ export default function RestaurantInfo() {
           onChange={(e) => setLogoUrl(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt="Restaurant Logo"
+            className="mb-4 w-24 h-24 object-cover rounded-lg mx-auto"
+          />
+        )}
       </div>
 
       <button

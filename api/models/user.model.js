@@ -34,6 +34,12 @@ const userSchema = new mongoose.Schema(
         type: String, // Store restaurant IDs as an array of strings
       },
     ],
+    starredChats: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat",
+      },
+    ],
   },
   { timestamps: true }
 );
