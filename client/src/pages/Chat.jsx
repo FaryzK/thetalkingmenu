@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { addMessage, startNewChat, setChatId } from "../redux/slices/chatSlice";
@@ -9,9 +9,11 @@ export default function Chat() {
   const dispatch = useDispatch();
   const [input, setInput] = useState("");
   const [userId, setUserId] = useState(null);
-  const [tempAssistantMessage, setTempAssistantMessage] = useState(""); // Temporary state for streaming
+  const [tempAssistantMessage, setTempAssistantMessage] = useState("");
   const messages = useSelector((state) => state.chat.messages);
   const chatId = useSelector((state) => state.chat.chatId);
+
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -21,17 +23,15 @@ export default function Chat() {
     });
   }, []);
 
-  const handleSendMessage = async () => {
-    console.log(`Initial chatId is ${chatId}`);
-    if (!input.trim()) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, tempAssistantMessage]);
 
-    // Optimistically add user message to Redux
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
-
     let currentChatId = chatId;
-
-    // Start a new chat if there is no existing chatId
     if (!currentChatId) {
       const startChatResponse = await dispatch(
         startNewChat({ restaurantId, userId })
@@ -39,8 +39,6 @@ export default function Chat() {
       currentChatId = startChatResponse.payload.chatId;
       dispatch(setChatId(currentChatId));
     }
-
-    // Send the message with the chatId now available
     fetch(`/api/chat/send-message`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,33 +46,28 @@ export default function Chat() {
         restaurantId,
         userId,
         message: input,
-        chatId: currentChatId, // Ensure we're sending the updated chatId
+        chatId: currentChatId,
       }),
     })
       .then((response) => {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-
-        let assistantMessage = ""; // Collect the full response here
-
-        // Process each chunk as it arrives
+        let assistantMessage = "";
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
               dispatch(
                 addMessage({ role: "assistant", content: assistantMessage })
               );
-              setTempAssistantMessage(""); // Clear temporary state
+              setTempAssistantMessage("");
               return;
             }
-
             const chunk = decoder.decode(value);
-            assistantMessage += chunk; // Accumulate the chunk
-            setTempAssistantMessage(assistantMessage); // Update UI with accumulated response
-            readChunk(); // Continue reading next chunk
+            assistantMessage += chunk;
+            setTempAssistantMessage(assistantMessage);
+            readChunk();
           });
         }
-
         readChunk();
       })
       .catch((error) => {
@@ -83,32 +76,49 @@ export default function Chat() {
   };
 
   return (
-    <div>
-      <div>
+    <div className="flex flex-col h-screen bg-gray-900 text-white p-6">
+      <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
         {messages.map((msg, index) => (
-          <p
+          <div
             key={index}
-            className={msg.role === "user" ? "text-right" : "text-left"}
+            className={
+              msg.role === "user" ? "flex justify-end" : "flex justify-start"
+            }
           >
-            {msg.content}
-          </p>
+            <div
+              className={`${
+                msg.role === "user"
+                  ? "bg-blue-600 text-white text-left"
+                  : "bg-gray-800"
+              } p-4 rounded-lg max-w-xl`}
+            >
+              {msg.content}
+            </div>
+          </div>
         ))}
         {tempAssistantMessage && (
-          <p className="text-left">{tempAssistantMessage}</p>
+          <div className="flex justify-start">
+            <div className="bg-gray-800 p-4 rounded-lg max-w-2xl">
+              {tempAssistantMessage}
+            </div>
+          </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
-      <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Type a message"
-        className="border rounded p-2 w-full mt-4"
-      />
-      <button
-        onClick={handleSendMessage}
-        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Send
-      </button>
+      <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg sticky bottom-0">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type a message"
+          className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+        />
+        <button
+          onClick={handleSendMessage}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }

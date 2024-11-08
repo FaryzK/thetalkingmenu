@@ -49,18 +49,28 @@ export default function GlobalSystemPromptManager() {
   };
 
   return (
-    <div>
-      <h2>Global System Prompt Manager</h2>
-      {message && <p>{message}</p>}
-      <textarea
-        value={globalPrompt}
-        onChange={(e) => setGlobalPrompt(e.target.value)}
-        rows="5"
-        placeholder="Enter the global system prompt..."
-      />
-      <button onClick={handleSave}>
-        {editing ? "Update Global Prompt" : "Create Global Prompt"}
-      </button>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        Global System Prompt Manager
+      </h1>
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-xl mx-auto">
+        {message && (
+          <p className="text-center text-sm text-green-600 mb-4">{message}</p>
+        )}
+        <textarea
+          value={globalPrompt}
+          onChange={(e) => setGlobalPrompt(e.target.value)}
+          rows="5"
+          placeholder="Enter the global system prompt..."
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={handleSave}
+          className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg shadow hover:bg-blue-600"
+        >
+          {editing ? "Update Global Prompt" : "Create Global Prompt"}
+        </button>
+      </div>
     </div>
   );
 }

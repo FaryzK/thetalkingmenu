@@ -2,6 +2,7 @@ import Chat from "../models/chat.model.js";
 import ChatBot from "../models/chatBot.model.js";
 import Menu from "../models/menu.model.js";
 import GlobalSystemPrompt from "../models/globalSystemPrompt.model.js";
+import Restaurant from "../models/restaurant.model.js";
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
@@ -40,16 +41,19 @@ export const sendMessage = async (req, res, next) => {
     return res.status(400).json({ error: "restaurantId is required" });
   }
 
-  let chat, chatBot, globalSystemPrompt, menu;
+  let chat, chatBot, globalSystemPrompt, menu, restaurant;
 
   try {
     // 1. Fetch prompts and menu
     globalSystemPrompt = await GlobalSystemPrompt.findOne();
     chatBot = await ChatBot.findOne({ restaurantId });
     menu = await Menu.findOne({ restaurantId });
+    restaurant = await Restaurant.findById(restaurantId);
 
-    if (!globalSystemPrompt || !chatBot) {
-      throw new Error("System prompts or chatbot details are missing.");
+    if (!globalSystemPrompt || !chatBot || !restaurant) {
+      throw new Error(
+        "System prompts, chatbot details, or restaurant info are missing."
+      );
     }
 
     // 2. Find or create a new chat session
@@ -94,6 +98,10 @@ export const sendMessage = async (req, res, next) => {
       { role: "system", content: chatBot.systemPrompt },
       {
         role: "system",
+        content: `Restaurant Name: ${restaurant.name}; Restaurant Location: ${restaurant.location}`,
+      },
+      {
+        role: "system",
         content: `Menu details: ${menu.menuItems
           .map((item) => `${item.name} - ${item.description} ($${item.price})`)
           .join("; ")}`,
@@ -109,6 +117,8 @@ export const sendMessage = async (req, res, next) => {
       messages: openaiMessages,
       stream: true,
     });
+
+    console.log(openaiMessages);
 
     for await (const chunk of openaiResponse) {
       const content = chunk.choices[0].delta.content || "";
