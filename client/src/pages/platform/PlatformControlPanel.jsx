@@ -14,13 +14,19 @@ export default function PlatformControlPanel() {
           onClick={() => navigate("/subscription-manager")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
         >
-          Subscription Management
+          Subscription Manager
         </button>
         <button
           onClick={() => navigate("/restaurant-manager")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
         >
-          Restaurant Management
+          Restaurant Manager
+        </button>
+        <button
+          onClick={() => navigate("/global-system-prompt")}
+          className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
+        >
+          Global System Prompt Manager
         </button>
       </div>
     </div>

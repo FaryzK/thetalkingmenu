@@ -1,5 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
+// Thunk to initiate a new chat and retrieve chatId
+export const startNewChat = createAsyncThunk(
+  "chat/startNewChat",
+  async ({ restaurantId, userId }) => {
+    const response = await fetch(`/api/chat/start-new-chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ restaurantId, userId }),
+    });
+    if (!response.ok) throw new Error("Failed to start new chat");
+    return await response.json(); // Should return { chatId }
+  }
+);
+
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
   async ({ restaurantId, userId = null, message }) => {
@@ -27,9 +41,18 @@ const chatSlice = createSlice({
     clearMessages(state) {
       state.messages = [];
     },
+    setChatId(state, action) {
+      state.chatId = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(startNewChat.fulfilled, (state, action) => {
+        state.chatId = action.payload.chatId;
+      })
+      .addCase(startNewChat.rejected, (state, action) => {
+        state.error = action.error.message;
+      })
       .addCase(sendMessage.pending, (state) => {
         state.status = "loading";
       })
@@ -52,5 +75,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, clearMessages } = chatSlice.actions;
+export const { addMessage, setChatId, clearMessages } = chatSlice.actions;
 export default chatSlice.reducer;

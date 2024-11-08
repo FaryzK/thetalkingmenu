@@ -26,6 +26,7 @@ import EmployeeAccessOverview from "./pages/EmployeeAccessOverview";
 import EmployeeAccessAdd from "./pages/EmployeeAccessAdd.jsx";
 import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 import RestaurantInfo from "./pages/RestaurantInfo.jsx";
+import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
 
 export default function App() {
   return (
@@ -97,20 +98,18 @@ export default function App() {
           }
         >
           <Route
-            element={
-              <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
-            }
-          >
-            <Route
-              path="/platform-control-panel"
-              element={<PlatformControlPanel />}
-            />
-            <Route
-              path="/subscription-manager"
-              element={<SubscriptionManager />}
-            />
-            <Route path="/restaurant-manager" element={<RestaurantManager />} />
-          </Route>
+            path="/platform-control-panel"
+            element={<PlatformControlPanel />}
+          />
+          <Route
+            path="/subscription-manager"
+            element={<SubscriptionManager />}
+          />
+          <Route path="/restaurant-manager" element={<RestaurantManager />} />
+          <Route
+            path="/global-system-prompt"
+            element={<GlobalSystemPromptManager />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

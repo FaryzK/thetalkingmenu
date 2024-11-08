@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { addMessage } from "../redux/slices/chatSlice";
+import { addMessage, startNewChat, setChatId } from "../redux/slices/chatSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function Chat() {
@@ -11,6 +11,7 @@ export default function Chat() {
   const [userId, setUserId] = useState(null);
   const [tempAssistantMessage, setTempAssistantMessage] = useState(""); // Temporary state for streaming
   const messages = useSelector((state) => state.chat.messages);
+  const chatId = useSelector((state) => state.chat.chatId);
 
   useEffect(() => {
     const auth = getAuth();
@@ -20,17 +21,35 @@ export default function Chat() {
     });
   }, []);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    console.log(`Initial chatId is ${chatId}`);
     if (!input.trim()) return;
 
-    // Optimistically add user message
+    // Optimistically add user message to Redux
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
 
+    let currentChatId = chatId;
+
+    // Start a new chat if there is no existing chatId
+    if (!currentChatId) {
+      const startChatResponse = await dispatch(
+        startNewChat({ restaurantId, userId })
+      );
+      currentChatId = startChatResponse.payload.chatId;
+      dispatch(setChatId(currentChatId));
+    }
+
+    // Send the message with the chatId now available
     fetch(`/api/chat/send-message`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ restaurantId, userId, message: input }),
+      body: JSON.stringify({
+        restaurantId,
+        userId,
+        message: input,
+        chatId: currentChatId, // Ensure we're sending the updated chatId
+      }),
     })
       .then((response) => {
         const reader = response.body.getReader();
@@ -42,7 +61,6 @@ export default function Chat() {
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
-              // Dispatch full response to Redux once complete
               dispatch(
                 addMessage({ role: "assistant", content: assistantMessage })
               );
@@ -75,7 +93,6 @@ export default function Chat() {
             {msg.content}
           </p>
         ))}
-        {/* Display the in-progress assistant message */}
         {tempAssistantMessage && (
           <p className="text-left">{tempAssistantMessage}</p>
         )}

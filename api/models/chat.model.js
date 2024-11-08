@@ -8,7 +8,7 @@ const chatSchema = new mongoose.Schema({
   },
   userId: {
     type: String,
-    required: true,
+    required: false, // Make this field optional
   },
   messages: [
     {
@@ -22,12 +22,12 @@ const chatSchema = new mongoose.Schema({
       },
       sender: {
         type: String,
-        enum: ["user", "assistant"],
+        enum: ["system ", "user", "assistant"],
         required: true,
       },
       role: {
         type: String,
-        enum: ["user", "assistant"],
+        enum: ["system", "user", "assistant"],
       },
       index: {
         type: Number,
