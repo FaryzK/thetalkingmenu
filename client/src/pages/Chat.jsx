@@ -76,48 +76,54 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white p-6">
-      <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={
-              msg.role === "user" ? "flex justify-end" : "flex justify-start"
-            }
-          >
+    <div className="flex justify-center bg-gray-900 text-white h-screen p-6 pt-20">
+      <div className="flex flex-col w-full max-w-3xl h-full">
+        <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
+          {messages.map((msg, index) => (
             <div
-              className={`${
+              key={index}
+              className={
                 msg.role === "user"
-                  ? "bg-blue-600 text-white text-left"
-                  : "bg-gray-800"
-              } p-4 rounded-lg max-w-xl`}
+                  ? "flex justify-end"
+                  : "flex justify-start w-full"
+              }
             >
-              {msg.content}
+              <div
+                className={`${
+                  msg.role === "user"
+                    ? "bg-gray-800 text-white max-w-xl"
+                    : "bg-transparent text-gray-200 w-full"
+                } px-4 py-2 ${
+                  msg.content.length < 50 ? "rounded-full" : "rounded-2xl"
+                }`}
+              >
+                {msg.content}
+              </div>
             </div>
-          </div>
-        ))}
-        {tempAssistantMessage && (
-          <div className="flex justify-start">
-            <div className="bg-gray-800 p-4 rounded-lg max-w-2xl">
-              {tempAssistantMessage}
+          ))}
+          {tempAssistantMessage && (
+            <div className="flex justify-start w-full">
+              <div className="bg-transparent text-gray-200 p-4 w-full">
+                {tempAssistantMessage}
+              </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg sticky bottom-0">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message"
-          className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-        />
-        <button
-          onClick={handleSendMessage}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          Send
-        </button>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg sticky bottom-0">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message"
+            className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          />
+          <button
+            onClick={handleSendMessage}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );
