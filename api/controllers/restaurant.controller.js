@@ -6,6 +6,7 @@ import ChatBot from "../models/chatBot.model.js";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
+import TokenUsage from "../models/tokenUsage.model.js";
 
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
   pkg;
@@ -82,7 +83,24 @@ export const createRestaurant = async (req, res, next) => {
       { dashboardOwnerId: restaurantOwnerId },
       { $push: { restaurants: newRestaurant._id } },
       { new: true }
-    );
+    ).populate("subscriptionId");
+
+    if (!updatedDashboard || !updatedDashboard.subscriptionId) {
+      return next(errorHandler(404, "Dashboard or subscription not found"));
+    }
+    const tokenLimit = updatedDashboard.subscriptionId.tokenLimitPerMonth;
+
+    // Step 4: Initialize TokenUsage with Current Month, Year, and Token Limit
+    const now = new Date();
+    const initialTokenUsage = new TokenUsage({
+      restaurantId: newRestaurant._id,
+      dashboardId: updatedDashboard._id,
+      month: now.getMonth() + 1, // JavaScript months are 0-indexed
+      year: now.getFullYear(),
+      tokensUsed: 0,
+      tokenLimit,
+    });
+    await initialTokenUsage.save();
 
     owner.accessibleRestaurants.push(newRestaurant._id.toString());
     await owner.save();
@@ -93,6 +111,7 @@ export const createRestaurant = async (req, res, next) => {
       chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,
+      tokenUsage: initialTokenUsage,
       accessibleRestaurants: owner.accessibleRestaurants,
     });
   } catch (error) {

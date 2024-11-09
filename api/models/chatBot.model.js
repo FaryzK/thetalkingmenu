@@ -7,16 +7,6 @@ const chatBotSchema = new mongoose.Schema({
     ref: "Restaurant",
     required: true,
   },
-  chats: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Chat",
-    },
-  ],
-  tokensUsed: {
-    type: Number,
-    default: 0,
-  },
   systemPrompt: {
     type: String,
     default: "",

@@ -1,50 +1,33 @@
 import mongoose from "mongoose";
 
-const chatSchema = new mongoose.Schema({
+const tokenUsageSchema = new mongoose.Schema({
   restaurantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Restaurant",
     required: true,
   },
-  userId: {
-    type: String,
-    required: false, // Make this field optional
+  dashboardId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Dashboard",
+    required: true,
   },
-  messages: [
-    {
-      message: {
-        type: String,
-        required: true,
-      },
-      timestamp: {
-        type: Date,
-        default: Date.now,
-      },
-      sender: {
-        type: String,
-        enum: ["system ", "user", "assistant"],
-        required: true,
-      },
-      role: {
-        type: String,
-        enum: ["system", "user", "assistant"],
-      },
-      index: {
-        type: Number,
-        default: 0,
-      },
-      finish_reason: {
-        type: String,
-      },
-      logprobs: {
-        type: mongoose.Schema.Types.Mixed,
-      },
-    },
-  ],
-  model: {
-    type: String,
+  month: {
+    type: Number, // e.g., 1 for January, 2 for February, etc.
+    required: true,
   },
-  tokenUsage: {
+  year: {
+    type: Number,
+    required: true,
+  },
+  tokensUsed: {
+    type: Number,
+    default: 0,
+  },
+  tokenLimit: {
+    type: Number,
+    required: true, // Capture the limit at the start of each month
+  },
+  tokenUsageDetails: {
     prompt_tokens: {
       type: Number,
       default: 0,
@@ -88,5 +71,5 @@ const chatSchema = new mongoose.Schema({
   },
 });
 
-const Chat = mongoose.model("Chat", chatSchema);
-export default Chat;
+const TokenUsage = mongoose.model("TokenUsage", tokenUsageSchema);
+export default TokenUsage;

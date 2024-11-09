@@ -26,10 +26,6 @@ const restaurantSchema = new mongoose.Schema({
       ref: "Chat",
     },
   ],
-  tokensUsed: {
-    type: Number,
-    default: 0,
-  },
   userAccess: [
     {
       userId: {
