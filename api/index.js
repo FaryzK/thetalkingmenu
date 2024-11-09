@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import dashboardsRoutes from "./routes/dashboards.route.js";
-import subscriptionsRoutes from "./routes/subscriptions.route.js";
+import subscriptionPackageRoutes from "./routes/subscriptionPackage.route.js";
 import restaurantsRoutes from "./routes/restaurant.route.js";
 import menuRoutes from "./routes/menu.route.js";
 import chatBotRoutes from "./routes/chatBot.route.js";
@@ -34,7 +34,7 @@ app.listen(3000, () => {
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboards", dashboardsRoutes);
-app.use("/api/subscriptions", subscriptionsRoutes);
+app.use("/api/subscription-package", subscriptionPackageRoutes);
 app.use("/api", restaurantsRoutes);
 app.use("/api", menuRoutes);
 app.use("/api/chatbot", chatBotRoutes);

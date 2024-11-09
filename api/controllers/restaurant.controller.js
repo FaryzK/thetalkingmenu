@@ -83,12 +83,15 @@ export const createRestaurant = async (req, res, next) => {
       { dashboardOwnerId: restaurantOwnerId },
       { $push: { restaurants: newRestaurant._id } },
       { new: true }
-    ).populate("subscriptionId");
+    ).populate("subscriptionPackageId");
 
-    if (!updatedDashboard || !updatedDashboard.subscriptionId) {
-      return next(errorHandler(404, "Dashboard or subscription not found"));
+    if (!updatedDashboard || !updatedDashboard.subscriptionPackageId) {
+      return next(
+        errorHandler(404, "Dashboard or subscription package not found")
+      );
     }
-    const tokenLimit = updatedDashboard.subscriptionId.tokenLimitPerMonth;
+    const tokenLimit =
+      updatedDashboard.subscriptionPackageId.tokenLimitPerMonth;
 
     // Step 4: Initialize TokenUsage with Current Month, Year, and Token Limit
     const now = new Date();

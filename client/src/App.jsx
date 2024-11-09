@@ -8,7 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Header from "./components/Header";
 import ResetPassword from "./pages/ResetPassword";
 import PlatformControlPanel from "./pages/platform/PlatformControlPanel.jsx";
-import SubscriptionManager from "./pages/platform/SubscriptionManager";
+import SubscriptionPackageManager from "./pages/platform/SubscriptionPackageManager";
 import RestaurantManager from "./pages/platform/RestaurantManager";
 import {
   dashboardAllowedRoles,
@@ -91,7 +91,7 @@ export default function App() {
           />
         </Route>
 
-        {/* Protect the /subscription-management route with platformControlPanelAllowedRoles  */}
+        {/* Protect the /subscription-package- management route with platformControlPanelAllowedRoles  */}
         <Route
           element={
             <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
@@ -102,8 +102,8 @@ export default function App() {
             element={<PlatformControlPanel />}
           />
           <Route
-            path="/subscription-manager"
-            element={<SubscriptionManager />}
+            path="/subscription-package-manager"
+            element={<SubscriptionPackageManager />}
           />
           <Route path="/restaurant-manager" element={<RestaurantManager />} />
           <Route

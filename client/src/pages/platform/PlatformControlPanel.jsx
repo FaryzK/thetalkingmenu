@@ -11,10 +11,10 @@ export default function PlatformControlPanel() {
       </h1>
       <div className="space-y-4">
         <button
-          onClick={() => navigate("/subscription-manager")}
+          onClick={() => navigate("/subscription-package-manager")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
         >
-          Subscription Manager
+          Subscription Package Manager
         </button>
         <button
           onClick={() => navigate("/restaurant-manager")}

@@ -15,9 +15,9 @@ const dashboardSchema = new mongoose.Schema(
         ref: "Restaurant",
       },
     ],
-    subscriptionId: {
+    subscriptionPackageId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Subscription",
+      ref: "SubscriptionPackage",
     },
     userAccess: [
       {

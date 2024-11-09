@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-const SubscriptionManager = () => {
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [editingSubscription, setEditingSubscription] = useState(null);
-  const [newSubscription, setNewSubscription] = useState({
+const SubscriptionPackageManager = () => {
+  const [subscriptionPackages, setSubscriptionPackages] = useState([]);
+  const [editingSubscriptionPackage, setEditingSubscriptionPackage] =
+    useState(null);
+  const [newSubscriptionPackage, setNewSubscriptionPackage] = useState({
     name: "",
     tokenLimitPerMonth: 0,
     price: 0,
@@ -17,9 +18,9 @@ const SubscriptionManager = () => {
   useEffect(() => {
     const auth = getAuth();
 
-    const fetchSubscriptions = async (token) => {
+    const fetchSubscriptionPackages = async (token) => {
       try {
-        const res = await fetch("/api/subscriptions", {
+        const res = await fetch("/api/subscription-package", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -28,12 +29,15 @@ const SubscriptionManager = () => {
 
         if (res.ok) {
           const data = await res.json();
-          setSubscriptions(data);
+          setSubscriptionPackages(data);
         } else {
-          console.error("Failed to fetch subscriptions:", res.statusText);
+          console.error(
+            "Failed to fetch subscription Packages:",
+            res.statusText
+          );
         }
       } catch (error) {
-        console.error("Error fetching subscriptions:", error);
+        console.error("Error fetching subscription Packages:", error);
       }
     };
 
@@ -42,7 +46,7 @@ const SubscriptionManager = () => {
       if (user) {
         const token = await user.getIdToken();
         setAuthToken(token); // Store token in state
-        fetchSubscriptions(token); // Fetch subscriptions if user is authenticated
+        fetchSubscriptionPackages(token); // Fetch subscription packages if user is authenticated
       } else {
         console.error("User not authenticated");
       }
@@ -53,90 +57,99 @@ const SubscriptionManager = () => {
   }, []);
 
   // Handle editing a subscription
-  const handleEdit = (subscription) => {
-    setEditingSubscription(subscription);
+  const handleEdit = (subscriptionPackage) => {
+    setEditingSubscriptionPackage(subscriptionPackage);
   };
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditingSubscription((prev) => ({
+    setEditingSubscriptionPackage((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSaveEdit = async (subscription) => {
+  const handleSaveEdit = async (subscriptionPackage) => {
     try {
-      const res = await fetch(`/api/subscriptions/${subscription._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(editingSubscription),
-      });
+      const res = await fetch(
+        `/api/subscription-package/${subscriptionPackage._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(editingSubscriptionPackage),
+        }
+      );
       if (res.ok) {
-        setSubscriptions((prev) =>
+        setSubscriptionPackages((prev) =>
           prev.map((sub) =>
-            sub._id === subscription._id ? editingSubscription : sub
+            sub._id === subscriptionPackage._id
+              ? editingSubscriptionPackage
+              : sub
           )
         );
-        setEditingSubscription(null);
+        setEditingSubscriptionPackage(null);
       }
     } catch (error) {
-      console.error("Error updating subscription:", error);
+      console.error("Error updating subscription package:", error);
     }
   };
 
   // Handle deleting a subscription
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/subscriptions/${id}`, {
+      const res = await fetch(`/api/subscription-package/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
       });
       if (res.ok) {
-        setSubscriptions((prev) => prev.filter((sub) => sub._id !== id));
+        setSubscriptionPackages((prev) => prev.filter((sub) => sub._id !== id));
       }
     } catch (error) {
-      console.error("Error deleting subscription:", error);
+      console.error("Error deleting subscription package:", error);
     }
   };
 
   // Handle creating a new subscription
-  const handleNewSubscriptionChange = (e) => {
+  const handleNewSubscriptionPackageChange = (e) => {
     const { name, value } = e.target;
-    setNewSubscription((prev) => ({
+    setNewSubscriptionPackage((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleCreateSubscription = async () => {
+  const handleCreateSubscriptionPackage = async () => {
     try {
-      const res = await fetch("/api/subscriptions", {
+      const res = await fetch("/api/subscription-package", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(newSubscription),
+        body: JSON.stringify(newSubscriptionPackage),
       });
       const data = await res.json();
       if (res.ok) {
-        setSubscriptions((prev) => [...prev, data]);
-        setNewSubscription({ name: "", tokenLimitPerMonth: 0, price: 0 });
+        setSubscriptionPackages((prev) => [...prev, data]);
+        setNewSubscriptionPackage({
+          name: "",
+          tokenLimitPerMonth: 0,
+          price: 0,
+        });
       }
     } catch (error) {
-      console.error("Error creating subscription:", error);
+      console.error("Error creating subscription package:", error);
     }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Subscription Manager</h1>
+      <h1 className="text-3xl font-bold mb-6">Subscription Package Manager</h1>
 
       <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden mb-6">
         <thead>
@@ -153,14 +166,14 @@ const SubscriptionManager = () => {
           </tr>
         </thead>
         <tbody>
-          {subscriptions.map((subscription) => (
-            <tr key={subscription._id}>
-              {editingSubscription?._id === subscription._id ? (
+          {subscriptionPackages.map((subscriptionPackage) => (
+            <tr key={subscriptionPackage._id}>
+              {editingSubscriptionPackage?._id === subscriptionPackage._id ? (
                 <>
                   <td className="text-center">
                     <input
                       name="name"
-                      value={editingSubscription.name}
+                      value={editingSubscriptionPackage.name}
                       onChange={handleEditChange}
                       className="text-center"
                     />
@@ -169,7 +182,7 @@ const SubscriptionManager = () => {
                     <input
                       name="tokenLimitPerMonth"
                       type="number"
-                      value={editingSubscription.tokenLimitPerMonth}
+                      value={editingSubscriptionPackage.tokenLimitPerMonth}
                       onChange={handleEditChange}
                       className="text-center"
                     />
@@ -178,7 +191,7 @@ const SubscriptionManager = () => {
                     <input
                       name="price"
                       type="number"
-                      value={editingSubscription.price}
+                      value={editingSubscriptionPackage.price}
                       onChange={handleEditChange}
                       className="text-center"
                     />
@@ -186,7 +199,7 @@ const SubscriptionManager = () => {
                   <td className="text-center">
                     <select
                       name="paymentSchedule"
-                      value={editingSubscription.paymentSchedule}
+                      value={editingSubscriptionPackage.paymentSchedule}
                       onChange={handleEditChange}
                       className="text-center"
                     >
@@ -196,13 +209,13 @@ const SubscriptionManager = () => {
                   </td>
                   <td className="text-center">
                     <button
-                      onClick={() => handleSaveEdit(subscription)}
+                      onClick={() => handleSaveEdit(subscriptionPackage)}
                       className="px-2 py-1 bg-green-500 text-white rounded"
                     >
                       Save
                     </button>
                     <button
-                      onClick={() => setEditingSubscription(null)}
+                      onClick={() => setEditingSubscriptionPackage(null)}
                       className="px-2 py-1 bg-red-500 text-white rounded"
                     >
                       Cancel
@@ -211,25 +224,27 @@ const SubscriptionManager = () => {
                 </>
               ) : (
                 <>
-                  <td className="py-2 px-4 text-center">{subscription.name}</td>
                   <td className="py-2 px-4 text-center">
-                    {subscription.tokenLimitPerMonth}
+                    {subscriptionPackage.name}
                   </td>
                   <td className="py-2 px-4 text-center">
-                    ${subscription.price}
+                    {subscriptionPackage.tokenLimitPerMonth}
                   </td>
                   <td className="py-2 px-4 text-center">
-                    {subscription.paymentSchedule}
+                    ${subscriptionPackage.price}
+                  </td>
+                  <td className="py-2 px-4 text-center">
+                    {subscriptionPackage.paymentSchedule}
                   </td>
                   <td className="py-2 px-4 text-center">
                     <button
-                      onClick={() => handleEdit(subscription)}
+                      onClick={() => handleEdit(subscriptionPackage)}
                       className="w-16 px-2 py-1 bg-blue-500 text-white rounded mr-2"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(subscription._id)}
+                      onClick={() => handleDelete(subscriptionPackage._id)}
                       className="w-16 px-2 py-1 bg-red-500 text-white rounded"
                     >
                       Delete
@@ -242,42 +257,42 @@ const SubscriptionManager = () => {
         </tbody>
       </table>
 
-      {/* Create New Subscription */}
+      {/* Create New Subscription Package */}
       <div className="bg-gray-100 p-4 rounded-lg flex items-center space-x-4">
         <input
           name="name"
           placeholder="Name"
-          value={newSubscription.name}
-          onChange={handleNewSubscriptionChange}
+          value={newSubscriptionPackage.name}
+          onChange={handleNewSubscriptionPackageChange}
           className="px-4 py-2 border rounded w-1/4"
         />
         <input
           name="tokenLimitPerMonth"
           type="number"
           placeholder="Token Limit per Month"
-          value={newSubscription.tokenLimitPerMonth}
-          onChange={handleNewSubscriptionChange}
+          value={newSubscriptionPackage.tokenLimitPerMonth}
+          onChange={handleNewSubscriptionPackageChange}
           className="px-4 py-2 border rounded w-1/4"
         />
         <input
           name="price"
           type="number"
           placeholder="Price"
-          value={newSubscription.price}
-          onChange={handleNewSubscriptionChange}
+          value={newSubscriptionPackage.price}
+          onChange={handleNewSubscriptionPackageChange}
           className="px-4 py-2 border rounded w-1/4"
         />
         <select
           name="paymentSchedule"
-          value={newSubscription.paymentSchedule}
-          onChange={handleNewSubscriptionChange}
+          value={newSubscriptionPackage.paymentSchedule}
+          onChange={handleNewSubscriptionPackageChange}
           className="px-4 py-2 border rounded w-1/4"
         >
           <option value="monthly">Monthly</option>
           <option value="annually">Annually</option>
         </select>
         <button
-          onClick={handleCreateSubscription}
+          onClick={handleCreateSubscriptionPackage}
           className="px-4 py-2 bg-green-500 text-white rounded"
         >
           Create
@@ -287,4 +302,4 @@ const SubscriptionManager = () => {
   );
 };
 
-export default SubscriptionManager;
+export default SubscriptionPackageManager;

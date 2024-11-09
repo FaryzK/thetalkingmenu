@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
-import Subscription from "../models/subscription.model.js";
+import SubscriptionPackage from "../models/subscriptionPackage.model.js";
 import { errorHandler } from "../utils/error.js";
 
 // createDashboard controller
 export const createDashboard = async (req, res, next) => {
   const { uid } = req.user;
-  const { subscriptionId } = req.body;
+  const { subscriptionPackageId } = req.body;
 
   try {
     const user = await User.findOne({ uid });
@@ -28,9 +28,9 @@ export const createDashboard = async (req, res, next) => {
       return next(errorHandler(400, "You already own a dashboard"));
     }
 
-    const plan = subscriptionId
-      ? await Subscription.findById(subscriptionId)
-      : await Subscription.findOne({ name: "test" });
+    const plan = subscriptionPackageId
+      ? await SubscriptionPackage.findById(subscriptionPackageId)
+      : await SubscriptionPackage.findOne({ name: "test" });
 
     if (!plan) {
       return next(errorHandler(400, "No subscription plan found"));
@@ -40,7 +40,7 @@ export const createDashboard = async (req, res, next) => {
     const newDashboard = new Dashboard({
       dashboardOwnerId: uid,
       restaurants: [],
-      subscriptionId: plan._id,
+      subscriptionPackageId: plan._id,
       userAccess: [
         {
           userId: user.uid,
@@ -77,7 +77,7 @@ export const getDashboards = async (req, res, next) => {
       $or: [{ dashboardOwnerId: uid }, { "userAccess.userId": uid }],
     })
       .populate(
-        "subscriptionId",
+        "subscriptionPackageId",
         "name tokenLimitPerMonth price paymentSchedule"
       )
       .populate({
@@ -106,7 +106,7 @@ export const getDashboards = async (req, res, next) => {
           _id: dashboard._id,
           dashboardOwnerEmail, // Now showing the actual owner email
           role,
-          subscriptionId: dashboard.subscriptionId,
+          subscriptionPackageId: dashboard.subscriptionPackageId,
           userAccess: dashboard.userAccess,
           restaurants: accessibleRestaurants.map((restaurant) => ({
             _id: restaurant._id,

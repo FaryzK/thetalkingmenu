@@ -92,11 +92,15 @@ export default function Dashboards() {
             Your Role: {capitalizeFirstLetter(dashboard.role || "")}
           </p>
           <p className="text-gray-500">
-            Subscription:{" "}
-            {capitalizeFirstLetter(dashboard.subscriptionId?.name || "N/A")} -
-            Token Limit: {dashboard.subscriptionId?.tokenLimitperMonth || 0} -
-            Price: ${dashboard.subscriptionId?.price || 0}/
-            {dashboard.subscriptionId?.paymentSchedule?.slice(0, -2) || ""}
+            Subscription Package:{" "}
+            {capitalizeFirstLetter(
+              dashboard.subscriptionPackageId?.name || "N/A"
+            )}{" "}
+            - Token Limit:{" "}
+            {dashboard.subscriptionPackageId?.tokenLimitperMonth || 0} - Price:
+            ${dashboard.subscriptionPackageId?.price || 0}/
+            {dashboard.subscriptionPackageId?.paymentSchedule?.slice(0, -2) ||
+              ""}
           </p>
         </button>
       ))}
