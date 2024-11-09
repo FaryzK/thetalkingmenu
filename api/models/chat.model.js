@@ -57,34 +57,6 @@ const chatSchema = new mongoose.Schema({
       type: Number,
       default: 0,
     },
-    prompt_tokens_details: {
-      cached_tokens: {
-        type: Number,
-        default: 0,
-      },
-      audio_tokens: {
-        type: Number,
-        default: 0,
-      },
-    },
-    completion_tokens_details: {
-      reasoning_tokens: {
-        type: Number,
-        default: 0,
-      },
-      audio_tokens: {
-        type: Number,
-        default: 0,
-      },
-      accepted_prediction_tokens: {
-        type: Number,
-        default: 0,
-      },
-      rejected_prediction_tokens: {
-        type: Number,
-        default: 0,
-      },
-    },
   },
 });
 

@@ -11,6 +11,11 @@ const tokenUsageSchema = new mongoose.Schema({
     ref: "Dashboard",
     required: true,
   },
+  customerSubscriptionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "CustomerSubscription",
+    required: true,
+  },
   month: {
     type: Number, // e.g., 1 for January, 2 for February, etc.
     required: true,
@@ -18,14 +23,6 @@ const tokenUsageSchema = new mongoose.Schema({
   year: {
     type: Number,
     required: true,
-  },
-  tokensUsed: {
-    type: Number,
-    default: 0,
-  },
-  tokenLimit: {
-    type: Number,
-    required: true, // Capture the limit at the start of each month
   },
   tokenUsageDetails: {
     prompt_tokens: {
@@ -39,34 +36,6 @@ const tokenUsageSchema = new mongoose.Schema({
     total_tokens: {
       type: Number,
       default: 0,
-    },
-    prompt_tokens_details: {
-      cached_tokens: {
-        type: Number,
-        default: 0,
-      },
-      audio_tokens: {
-        type: Number,
-        default: 0,
-      },
-    },
-    completion_tokens_details: {
-      reasoning_tokens: {
-        type: Number,
-        default: 0,
-      },
-      audio_tokens: {
-        type: Number,
-        default: 0,
-      },
-      accepted_prediction_tokens: {
-        type: Number,
-        default: 0,
-      },
-      rejected_prediction_tokens: {
-        type: Number,
-        default: 0,
-      },
     },
   },
 });

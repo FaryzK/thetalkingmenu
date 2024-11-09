@@ -24,6 +24,7 @@ const createFormattedContent = (textArray) => {
 };
 
 // Create a new restaurant
+// Create a new restaurant
 export const createRestaurant = async (req, res, next) => {
   const { name, location } = req.body;
   const restaurantOwnerId = req.user.uid; // assuming user UID from auth
@@ -79,25 +80,37 @@ export const createRestaurant = async (req, res, next) => {
     });
     await initialMenu.save();
 
+    // Find the dashboard and populate the customer subscription with the subscription package
     const updatedDashboard = await Dashboard.findOneAndUpdate(
       { dashboardOwnerId: restaurantOwnerId },
       { $push: { restaurants: newRestaurant._id } },
       { new: true }
-    ).populate("subscriptionPackageId");
+    ).populate({
+      path: "customerSubscriptionId",
+      populate: { path: "subscriptionPackageId" },
+    });
 
-    if (!updatedDashboard || !updatedDashboard.subscriptionPackageId) {
+    if (
+      !updatedDashboard ||
+      !updatedDashboard.customerSubscriptionId ||
+      !updatedDashboard.customerSubscriptionId.subscriptionPackageId
+    ) {
       return next(
-        errorHandler(404, "Dashboard or subscription package not found")
+        errorHandler(404, "Dashboard or subscription details not found")
       );
     }
-    const tokenLimit =
-      updatedDashboard.subscriptionPackageId.tokenLimitPerMonth;
 
-    // Step 4: Initialize TokenUsage with Current Month, Year, and Token Limit
+    // Retrieve the token limit from the subscription package
+    const tokenLimit =
+      updatedDashboard.customerSubscriptionId.subscriptionPackageId
+        .tokenLimitPerMonth;
+
+    // Initialize TokenUsage with Current Month, Year, and Token Limit, including customerSubscriptionId
     const now = new Date();
     const initialTokenUsage = new TokenUsage({
       restaurantId: newRestaurant._id,
       dashboardId: updatedDashboard._id,
+      customerSubscriptionId: updatedDashboard.customerSubscriptionId._id, // Include this field
       month: now.getMonth() + 1, // JavaScript months are 0-indexed
       year: now.getFullYear(),
       tokensUsed: 0,

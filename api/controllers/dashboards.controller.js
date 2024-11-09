@@ -5,6 +5,9 @@ import SubscriptionPackage from "../models/subscriptionPackage.model.js";
 import { errorHandler } from "../utils/error.js";
 
 // createDashboard controller
+import CustomerSubscription from "../models/customerSubscription.model.js";
+
+// createDashboard controller
 export const createDashboard = async (req, res, next) => {
   const { uid } = req.user;
   const { subscriptionPackageId } = req.body;
@@ -28,6 +31,7 @@ export const createDashboard = async (req, res, next) => {
       return next(errorHandler(400, "You already own a dashboard"));
     }
 
+    // Retrieve the subscription package or use default "test" package
     const plan = subscriptionPackageId
       ? await SubscriptionPackage.findById(subscriptionPackageId)
       : await SubscriptionPackage.findOne({ name: "test" });
@@ -40,7 +44,6 @@ export const createDashboard = async (req, res, next) => {
     const newDashboard = new Dashboard({
       dashboardOwnerId: uid,
       restaurants: [],
-      subscriptionPackageId: plan._id,
       userAccess: [
         {
           userId: user.uid,
@@ -50,6 +53,28 @@ export const createDashboard = async (req, res, next) => {
       ],
     });
 
+    // Save the dashboard first to obtain its ID for the subscription
+    await newDashboard.save();
+
+    // Create the associated customer subscription
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(
+      endDate.getMonth() + (plan.paymentSchedule === "monthly" ? 1 : 12)
+    );
+
+    const customerSubscription = new CustomerSubscription({
+      dashboardId: newDashboard._id,
+      subscriptionPackageId: plan._id,
+      startDate,
+      endDate,
+      nextBillingDate: endDate,
+    });
+
+    await customerSubscription.save();
+
+    // Associate the subscription with the dashboard
+    newDashboard.customerSubscriptionId = customerSubscription._id;
     await newDashboard.save();
 
     // Add the new dashboard ID to the user's accessibleDashboards
@@ -68,6 +93,7 @@ export const createDashboard = async (req, res, next) => {
 };
 
 // getDashboards controller
+// getDashboards controller
 export const getDashboards = async (req, res, next) => {
   try {
     const { uid } = req.user;
@@ -76,10 +102,13 @@ export const getDashboards = async (req, res, next) => {
     const dashboards = await Dashboard.find({
       $or: [{ dashboardOwnerId: uid }, { "userAccess.userId": uid }],
     })
-      .populate(
-        "subscriptionPackageId",
-        "name tokenLimitPerMonth price paymentSchedule"
-      )
+      .populate({
+        path: "customerSubscriptionId",
+        populate: {
+          path: "subscriptionPackageId",
+          select: "name tokenLimitPerMonth price paymentSchedule",
+        },
+      })
       .populate({
         path: "restaurants",
         select: "name location userAccess",
@@ -104,9 +133,10 @@ export const getDashboards = async (req, res, next) => {
 
         return {
           _id: dashboard._id,
-          dashboardOwnerEmail, // Now showing the actual owner email
+          dashboardOwnerEmail,
           role,
-          subscriptionPackageId: dashboard.subscriptionPackageId,
+          subscriptionPackage:
+            dashboard.customerSubscriptionId.subscriptionPackageId,
           userAccess: dashboard.userAccess,
           restaurants: accessibleRestaurants.map((restaurant) => ({
             _id: restaurant._id,

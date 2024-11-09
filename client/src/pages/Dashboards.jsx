@@ -94,13 +94,12 @@ export default function Dashboards() {
           <p className="text-gray-500">
             Subscription Package:{" "}
             {capitalizeFirstLetter(
-              dashboard.subscriptionPackageId?.name || "N/A"
+              dashboard.subscriptionPackage?.name || "N/A"
             )}{" "}
             - Token Limit:{" "}
-            {dashboard.subscriptionPackageId?.tokenLimitperMonth || 0} - Price:
-            ${dashboard.subscriptionPackageId?.price || 0}/
-            {dashboard.subscriptionPackageId?.paymentSchedule?.slice(0, -2) ||
-              ""}
+            {dashboard.subscriptionPackage?.tokenLimitPerMonth || 0} - Price: $
+            {dashboard.subscriptionPackage?.price || 0}/
+            {dashboard.subscriptionPackage?.paymentSchedule?.slice(0, -2) || ""}
           </p>
         </button>
       ))}
