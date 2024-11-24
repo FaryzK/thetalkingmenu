@@ -6,6 +6,7 @@ import {
   createDashboard,
   clearDashboardsState,
 } from "../redux/slices/dashboardsSlice";
+import { fetchUserAccessData } from "../redux/slices/userAccessSlice"; // Import access data fetch
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboards() {
@@ -16,6 +17,7 @@ export default function Dashboards() {
   const dashboards = useSelector((state) => state.dashboards.data);
   const status = useSelector((state) => state.dashboards.status);
   let error = useSelector((state) => state.dashboards.error);
+  const { currentUser } = useSelector((state) => state.user);
 
   // Convert error to string if it’s an object
   if (typeof error === "object") {
@@ -24,19 +26,21 @@ export default function Dashboards() {
 
   // Helper function to capitalize the first letter of each word
   const capitalizeFirstLetter = (str) => {
-    if (!str) return ""; // Return an empty string if str is undefined or empty
+    if (!str) return "";
     return str
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
-  // Fetch dashboards when the component mounts
+
+  // Fetch dashboards and access data when the component mounts
   useEffect(() => {
     const auth = getAuth();
 
     const fetchData = async (user) => {
       const token = await user.getIdToken();
       dispatch(fetchDashboards(token));
+      dispatch(fetchUserAccessData(user.uid)); // Fetch user access
     };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -50,7 +54,6 @@ export default function Dashboards() {
     return () => unsubscribe();
   }, [dispatch]);
 
-  // Create a new dashboard
   const handleCreateDashboard = async () => {
     const auth = getAuth();
     const firebaseUser = auth.currentUser;
@@ -74,11 +77,9 @@ export default function Dashboards() {
         MY DASHBOARDS
       </h1>
 
-      {/* Handle Loading and Error States */}
       {status === "loading" && <p>Loading dashboards...</p>}
       {status === "failed" && <p>Error: {error}</p>}
 
-      {/* Render the list of dashboards */}
       {dashboards.map((dashboard) => (
         <button
           key={dashboard._id}
@@ -104,7 +105,6 @@ export default function Dashboards() {
         </button>
       ))}
 
-      {/* Button to create a new dashboard */}
       <button
         onClick={handleCreateDashboard}
         className="mt-6 bg-blue-500 text-white py-2 px-4 rounded-lg"
