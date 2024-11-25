@@ -27,6 +27,7 @@ import EmployeeAccessAdd from "./pages/EmployeeAccessAdd.jsx";
 import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
+import Test from "./pages/Test.jsx";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/test" element={<Test />} />
         <Route path="/sign-in" element={<Signin />} />
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />

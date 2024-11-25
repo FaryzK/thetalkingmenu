@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { addMessage, startNewChat, setChatId } from "../redux/slices/chatSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import ReactMarkdown from "react-markdown";
 
 export default function Chat() {
   const { restaurantId } = useParams();
@@ -92,19 +93,19 @@ export default function Chat() {
                 className={`${
                   msg.role === "user"
                     ? "bg-gray-800 text-white max-w-xl"
-                    : "bg-transparent text-gray-200 w-full"
+                    : "markdown bg-transparent text-gray-200 w-full"
                 } px-4 py-2 ${
                   msg.content.length < 50 ? "rounded-full" : "rounded-2xl"
                 }`}
               >
-                {msg.content}
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
             </div>
           ))}
           {tempAssistantMessage && (
             <div className="flex justify-start w-full">
-              <div className="bg-transparent text-gray-200 p-4 w-full">
-                {tempAssistantMessage}
+              <div className="markdown bg-transparent text-gray-200 p-4 w-full">
+                <ReactMarkdown>{tempAssistantMessage}</ReactMarkdown>
               </div>
             </div>
           )}
