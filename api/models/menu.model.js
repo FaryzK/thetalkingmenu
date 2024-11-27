@@ -8,18 +8,13 @@ const menuSchema = new mongoose.Schema({
   },
   menuItems: [
     {
-      name: {
-        type: String,
-        required: true,
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: () => new mongoose.Types.ObjectId(),
       },
-      description: {
-        type: String,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
+      name: { type: String, required: true },
+      description: { type: String, required: true },
+      price: { type: Number, required: true },
     },
   ],
 });

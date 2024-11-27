@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Menu from "../models/menu.model.js";
 import { errorHandler } from "../utils/error.js";
 
@@ -36,6 +37,95 @@ export const createMenuItem = async (req, res, next) => {
     res.status(201).json(menu);
   } catch (error) {
     next(errorHandler(500, "Failed to create menu item"));
+  }
+};
+
+// export const uploadMenuItems = async (req, res, next) => {
+//   const { restaurantId } = req.params;
+
+//   if (!req.file) {
+//     return next(errorHandler(400, "No file uploaded"));
+//   }
+
+//   try {
+//     // Parse the CSV data
+//     const csvData = req.file.buffer.toString("utf-8");
+//     const { data, errors } = Papa.parse(csvData, {
+//       header: true, // Treat the first row as column names
+//       skipEmptyLines: true,
+//     });
+
+//     // Handle parsing errors
+//     if (errors.length > 0) {
+//       return next(errorHandler(400, "Invalid CSV format"));
+//     }
+
+//     // Validate and prepare the menu items
+//     const validItems = data.map(({ name, price, description }) => {
+//       if (!name || !price || isNaN(price)) {
+//         throw errorHandler(
+//           400,
+//           "Each item must have 'name', 'price', and 'description'"
+//         );
+//       }
+//       return {
+//         name: name.trim(),
+//         price: parseFloat(price),
+//         description: description?.trim() || "",
+//       };
+//     });
+
+//     // Fetch or create the menu
+//     let menu = await Menu.findOne({ restaurantId });
+//     if (!menu) {
+//       menu = new Menu({ restaurantId, menuItems: [] });
+//     }
+
+//     // Add items and save
+//     menu.menuItems.push(...validItems);
+//     await menu.save();
+
+//     res.status(201).json({ message: "Menu items uploaded successfully", menu });
+//   } catch (error) {
+//     console.error("Error uploading menu items:", error);
+//     next(errorHandler(500, "Failed to upload menu items"));
+//   }
+// };
+
+export const addMenuItemsBulk = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  const { menuItems } = req.body;
+
+  if (!menuItems || !Array.isArray(menuItems)) {
+    return next(
+      errorHandler(400, "Invalid data format. Expected an array of menu items.")
+    );
+  }
+
+  try {
+    // Add unique `_id` for each item
+    const validItems = menuItems.map((item) => ({
+      _id: new mongoose.Types.ObjectId(), // Explicitly generate unique `_id`
+      name: item.name.trim(),
+      price: parseFloat(item.price),
+      description: item.description?.trim() || "",
+    }));
+
+    let menu = await Menu.findOne({ restaurantId });
+    if (!menu) {
+      menu = new Menu({ restaurantId, menuItems: [] });
+    }
+
+    menu.menuItems.push(...validItems); // Add items to menu
+    await menu.save();
+
+    res.status(201).json({
+      message: "Menu items added successfully",
+      menu: { menuItems: menu.menuItems },
+    });
+  } catch (error) {
+    console.error("Error adding menu items in bulk:", error);
+    next(errorHandler(500, "Failed to add menu items in bulk"));
   }
 };
 

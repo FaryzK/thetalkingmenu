@@ -37,6 +37,36 @@ export const fetchMenuItem = createAsyncThunk(
   }
 );
 
+export const addMenuItemsBulk = createAsyncThunk(
+  "menu/addMenuItemsBulk",
+  async ({ token, restaurantId, menuItems }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/menu/bulk`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ menuItems }),
+        }
+      );
+
+      const data = await response.json(); // Parse the response
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to add menu items in bulk");
+      }
+
+      return data; // Return data for the reducer
+    } catch (error) {
+      console.error("Error in addMenuItemsBulk thunk:", error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const addMenuItem = createAsyncThunk(
   "menu/addMenuItem",
   async ({ token, restaurantId, newItem }, { rejectWithValue }) => {
@@ -157,6 +187,30 @@ const menuSlice = createSlice({
           (item) => item._id !== action.payload
         );
         state.status = "succeeded";
+      })
+      .addCase(addMenuItemsBulk.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(addMenuItemsBulk.fulfilled, (state, action) => {
+        if (
+          action.payload.menu &&
+          Array.isArray(action.payload.menu.menuItems)
+        ) {
+          state.data.menuItems.push(...action.payload.menu.menuItems);
+          state.status = "succeeded";
+        } else {
+          console.error(
+            "Unexpected payload structure in addMenuItemsBulk:",
+            action.payload
+          );
+          state.status = "failed";
+          state.error = "Unexpected backend response structure";
+        }
+      })
+      .addCase(addMenuItemsBulk.rejected, (state, action) => {
+        console.error("addMenuItemsBulk rejected:", action.payload);
+        state.status = "failed";
+        state.error = action.payload;
       });
   },
 });

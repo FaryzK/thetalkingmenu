@@ -1,14 +1,18 @@
 import express from "express";
+import multer from "multer";
 import {
   getMenu,
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
   getMenuItem,
+  //uploadMenuItems,
+  addMenuItemsBulk,
 } from "../controllers/menu.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 
 const router = express.Router({ mergeParams: true }); // Allows access to :restaurantId
+const upload = multer(); // Middleware for handling file uploads
 
 // Route to get the menu for a specific restaurant
 router.get("/restaurants/:restaurantId/menu", isAuthenticated, getMenu);
@@ -35,6 +39,21 @@ router.delete(
   "/restaurants/:restaurantId/menu/:menuItemId",
   isAuthenticated,
   deleteMenuItem
+);
+
+// Route to upload menu items in bulk via CSV
+// router.post(
+//   "/restaurants/:restaurantId/menu/upload",
+//   isAuthenticated,
+//   upload.single("file"), // File upload middleware
+//   uploadMenuItems
+// );
+
+// Route to add menu items in bulk via JSON
+router.post(
+  "/restaurants/:restaurantId/menu/bulk",
+  isAuthenticated,
+  addMenuItemsBulk
 );
 
 export default router;
