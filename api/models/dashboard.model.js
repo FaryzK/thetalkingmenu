@@ -1,4 +1,3 @@
-// models/dashboard.model.js
 import mongoose from "mongoose";
 
 const dashboardSchema = new mongoose.Schema(
@@ -15,10 +14,6 @@ const dashboardSchema = new mongoose.Schema(
         ref: "Restaurant",
       },
     ],
-    customerSubscriptionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "CustomerSubscription",
-    },
     userAccess: [
       {
         userId: {
@@ -30,7 +25,7 @@ const dashboardSchema = new mongoose.Schema(
           required: true,
         },
         role: {
-          //role of the user under the specific dashboard. Either restaurant admin or restaurant main admin
+          // Role of the user under the specific dashboard (e.g., restaurant admin or restaurant main admin)
           type: String,
           required: true,
         },

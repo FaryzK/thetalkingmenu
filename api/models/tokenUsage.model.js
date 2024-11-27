@@ -11,11 +11,6 @@ const tokenUsageSchema = new mongoose.Schema({
     ref: "Dashboard",
     required: true,
   },
-  customerSubscriptionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "CustomerSubscription",
-    required: true,
-  },
   month: {
     type: Number, // e.g., 1 for January, 2 for February, etc.
     required: true,

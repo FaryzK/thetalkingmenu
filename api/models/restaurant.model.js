@@ -1,4 +1,3 @@
-// restaurant.model.js
 import mongoose from "mongoose";
 
 const restaurantSchema = new mongoose.Schema({
@@ -37,7 +36,7 @@ const restaurantSchema = new mongoose.Schema({
         required: true,
       },
       role: {
-        type: String, //role in the given restaurant, either restaurant main admin or restaurant admin
+        type: String, // Role in the given restaurant, either restaurant main admin or restaurant admin
         required: true,
       },
     },

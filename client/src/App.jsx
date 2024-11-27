@@ -8,7 +8,6 @@ import Dashboard from "./pages/Dashboard";
 import Header from "./components/Header";
 import ResetPassword from "./pages/ResetPassword";
 import PlatformControlPanel from "./pages/platform/PlatformControlPanel.jsx";
-import SubscriptionPackageManager from "./pages/platform/SubscriptionPackageManager";
 import RestaurantManager from "./pages/platform/RestaurantManager";
 import {
   dashboardAllowedRoles,
@@ -27,6 +26,7 @@ import EmployeeAccessAdd from "./pages/EmployeeAccessAdd.jsx";
 import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
+import DashboardManager from "./pages/platform/DashboardManager.jsx";
 import Test from "./pages/Test.jsx";
 
 export default function App() {
@@ -93,7 +93,7 @@ export default function App() {
           />
         </Route>
 
-        {/* Protect the /subscription-package- management route with platformControlPanelAllowedRoles  */}
+        {/* Protect the route with platformControlPanelAllowedRoles  */}
         <Route
           element={
             <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
@@ -103,15 +103,12 @@ export default function App() {
             path="/platform-control-panel"
             element={<PlatformControlPanel />}
           />
-          <Route
-            path="/subscription-package-manager"
-            element={<SubscriptionPackageManager />}
-          />
           <Route path="/restaurant-manager" element={<RestaurantManager />} />
           <Route
             path="/global-system-prompt"
             element={<GlobalSystemPromptManager />}
           />
+          <Route path="/dashboard-manager" element={<DashboardManager />} />
         </Route>
       </Routes>
     </BrowserRouter>

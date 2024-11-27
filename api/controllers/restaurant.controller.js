@@ -6,7 +6,6 @@ import ChatBot from "../models/chatBot.model.js";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
-import TokenUsage from "../models/tokenUsage.model.js";
 
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
   pkg;
@@ -23,7 +22,6 @@ const createFormattedContent = (textArray) => {
   return convertToRaw(editorState.getCurrentContent());
 };
 
-// Create a new restaurant
 // Create a new restaurant
 export const createRestaurant = async (req, res, next) => {
   const { name, location } = req.body;
@@ -80,43 +78,16 @@ export const createRestaurant = async (req, res, next) => {
     });
     await initialMenu.save();
 
-    // Find the dashboard and populate the customer subscription with the subscription package
+    // Find the dashboard and associate the new restaurant
     const updatedDashboard = await Dashboard.findOneAndUpdate(
       { dashboardOwnerId: restaurantOwnerId },
       { $push: { restaurants: newRestaurant._id } },
       { new: true }
-    ).populate({
-      path: "customerSubscriptionId",
-      populate: { path: "subscriptionPackageId" },
-    });
+    );
 
-    if (
-      !updatedDashboard ||
-      !updatedDashboard.customerSubscriptionId ||
-      !updatedDashboard.customerSubscriptionId.subscriptionPackageId
-    ) {
-      return next(
-        errorHandler(404, "Dashboard or subscription details not found")
-      );
+    if (!updatedDashboard) {
+      return next(errorHandler(404, "Dashboard not found"));
     }
-
-    // Retrieve the token limit from the subscription package
-    const tokenLimit =
-      updatedDashboard.customerSubscriptionId.subscriptionPackageId
-        .tokenLimitPerMonth;
-
-    // Initialize TokenUsage with Current Month, Year, and Token Limit, including customerSubscriptionId
-    const now = new Date();
-    const initialTokenUsage = new TokenUsage({
-      restaurantId: newRestaurant._id,
-      dashboardId: updatedDashboard._id,
-      customerSubscriptionId: updatedDashboard.customerSubscriptionId._id, // Include this field
-      month: now.getMonth() + 1, // JavaScript months are 0-indexed
-      year: now.getFullYear(),
-      tokensUsed: 0,
-      tokenLimit,
-    });
-    await initialTokenUsage.save();
 
     owner.accessibleRestaurants.push(newRestaurant._id.toString());
     await owner.save();
@@ -127,7 +98,6 @@ export const createRestaurant = async (req, res, next) => {
       chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,
-      tokenUsage: initialTokenUsage,
       accessibleRestaurants: owner.accessibleRestaurants,
     });
   } catch (error) {
@@ -210,14 +180,19 @@ export const updateRestaurant = async (req, res, next) => {
 // Delete restaurant by ID and associated data
 export const deleteRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;
+
   try {
     const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
+    if (!restaurant) {
+      return next(errorHandler(404, "Restaurant not found"));
+    }
 
+    // Delete associated data
     await ChatBot.deleteMany({ restaurantId: restaurant._id });
     await Chat.deleteMany({ restaurantId: restaurant._id });
     await Menu.deleteMany({ restaurantId: restaurant._id });
 
+    // Update related user and dashboard records
     await User.updateMany(
       { accessibleRestaurants: restaurant._id.toString() },
       { $pull: { accessibleRestaurants: restaurant._id.toString() } }
@@ -228,12 +203,14 @@ export const deleteRestaurant = async (req, res, next) => {
       { $pull: { restaurants: restaurant._id } }
     );
 
+    // Delete the restaurant
     await restaurant.deleteOne();
+
     res
       .status(200)
       .json({ message: "Restaurant and associated data deleted successfully" });
   } catch (error) {
-    console.error("Error deleting restaurant:", error);
+    console.error(`Error deleting restaurant: ${error.message}`);
     next(errorHandler(500, "Failed to delete restaurant"));
   }
 };

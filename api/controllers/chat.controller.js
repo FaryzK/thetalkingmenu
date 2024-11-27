@@ -3,10 +3,9 @@ import ChatBot from "../models/chatBot.model.js";
 import Menu from "../models/menu.model.js";
 import GlobalSystemPrompt from "../models/globalSystemPrompt.model.js";
 import Restaurant from "../models/restaurant.model.js";
-import Dashboard from "../models/dashboard.model.js";
+import TokenUsage from "../models/tokenUsage.model.js";
 import { OpenAI } from "openai";
 import { encode } from "gpt-tokenizer";
-import { checkTokenLimitUsage } from "../utils/checkTokenLimit.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,17 +20,6 @@ export const startNewChat = async (req, res, next) => {
   }
 
   try {
-    // Use the helper to check if token limit is reached
-    const { isLimitReached, tokenUsage } = await checkTokenLimitUsage(
-      restaurantId
-    );
-
-    if (isLimitReached) {
-      return res
-        .status(403)
-        .json({ error: "Token limit reached for this month" });
-    }
-
     // Proceed to create a new chat if token limit has not been reached
     const chat = new Chat({
       userId,
@@ -56,33 +44,14 @@ export const sendMessage = async (req, res, next) => {
     return res.status(400).json({ error: "restaurantId is required" });
   }
 
-  let chat, chatBot, globalSystemPrompt, menu, restaurant, customerSubscription;
+  let chat, chatBot, globalSystemPrompt, menu, restaurant;
 
   try {
-    // Check token limit before proceeding
-    const { isLimitReached, tokenUsage } = await checkTokenLimitUsage(
-      restaurantId
-    );
-
-    if (isLimitReached) {
-      return res
-        .status(403)
-        .json({ error: "Token limit reached for this month" });
-    }
-
     // Fetch required documents
     globalSystemPrompt = await GlobalSystemPrompt.findOne();
     chatBot = await ChatBot.findOne({ restaurantId });
     menu = await Menu.findOne({ restaurantId });
     restaurant = await Restaurant.findById(restaurantId);
-    const dashboard = await Dashboard.findOne({
-      restaurants: restaurantId,
-    }).populate({
-      path: "customerSubscriptionId",
-      populate: { path: "subscriptionPackageId" },
-    });
-
-    customerSubscription = dashboard.customerSubscriptionId;
 
     // Prepare the chat messages
     if (chatId) {
@@ -162,18 +131,26 @@ export const sendMessage = async (req, res, next) => {
         timestamp: new Date(),
       });
 
-      // Update the Chat's token usage
-      chat.tokenUsage.prompt_tokens += promptTokens;
-      chat.tokenUsage.completion_tokens += completionTokens;
-      chat.tokenUsage.total_tokens += promptTokens + completionTokens;
-      await chat.save();
+      // Update or create TokenUsage for the current month and year
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // Months are 0-based
+      const currentYear = now.getFullYear();
 
-      // Also update TokenUsage with prompt and completion tokens
-      const totalTokens = promptTokens + completionTokens;
-      tokenUsage.tokenUsageDetails.prompt_tokens += promptTokens;
-      tokenUsage.tokenUsageDetails.completion_tokens += completionTokens;
-      tokenUsage.tokenUsageDetails.total_tokens += totalTokens;
-      await tokenUsage.save();
+      const tokenUsage = await TokenUsage.findOneAndUpdate(
+        {
+          restaurantId,
+          month: currentMonth,
+          year: currentYear,
+        },
+        {
+          $inc: {
+            "tokenUsageDetails.prompt_tokens": promptTokens,
+            "tokenUsageDetails.completion_tokens": completionTokens,
+            "tokenUsageDetails.total_tokens": promptTokens + completionTokens,
+          },
+        },
+        { new: true, upsert: true } // Create if not exists
+      );
 
       res.end();
     } catch (dbError) {

@@ -1,16 +1,12 @@
-import mongoose from "mongoose";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
-import SubscriptionPackage from "../models/subscriptionPackage.model.js";
 import { errorHandler } from "../utils/error.js";
+import dotenv from "dotenv";
 
-// createDashboard controller
-import CustomerSubscription from "../models/customerSubscription.model.js";
+dotenv.config();
 
-// createDashboard controller
 export const createDashboard = async (req, res, next) => {
   const { uid } = req.user;
-  const { subscriptionPackageId } = req.body;
 
   try {
     const user = await User.findOne({ uid });
@@ -31,15 +27,6 @@ export const createDashboard = async (req, res, next) => {
       return next(errorHandler(400, "You already own a dashboard"));
     }
 
-    // Retrieve the subscription package or use default "test" package
-    const plan = subscriptionPackageId
-      ? await SubscriptionPackage.findById(subscriptionPackageId)
-      : await SubscriptionPackage.findOne({ name: "test" });
-
-    if (!plan) {
-      return next(errorHandler(400, "No subscription plan found"));
-    }
-
     // Create new dashboard
     const newDashboard = new Dashboard({
       dashboardOwnerId: uid,
@@ -53,28 +40,7 @@ export const createDashboard = async (req, res, next) => {
       ],
     });
 
-    // Save the dashboard first to obtain its ID for the subscription
-    await newDashboard.save();
-
-    // Create the associated customer subscription
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(
-      endDate.getMonth() + (plan.paymentSchedule === "monthly" ? 1 : 12)
-    );
-
-    const customerSubscription = new CustomerSubscription({
-      dashboardId: newDashboard._id,
-      subscriptionPackageId: plan._id,
-      startDate,
-      endDate,
-      nextBillingDate: endDate,
-    });
-
-    await customerSubscription.save();
-
-    // Associate the subscription with the dashboard
-    newDashboard.customerSubscriptionId = customerSubscription._id;
+    // Save the dashboard
     await newDashboard.save();
 
     // Add the new dashboard ID to the user's accessibleDashboards
@@ -92,7 +58,43 @@ export const createDashboard = async (req, res, next) => {
   }
 };
 
-// getDashboards controller
+export const getAllDashboards = async (req, res, next) => {
+  try {
+    const dashboards = await Dashboard.find().populate({
+      path: "restaurants",
+      select: "name location userAccess",
+    });
+
+    // Fetch the dashboard owner emails
+    const ownerIds = dashboards.map((dashboard) => dashboard.dashboardOwnerId);
+    const owners = await User.find({ uid: { $in: ownerIds } }, "uid email");
+
+    const ownerEmailMap = owners.reduce((acc, owner) => {
+      acc[owner.uid] = owner.email;
+      return acc;
+    }, {});
+
+    // Format response to include owner email
+    const formattedDashboards = dashboards.map((dashboard) => ({
+      _id: dashboard._id,
+      dashboardOwnerId: dashboard.dashboardOwnerId,
+      dashboardOwnerEmail:
+        ownerEmailMap[dashboard.dashboardOwnerId] || "Unknown",
+      userAccess: dashboard.userAccess,
+      restaurants: dashboard.restaurants.map((restaurant) => ({
+        _id: restaurant._id,
+        name: restaurant.name,
+        location: restaurant.location,
+      })),
+    }));
+
+    res.status(200).json({ dashboards: formattedDashboards });
+  } catch (error) {
+    console.error("Error fetching all dashboards:", error);
+    next(errorHandler(500, "Failed to fetch dashboards"));
+  }
+};
+
 // getDashboards controller
 export const getDashboards = async (req, res, next) => {
   try {
@@ -101,18 +103,10 @@ export const getDashboards = async (req, res, next) => {
     // Fetch dashboards where the user is either the owner or an employee with access
     const dashboards = await Dashboard.find({
       $or: [{ dashboardOwnerId: uid }, { "userAccess.userId": uid }],
-    })
-      .populate({
-        path: "customerSubscriptionId",
-        populate: {
-          path: "subscriptionPackageId",
-          select: "name tokenLimitPerMonth price paymentSchedule",
-        },
-      })
-      .populate({
-        path: "restaurants",
-        select: "name location userAccess",
-      });
+    }).populate({
+      path: "restaurants",
+      select: "name location userAccess",
+    });
 
     // Format response with filtered restaurants based on user access
     const formattedDashboards = await Promise.all(
@@ -135,8 +129,6 @@ export const getDashboards = async (req, res, next) => {
           _id: dashboard._id,
           dashboardOwnerEmail,
           role,
-          subscriptionPackage:
-            dashboard.customerSubscriptionId.subscriptionPackageId,
           userAccess: dashboard.userAccess,
           restaurants: accessibleRestaurants.map((restaurant) => ({
             _id: restaurant._id,
@@ -151,5 +143,61 @@ export const getDashboards = async (req, res, next) => {
   } catch (error) {
     console.error("Error fetching dashboards:", error);
     next(errorHandler(500, "Failed to fetch dashboards"));
+  }
+};
+
+export const deleteDashboard = async (req, res, next) => {
+  const { dashboardId } = req.params;
+
+  try {
+    const dashboard = await Dashboard.findById(dashboardId);
+    if (!dashboard) {
+      return next(errorHandler(404, "Dashboard not found"));
+    }
+
+    // Extract the token from the request headers
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return next(errorHandler(401, "Authorization token is required"));
+    }
+
+    // Call the deleteRestaurant endpoint for each restaurant
+    for (const restaurantId of dashboard.restaurants) {
+      try {
+        const response = await fetch(
+          `${process.env.API_BASE_URL}/api/restaurants/${restaurantId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          console.warn(
+            `Failed to delete restaurant ${restaurantId}. Status: ${response.status}`
+          );
+        }
+      } catch (err) {
+        console.error(
+          `Error deleting restaurant ${restaurantId}: ${err.message}`
+        );
+      }
+    }
+
+    // Remove dashboard ID from accessibleDashboards of all users
+    await User.updateMany(
+      { accessibleDashboards: dashboardId },
+      { $pull: { accessibleDashboards: dashboardId } }
+    );
+
+    // Delete the dashboard
+    await dashboard.deleteOne();
+
+    res.status(200).json({ message: "Dashboard deleted successfully" });
+  } catch (error) {
+    console.error(`Error deleting dashboard: ${error.message}`);
+    next(errorHandler(500, "Failed to delete dashboard"));
   }
 };
