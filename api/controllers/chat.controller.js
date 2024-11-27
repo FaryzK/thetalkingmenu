@@ -134,7 +134,7 @@ export const sendMessage = async (req, res, next) => {
     try {
       // Stream the OpenAI response and estimate completion tokens
       const openaiResponse = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: openaiMessages,
         stream: true,
       });
