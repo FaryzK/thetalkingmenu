@@ -8,8 +8,15 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    username: String,
-    email: String,
+    username: {
+      type: String,
+      trim: true, // Ensure no unnecessary whitespace
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
     profilePicture: {
       type: String,
       default: "https://cdn-icons-png.flaticon.com/512/17492/17492071.png",
@@ -43,6 +50,11 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Optionally ensure unique starredChats per user
+userSchema.path("starredChats").validate(function (value) {
+  return new Set(value).size === value.length; // Check for duplicate entries
+}, "Duplicate chat IDs in starredChats");
 
 const User = mongoose.model("User", userSchema);
 

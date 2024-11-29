@@ -5,10 +5,11 @@ const chatSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Restaurant",
     required: true,
+    index: true, // Index for optimized queries
   },
   userId: {
     type: String,
-    required: false, // Make this field optional
+    required: false, // Optional for anonymous users
   },
   messages: [
     {
@@ -22,7 +23,7 @@ const chatSchema = new mongoose.Schema({
       },
       sender: {
         type: String,
-        enum: ["system ", "user", "assistant"],
+        enum: ["system", "user", "assistant"], // Removed extra space in "system "
         required: true,
       },
       role: {
@@ -59,6 +60,9 @@ const chatSchema = new mongoose.Schema({
     },
   },
 });
+
+// Indexes for faster queries
+chatSchema.index({ restaurantId: 1, "messages.timestamp": -1 });
 
 const Chat = mongoose.model("Chat", chatSchema);
 export default Chat;

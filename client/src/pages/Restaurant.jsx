@@ -6,6 +6,10 @@ import {
   clearRestaurantState,
 } from "../redux/slices/restaurantSlice";
 import { fetchChatBot, clearChatBotState } from "../redux/slices/chatBotSlice";
+import {
+  fetchRestaurantChats,
+  clearRestaurantChatsState,
+} from "../redux/slices/restaurantChatsSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function Restaurant() {
@@ -13,7 +17,7 @@ export default function Restaurant() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Selectors for restaurant and chatBot data from Redux store
+  // Selectors for restaurant, chatBot, and chats data from Redux store
   const {
     data: restaurant,
     status: restaurantStatus,
@@ -24,6 +28,11 @@ export default function Restaurant() {
     status: chatBotStatus,
     error: chatBotError,
   } = useSelector((state) => state.chatBot);
+  const {
+    data: restaurantChats,
+    status: chatsStatus,
+    error: chatsError,
+  } = useSelector((state) => state.restaurantChats);
 
   useEffect(() => {
     const auth = getAuth();
@@ -31,6 +40,7 @@ export default function Restaurant() {
       const token = await user.getIdToken();
       dispatch(fetchRestaurant({ token, restaurantId }));
       dispatch(fetchChatBot({ token, restaurantId }));
+      dispatch(fetchRestaurantChats({ token, restaurantId }));
     };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -39,6 +49,7 @@ export default function Restaurant() {
       } else {
         dispatch(clearRestaurantState());
         dispatch(clearChatBotState());
+        dispatch(clearRestaurantChatsState());
       }
     });
 
@@ -49,6 +60,7 @@ export default function Restaurant() {
     return <div>Loading...</div>;
   if (restaurantStatus === "failed") return <div>Error: {restaurantError}</div>;
   if (chatBotStatus === "failed") return <div>Error: {chatBotError}</div>;
+  if (chatsStatus === "failed") return <div>Error: {chatsError}</div>;
   if (!restaurant) return <div>No restaurant data available.</div>;
 
   return (
@@ -146,14 +158,18 @@ export default function Restaurant() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">LATEST CHATS</h2>
           <button
-            onClick={() => navigate(`/restaurant/${restaurantId}/chats`)}
+            onClick={() =>
+              navigate(
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/restaurant-chats`
+              )
+            }
             className="text-blue-500 underline"
           >
             See All
           </button>
         </div>
         <div className="space-y-2">
-          {restaurant.chats?.map((chat) => (
+          {restaurantChats.map((chat) => (
             <button
               key={chat._id}
               onClick={() =>
@@ -161,10 +177,7 @@ export default function Restaurant() {
               }
               className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition text-left"
             >
-              <h3 className="text-lg font-semibold">{chat.title}</h3>
-              <p className="text-gray-500">
-                {restaurant.name} • {restaurant.location}
-              </p>
+              <p className="text-gray-700 truncate">{chat.firstMessage}</p>
             </button>
           ))}
         </div>

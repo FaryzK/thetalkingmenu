@@ -6,6 +6,7 @@ import Restaurant from "../models/restaurant.model.js";
 import TokenUsage from "../models/tokenUsage.model.js";
 import { OpenAI } from "openai";
 import { encode } from "gpt-tokenizer";
+import User from "../models/user.model.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -131,6 +132,9 @@ export const sendMessage = async (req, res, next) => {
         timestamp: new Date(),
       });
 
+      // Save the updated chat
+      await chat.save();
+
       // Update or create TokenUsage for the current month and year
       const now = new Date();
       const currentMonth = now.getMonth() + 1; // Months are 0-based
@@ -162,5 +166,95 @@ export const sendMessage = async (req, res, next) => {
   } catch (dbError) {
     console.error("Database error:", dbError);
     return res.status(500).json({ error: "Error fetching data from database" });
+  }
+};
+
+export const getChatsByRestaurant = async (req, res) => {
+  const { restaurantId } = req.params; // Get the restaurant ID from the route
+  const { page = 1, limit = 20 } = req.query; // Get pagination parameters
+
+  try {
+    // Ensure the restaurant exists
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) {
+      return res.status(404).json({ error: "Restaurant not found" });
+    }
+
+    // Fetch chats with pagination
+    const chats = await Chat.find({ restaurantId })
+      .sort({ "messages.timestamp": -1 }) // Sort by latest message
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .select("_id messages"); // Only fetch required fields
+
+    // Count total chats for pagination info
+    const totalChats = await Chat.countDocuments({ restaurantId });
+
+    res.status(200).json({
+      chats: chats.map((chat) => ({
+        _id: chat._id,
+        firstMessage: chat.messages[0]?.message || "No messages", // Get the first message for preview
+        timestamp: chat.messages[0]?.timestamp || null, // Get the timestamp of the first message
+      })),
+      totalChats,
+    });
+  } catch (error) {
+    console.error("Error fetching chats:", error);
+    res.status(500).json({ error: "Failed to fetch chats" });
+  }
+};
+
+export const getChatById = async (req, res) => {
+  const { chatId } = req.params;
+
+  try {
+    // Fetch the chat by ID
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    res.status(200).json({
+      chatId: chat._id,
+      restaurantId: chat.restaurantId,
+      messages: chat.messages,
+    });
+  } catch (error) {
+    console.error("Error fetching chat:", error);
+    res.status(500).json({ error: "Failed to fetch chat" });
+  }
+};
+
+export const toggleStarChat = async (req, res) => {
+  const { chatId } = req.params; // Get chat ID from the route
+  const { userId } = req.body; // Get user ID from the request body
+
+  try {
+    // Fetch the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the chat is already starred
+    const isStarred = user.starredChats.includes(chatId);
+    if (isStarred) {
+      // If starred, remove it from the starredChats array
+      user.starredChats.pull(chatId);
+    } else {
+      // If not starred, add it to the starredChats array
+      user.starredChats.push(chatId);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      starred: !isStarred, // Return the new starred status
+    });
+  } catch (error) {
+    console.error("Error updating starred status:", error);
+    res.status(500).json({ error: "Failed to update starred status" });
   }
 };

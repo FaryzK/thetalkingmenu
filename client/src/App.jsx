@@ -40,6 +40,10 @@ export default function App() {
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/restaurant/:restaurantId/chat" element={<Chat />} />
+        <Route
+          path="/restaurant/:restaurantId/chat/:chat_id"
+          element={<Chat />}
+        />
 
         {/* Protect the /dashboards route with dashboardAllowedRoles */}
         <Route

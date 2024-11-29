@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { addMessage, startNewChat, setChatId } from "../redux/slices/chatSlice";
+import {
+  clearMessages,
+  addMessage,
+  setMessages,
+  startNewChat,
+  setChatId,
+} from "../redux/slices/chatSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from "react-markdown";
 
 export default function Chat() {
-  const { restaurantId } = useParams();
+  const { restaurantId, chat_id } = useParams();
   const dispatch = useDispatch();
   const [input, setInput] = useState("");
   const [userId, setUserId] = useState(null);
@@ -27,6 +33,38 @@ export default function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, tempAssistantMessage]);
+
+  // if we are calling an existing chat
+  useEffect(() => {
+    if (chat_id) {
+      // Fetch existing chat
+      dispatch(clearMessages());
+      fetch(`/api/chat/${chat_id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch chat data");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          dispatch(setChatId(data.chatId)); // Set the chatId in Redux
+          dispatch(clearMessages()); // Clear existing messages (optional, if needed)
+          dispatch(
+            setMessages(
+              data.messages.map((message) => ({
+                role: message.sender,
+                content: message.message,
+                timestamp: message.timestamp,
+              }))
+            )
+          );
+        })
+        .catch((error) => console.error("Error fetching chat:", error));
+    }
+  }, [chat_id, dispatch]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
