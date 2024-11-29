@@ -153,6 +153,12 @@ export default function Chat() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault(); // Prevent default behavior (like adding a new line in a textarea)
+                handleSendMessage(); // Call the send message function
+              }
+            }}
             placeholder="Type a message"
             className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
           />

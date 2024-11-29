@@ -171,8 +171,8 @@ export const sendMessage = async (req, res, next) => {
 
 export const getChatsByRestaurant = async (req, res) => {
   const { restaurantId } = req.params; // Get the restaurant ID from the route
-  const { page = 1, limit = 20 } = req.query; // Get pagination parameters
-
+  const page = parseInt(req.query.page) || 1; // Convert to integer, default to 1
+  const limit = parseInt(req.query.limit) || 20; // Convert to integer, default to 20
   try {
     // Ensure the restaurant exists
     const restaurant = await Restaurant.findById(restaurantId);
@@ -228,11 +228,12 @@ export const getChatById = async (req, res) => {
 
 export const toggleStarChat = async (req, res) => {
   const { chatId } = req.params; // Get chat ID from the route
-  const { userId } = req.body; // Get user ID from the request body
+  const { uid } = req.user; // Get user ID from the request body
 
   try {
     // Fetch the user
-    const user = await User.findById(userId);
+    const user = await User.findOne({ uid });
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -256,5 +257,36 @@ export const toggleStarChat = async (req, res) => {
   } catch (error) {
     console.error("Error updating starred status:", error);
     res.status(500).json({ error: "Failed to update starred status" });
+  }
+};
+
+export const getStarredChatsByRestaurant = async (req, res) => {
+  const { restaurantId } = req.params; // Get restaurant ID from the request parameters
+  const { uid } = req.user; // Get the user's UID from the authentication middleware
+
+  try {
+    // Fetch the user by UID using findOne
+    const user = await User.findOne({ uid }).populate("starredChats");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Filter starred chats by restaurantId
+    const starredChats = user.starredChats.filter(
+      (chat) => chat.restaurantId.toString() === restaurantId
+    );
+
+    // Format response to include only necessary fields
+    const formattedChats = starredChats.map((chat) => ({
+      _id: chat._id,
+      firstMessage: chat.messages[0]?.message || "No messages",
+      timestamp: chat.messages[0]?.timestamp || null,
+    }));
+
+    res.status(200).json(formattedChats);
+  } catch (error) {
+    console.error("Error fetching starred chats:", error);
+    res.status(500).json({ error: "Failed to fetch starred chats" });
   }
 };

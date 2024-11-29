@@ -27,6 +27,7 @@ import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
 import DashboardManager from "./pages/platform/DashboardManager.jsx";
+import RestaurantChats from "./pages/RestaurantChats.jsx";
 import Test from "./pages/Test.jsx";
 
 export default function App() {
@@ -94,6 +95,10 @@ export default function App() {
           <Route
             path="/dashboards/:dashboardId/restaurant/:restaurantId/info"
             element={<RestaurantInfo />}
+          />
+          <Route
+            path="/dashboards/:dashboardId/restaurant/:restaurantId/chats"
+            element={<RestaurantChats />}
           />
         </Route>
 

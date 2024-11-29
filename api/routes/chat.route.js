@@ -5,6 +5,7 @@ import {
   getChatsByRestaurant,
   toggleStarChat,
   getChatById,
+  getStarredChatsByRestaurant,
 } from "../controllers/chat.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 
@@ -17,11 +18,17 @@ router.post("/start-new-chat", startNewChat);
 router.post("/send-message", sendMessage);
 
 // Route to fetch chats with pagination
-router.get("/:restaurantId/chats", getChatsByRestaurant);
+router.get("/:restaurantId/chats", isAuthenticated, getChatsByRestaurant);
 
 // Route to star/unstar a chat
-router.post("/:chatId/star", toggleStarChat);
+router.post("/:chatId/toggleStarChat", isAuthenticated, toggleStarChat);
 
 router.get("/:chatId", getChatById); // Fetch a specific chat by ID
+
+router.get(
+  "/:restaurantId/starred",
+  isAuthenticated,
+  getStarredChatsByRestaurant
+);
 
 export default router;

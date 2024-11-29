@@ -29,7 +29,7 @@ export default function Restaurant() {
     error: chatBotError,
   } = useSelector((state) => state.chatBot);
   const {
-    data: restaurantChats,
+    allChats: restaurantChats,
     status: chatsStatus,
     error: chatsError,
   } = useSelector((state) => state.restaurantChats);
@@ -160,7 +160,7 @@ export default function Restaurant() {
           <button
             onClick={() =>
               navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/restaurant-chats`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/chats`
               )
             }
             className="text-blue-500 underline"
@@ -169,7 +169,7 @@ export default function Restaurant() {
           </button>
         </div>
         <div className="space-y-2">
-          {restaurantChats.map((chat) => (
+          {restaurantChats?.map((chat) => (
             <button
               key={chat._id}
               onClick={() =>
