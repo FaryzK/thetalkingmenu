@@ -81,20 +81,75 @@ const RestaurantChats = () => {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentStarredPage, setCurrentStarredPage] = useState(1);
+  const [currentSearchPage, setCurrentSearchPage] = useState(1);
+  const [currentStarredSearchPage, setCurrentStarredSearchPage] = useState(1);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
   const [token, setToken] = useState(null);
   const [loadingToggles, setLoadingToggles] = useState({});
   const [loadingTabs, setLoadingTabs] = useState({
     all: false,
     starred: false,
   });
+
+  const {
+    allChats,
+    searchResults,
+    starredChats,
+    totalChats,
+    totalStarredChats,
+    error,
+  } = useSelector((state) => state.restaurantChats);
+
   const limit = 20;
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [searchActive, setSearchActive] = useState(false);
+  // Calculate total pages
+  const totalPages = Math.ceil(totalChats / limit);
+  const totalStarredPages = Math.ceil(totalStarredChats / limit);
+  const totalSearchPages = searchActive
+    ? Math.ceil((searchResults?.totalChats || 0) / limit) // Use `searchResults.total` to calculate pages
+    : 0;
 
-  const { allChats, searchResults, starredChats, totalChats, error } =
-    useSelector((state) => state.restaurantChats);
+  useEffect(() => {
+    if (token) {
+      const promises = [];
+
+      // Always fetch all chats
+      promises.push(
+        dispatch(
+          fetchRestaurantChats({
+            token,
+            restaurantId,
+            page: currentPage,
+            limit,
+          })
+        )
+      );
+
+      // Always fetch starred chats
+      promises.push(
+        dispatch(
+          fetchStarredChats({
+            token,
+            restaurantId,
+            page: currentStarredPage,
+            limit,
+          })
+        )
+      );
+
+      // Wait for both requests to complete before updating loading state
+      Promise.all(promises).finally(() =>
+        setLoadingTabs((prev) => ({
+          ...prev,
+          all: false,
+          starred: false,
+        }))
+      );
+    }
+  }, [token, restaurantId, currentPage, currentStarredPage, dispatch, limit]);
 
   // Debounce search query
   useEffect(() => {
@@ -120,19 +175,24 @@ const RestaurantChats = () => {
     return () => unsubscribe();
   }, []);
 
-  // Reset search when changing tabs
+  // Handle tab change
   useEffect(() => {
-    // Clear search query and reset search active state
-    setSearchQuery("");
-    setDebouncedSearchQuery("");
-    setSearchActive(false);
-
-    // Fetch appropriate chats based on tab
     if (token) {
-      setLoadingTabs((prev) => ({ ...prev, [activeTab]: true }));
-
-      if (activeTab === "all") {
-        Promise.all([
+      if (searchActive && debouncedSearchQuery.trim()) {
+        // If search is active, and there is something to search, fetch the relevant tab's search results
+        dispatch(
+          searchRestaurantChats({
+            token,
+            restaurantId,
+            keyword: debouncedSearchQuery,
+            ...(activeTab === "starred" && { filterStarred: true }), // Filter starred for starred tab
+            page: activeTab === "all" ? currentSearchPage : currentStarredPage,
+            limit,
+          })
+        );
+      } else {
+        // If search is inactive, fetch regular chats for the active tab
+        if (activeTab === "all") {
           dispatch(
             fetchRestaurantChats({
               token,
@@ -140,18 +200,31 @@ const RestaurantChats = () => {
               page: currentPage,
               limit,
             })
-          ),
-          dispatch(fetchStarredChats({ token, restaurantId })),
-        ]).finally(() =>
-          setLoadingTabs((prev) => ({ ...prev, [activeTab]: false }))
-        );
-      } else if (activeTab === "starred") {
-        dispatch(fetchStarredChats({ token, restaurantId })).finally(() =>
-          setLoadingTabs((prev) => ({ ...prev, [activeTab]: false }))
-        );
+          );
+        } else if (activeTab === "starred") {
+          dispatch(
+            fetchStarredChats({
+              token,
+              restaurantId,
+              page: currentStarredPage,
+              limit,
+            })
+          );
+        }
       }
     }
-  }, [activeTab, restaurantId, token, dispatch, currentPage]);
+  }, [
+    activeTab,
+    searchActive,
+    token,
+    restaurantId,
+    currentPage,
+    currentSearchPage,
+    currentStarredPage,
+    debouncedSearchQuery,
+    dispatch,
+    limit,
+  ]);
 
   // Perform search when debounced query changes
   useEffect(() => {
@@ -162,7 +235,10 @@ const RestaurantChats = () => {
           token,
           restaurantId,
           keyword: debouncedSearchQuery,
-          // Only filter starred if we're on the starred tab
+          // Use appropriate pagination for all or starred
+          page:
+            activeTab === "all" ? currentSearchPage : currentStarredSearchPage,
+          limit,
           ...(activeTab === "starred" && { filterStarred: true }),
         })
       ).then((action) => {
@@ -174,30 +250,108 @@ const RestaurantChats = () => {
       // When search query is empty, reset search active state
       setSearchActive(false);
     }
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, currentSearchPage, currentStarredSearchPage]);
 
   // Memoized function to toggle star status
   const handleToggleStarChat = useCallback(
     async (chatId) => {
       setLoadingToggles((prev) => ({ ...prev, [chatId]: true }));
-      await dispatch(toggleStarChat({ token, chatId }));
+
+      const result = await dispatch(toggleStarChat({ token, chatId }));
+
+      if (result.type.endsWith("fulfilled")) {
+        if (searchActive) {
+          // Update search results manually to reflect the change
+          const updatedSearchResults = searchResults.chats.map((chat) =>
+            chat._id === chatId
+              ? { ...chat, isStarred: !chat.isStarred } // Toggle `isStarred` correctly
+              : chat
+          );
+
+          dispatch({
+            type: "restaurantChats/updateSearchResults",
+            payload: { ...searchResults, chats: updatedSearchResults },
+          });
+        } else {
+          // Re-fetch data for the current tab when not searching
+          if (activeTab === "all") {
+            dispatch(
+              fetchRestaurantChats({
+                token,
+                restaurantId,
+                page: currentPage,
+                limit,
+              })
+            );
+          } else if (activeTab === "starred") {
+            dispatch(
+              fetchStarredChats({
+                token,
+                restaurantId,
+                page: currentStarredPage,
+                limit,
+              })
+            );
+          }
+        }
+      }
+
       setLoadingToggles((prev) => ({ ...prev, [chatId]: false }));
     },
-    [dispatch, token]
+    [
+      dispatch,
+      token,
+      searchActive,
+      searchResults,
+      activeTab,
+      currentPage,
+      currentStarredPage,
+      restaurantId,
+      limit,
+    ]
   );
 
   // Determine if a chat is starred
-  const isChatStarred = (chatId) => starredChats.some((c) => c._id === chatId);
+  const isChatStarred = (chatId) => {
+    if (searchActive) {
+      return searchResults.chats.some(
+        (chat) => chat._id === chatId && chat.isStarred
+      );
+    }
+    return (
+      starredChats.some((chat) => chat._id === chatId) ||
+      allChats.some((chat) => chat._id === chatId && chat.isStarred)
+    );
+  };
 
-  // Calculate total pages
-  const totalPages = Math.ceil(totalChats / limit);
+  const getPaginationRange = (currentPage, totalPages) => {
+    const startPage = Math.max(currentPage - 1, 1); // Start from the current page - 1 but not below 1
+    const endPage = Math.min(startPage + 2, totalPages); // Show at most 3 pages
+    const range = [];
+    for (let i = startPage; i <= endPage; i++) {
+      range.push(i);
+    }
+    return range;
+  };
 
   // Determine chats to display
   const chatsToDisplay = useMemo(() => {
     if (searchActive) {
-      return searchResults;
+      // Fetch the appropriate search results based on the active tab
+      const resultsArray = Array.isArray(searchResults.chats)
+        ? searchResults.chats
+        : [];
+      return resultsArray;
     }
-    return activeTab === "all" ? allChats : starredChats;
+
+    // If no search is active, display the chats for the active tab
+    return activeTab === "all"
+      ? Array.isArray(allChats)
+        ? allChats
+        : []
+      : Array.isArray(starredChats)
+      ? starredChats
+      : [];
   }, [searchActive, searchResults, activeTab, allChats, starredChats]);
 
   return (
@@ -241,8 +395,10 @@ const RestaurantChats = () => {
       </div>
 
       {/* Pagination */}
-      {activeTab === "all" && (
+      {/* Pagination for All Chats */}
+      {!searchActive && activeTab === "all" && (
         <div className="flex justify-center mt-4 space-x-2">
+          {/* Previous Button */}
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => prev - 1)}
@@ -252,26 +408,147 @@ const RestaurantChats = () => {
           >
             Previous
           </button>
-          <div className="pagination">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-4 py-2 rounded-lg ${
-                  currentPage === i + 1
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+
+          {/* Page Numbers */}
+          {getPaginationRange(currentPage, totalPages).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === page ? "bg-blue-500 text-white" : "bg-gray-200"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Next Button */}
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((prev) => prev + 1)}
             className={`px-4 py-2 rounded-lg ${
               currentPage === totalPages
+                ? "bg-gray-300"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Pagination for Starred Chats */}
+      {!searchActive && activeTab === "starred" && (
+        <div className="flex justify-center mt-4 space-x-2">
+          {/* Previous Button */}
+          <button
+            disabled={currentStarredPage === 1}
+            onClick={() => setCurrentStarredPage((prev) => prev - 1)}
+            className={`px-4 py-2 rounded-lg ${
+              currentStarredPage === 1
+                ? "bg-gray-300"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            Previous
+          </button>
+
+          {/* Page Numbers */}
+          {getPaginationRange(currentStarredPage, totalStarredPages).map(
+            (page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentStarredPage(page)}
+                className={`px-4 py-2 rounded-lg ${
+                  currentStarredPage === page
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                {page}
+              </button>
+            )
+          )}
+
+          {/* Next Button */}
+          <button
+            disabled={currentStarredPage === totalStarredPages}
+            onClick={() => setCurrentStarredPage((prev) => prev + 1)}
+            className={`px-4 py-2 rounded-lg ${
+              currentStarredPage === totalStarredPages
+                ? "bg-gray-300"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Pagination for Search Results */}
+      {searchActive && (
+        <div className="flex justify-center mt-4 space-x-2">
+          {/* Previous Button */}
+          <button
+            disabled={
+              activeTab === "all"
+                ? currentSearchPage === 1
+                : currentStarredSearchPage === 1
+            }
+            onClick={() =>
+              activeTab === "all"
+                ? setCurrentSearchPage((prev) => prev - 1)
+                : setCurrentStarredSearchPage((prev) => prev - 1)
+            }
+            className={`px-4 py-2 rounded-lg ${
+              (activeTab === "all" && currentSearchPage === 1) ||
+              (activeTab === "starred" && currentStarredSearchPage === 1)
+                ? "bg-gray-300"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            Previous
+          </button>
+
+          {/* Page Numbers */}
+          {getPaginationRange(
+            activeTab === "all" ? currentSearchPage : currentStarredSearchPage,
+            totalSearchPages // Use total search pages
+          ).map((page) => (
+            <button
+              key={page}
+              onClick={() =>
+                activeTab === "all"
+                  ? setCurrentSearchPage(page)
+                  : setCurrentStarredSearchPage(page)
+              }
+              className={`px-4 py-2 rounded-lg ${
+                (activeTab === "all" && currentSearchPage === page) ||
+                (activeTab === "starred" && currentStarredSearchPage === page)
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Next Button */}
+          <button
+            disabled={
+              activeTab === "all"
+                ? currentSearchPage === totalSearchPages
+                : currentStarredSearchPage === totalSearchPages
+            }
+            onClick={() =>
+              activeTab === "all"
+                ? setCurrentSearchPage((prev) => prev + 1)
+                : setCurrentStarredSearchPage((prev) => prev + 1)
+            }
+            className={`px-4 py-2 rounded-lg ${
+              (activeTab === "all" && currentSearchPage === totalSearchPages) ||
+              (activeTab === "starred" &&
+                currentStarredSearchPage === totalSearchPages)
                 ? "bg-gray-300"
                 : "bg-blue-500 text-white"
             }`}

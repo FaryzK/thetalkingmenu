@@ -26,15 +26,25 @@ export const fetchRestaurantChats = createAsyncThunk(
 // Thunk to fetch starred chats
 export const fetchStarredChats = createAsyncThunk(
   "restaurantChats/fetchStarredChats",
-  async ({ token, restaurantId }, { rejectWithValue }) => {
+  async (
+    { token, restaurantId, page = 1, limit = 20 },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await fetch(`/api/chat/${restaurantId}/starred`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `/api/chat/${restaurantId}/starred?page=${page}&limit=${limit}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error || "Failed to fetch starred chats");
-      return data; // Expecting an array of starred chats
+      return {
+        chats: data.chats, // Array of starred chats
+        totalChats: data.totalChats, // Total starred chat count
+        page,
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -66,21 +76,28 @@ export const toggleStarChat = createAsyncThunk(
 export const searchRestaurantChats = createAsyncThunk(
   "restaurantChats/searchRestaurantChats",
   async (
-    { token, restaurantId, keyword, filterStarred = false },
+    {
+      token,
+      restaurantId,
+      keyword,
+      filterStarred = false,
+      page = 1,
+      limit = 20,
+    },
     { rejectWithValue }
   ) => {
     try {
       const response = await fetch(
         `/api/chat/${restaurantId}/search?keyword=${encodeURIComponent(
           keyword
-        )}${filterStarred ? "&starred=true" : ""}`,
+        )}&page=${page}&limit=${limit}${filterStarred ? "&starred=true" : ""}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to search chats");
-      return data; // Array of filtered chats
+      return { chats: data.chats, totalChats: data.totalChats, page };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -90,10 +107,11 @@ export const searchRestaurantChats = createAsyncThunk(
 const restaurantChatsSlice = createSlice({
   name: "restaurantChats",
   initialState: {
-    allChats: [], // For regular chats
-    starredChats: [], // For starred chats
-    searchResults: [], // For keyword search
-    totalChats: 0, // Total number of regular chats for pagination
+    allChats: [], // Regular chats
+    starredChats: [], // Starred chats
+    searchResults: [], // Searched chats
+    totalChats: 0, // Total chats for pagination
+    totalStarredChats: 0, // Total starred chats for pagination
     status: "idle",
     error: null,
   },
@@ -101,9 +119,14 @@ const restaurantChatsSlice = createSlice({
     clearRestaurantChatsState: (state) => {
       state.allChats = [];
       state.starredChats = [];
+      state.searchResults = [];
       state.totalChats = 0;
+      state.totalStarredChats = 0;
       state.status = "idle";
       state.error = null;
+    },
+    updateSearchResults: (state, action) => {
+      state.searchResults = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -125,7 +148,8 @@ const restaurantChatsSlice = createSlice({
       })
       .addCase(fetchStarredChats.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.starredChats = action.payload; // Update starred chats
+        state.starredChats = action.payload.chats; // Starred chats for current page
+        state.totalStarredChats = action.payload.totalChats; // Total starred chat count
       })
       .addCase(fetchStarredChats.rejected, (state, action) => {
         state.status = "failed";
@@ -135,21 +159,33 @@ const restaurantChatsSlice = createSlice({
         state.status = "loading"; // Set status to loading when the action is pending
       })
       .addCase(toggleStarChat.fulfilled, (state, action) => {
-        state.status = "succeeded"; // Set status to succeeded when the action is fulfilled
+        state.status = "succeeded";
 
         const { chatId, starred } = action.payload;
 
         // Update starredChats based on the new status
         if (starred) {
-          // Add to starredChats if not already present
-          const chat = state.allChats.find((c) => c._id === chatId);
+          const chat =
+            state.allChats.find((c) => c._id === chatId) ||
+            state.searchResults.chats.find((c) => c._id === chatId);
           if (chat && !state.starredChats.some((c) => c._id === chatId)) {
-            state.starredChats.push(chat);
+            state.starredChats.push({ ...chat, isStarred: true });
           }
         } else {
-          // Remove from starredChats
           state.starredChats = state.starredChats.filter(
             (c) => c._id !== chatId
+          );
+        }
+
+        // Update the starred status in allChats
+        state.allChats = state.allChats.map((chat) =>
+          chat._id === chatId ? { ...chat, isStarred: starred } : chat
+        );
+
+        // Update the searchResults if applicable
+        if (state.searchResults && state.searchResults.chats) {
+          state.searchResults.chats = state.searchResults.chats.map((chat) =>
+            chat._id === chatId ? { ...chat, isStarred: starred } : chat
           );
         }
       })
@@ -162,7 +198,17 @@ const restaurantChatsSlice = createSlice({
       })
       .addCase(searchRestaurantChats.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.searchResults = action.payload;
+
+        const starredChatIds = state.starredChats.map((chat) => chat._id);
+
+        // Add isStarred property based on starredChats
+        state.searchResults = {
+          ...action.payload,
+          chats: action.payload.chats.map((chat) => ({
+            ...chat,
+            isStarred: starredChatIds.includes(chat._id),
+          })),
+        };
       })
       .addCase(searchRestaurantChats.rejected, (state, action) => {
         state.status = "failed";
@@ -171,5 +217,6 @@ const restaurantChatsSlice = createSlice({
   },
 });
 
-export const { clearRestaurantChatsState } = restaurantChatsSlice.actions;
+export const { clearRestaurantChatsState, updateSearchResults } =
+  restaurantChatsSlice.actions;
 export default restaurantChatsSlice.reducer;

@@ -342,30 +342,39 @@ export const toggleStarChat = async (req, res) => {
 };
 
 export const getStarredChatsByRestaurant = async (req, res) => {
-  const { restaurantId } = req.params; // Get restaurant ID from the request parameters
-  const { uid } = req.user; // Get the user's UID from the authentication middleware
+  const { restaurantId } = req.params;
+  const { uid } = req.user;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
 
   try {
-    // Fetch the user by UID using findOne
-    const user = await User.findOne({ uid }).populate("starredChats");
+    // Fetch only the starred chat IDs for the user
+    const user = await User.findOne({ uid }, "starredChats").lean();
+    const starredChatIds = user.starredChats;
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    // Count total starred chats for the restaurant
+    const totalChats = await Chat.countDocuments({
+      _id: { $in: starredChatIds },
+      restaurantId,
+    });
 
-    // Filter starred chats by restaurantId
-    const starredChats = user.starredChats.filter(
-      (chat) => chat.restaurantId.toString() === restaurantId
-    );
+    // Fetch paginated starred chats
+    const chats = await Chat.find({
+      _id: { $in: starredChatIds },
+      restaurantId,
+    })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    // Format response to include only necessary fields
-    const formattedChats = starredChats.map((chat) => ({
-      _id: chat._id,
-      firstMessage: chat.messages[0]?.message || "No messages",
-      timestamp: chat.messages[0]?.timestamp || null,
-    }));
-
-    res.status(200).json(formattedChats);
+    res.status(200).json({
+      chats: chats.map((chat) => ({
+        _id: chat._id,
+        firstMessage: chat.messages[0]?.message || "No messages",
+        timestamp: chat.messages[0]?.timestamp || null,
+      })),
+      totalChats,
+    });
   } catch (error) {
     console.error("Error fetching starred chats:", error);
     res.status(500).json({ error: "Failed to fetch starred chats" });
@@ -374,38 +383,65 @@ export const getStarredChatsByRestaurant = async (req, res) => {
 
 export const searchChatsByKeyword = async (req, res) => {
   const { restaurantId } = req.params;
-  const { keyword, starred } = req.query; // Add a query param for starred
+  const { keyword, starred } = req.query;
   const { uid } = req.user;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
 
   if (!keyword) {
     return res.status(400).json({ error: "Keyword is required for search" });
   }
 
   try {
-    let chats;
+    let totalChats = 0;
+    let chats = [];
+
     if (starred === "true") {
-      const user = await User.findOne({ uid }).populate("starredChats");
-      chats = user.starredChats.filter(
-        (chat) =>
-          chat.restaurantId.toString() === restaurantId &&
-          chat.messages.some((msg) =>
-            msg.message.toLowerCase().includes(keyword.toLowerCase())
-          )
-      );
+      // Fetch only the IDs of starred chats for the user
+      const user = await User.findOne({ uid }, "starredChats").lean();
+      const starredChatIds = user.starredChats.map((chat) => chat._id);
+
+      // Count matching starred chats
+      totalChats = await Chat.countDocuments({
+        _id: { $in: starredChatIds },
+        restaurantId,
+        "messages.message": { $regex: keyword, $options: "i" },
+      });
+
+      // Fetch paginated starred chats
+      chats = await Chat.find({
+        _id: { $in: starredChatIds },
+        restaurantId,
+        "messages.message": { $regex: keyword, $options: "i" },
+      })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
     } else {
+      // Count matching non-starred chats
+      totalChats = await Chat.countDocuments({
+        restaurantId,
+        "messages.message": { $regex: keyword, $options: "i" },
+      });
+
+      // Fetch paginated non-starred chats
       chats = await Chat.find({
         restaurantId,
         "messages.message": { $regex: keyword, $options: "i" },
-      }).lean();
+      })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
     }
 
-    const formattedChats = chats.map((chat) => ({
-      _id: chat._id,
-      firstMessage: chat.messages[0]?.message || "No messages",
-      timestamp: chat.messages[0]?.timestamp || null,
-    }));
-
-    res.status(200).json(formattedChats);
+    res.status(200).json({
+      chats: chats.map((chat) => ({
+        _id: chat._id,
+        firstMessage: chat.messages[0]?.message || "No messages",
+        timestamp: chat.messages[0]?.timestamp || null,
+      })),
+      totalChats, // Total matching chats across all pages
+    });
   } catch (error) {
     console.error("Error searching chats:", error);
     res.status(500).json({ error: "Failed to search chats" });
