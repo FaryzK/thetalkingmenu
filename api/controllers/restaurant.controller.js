@@ -6,6 +6,7 @@ import ChatBot from "../models/chatBot.model.js";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
+import RestaurantAnalytics from "../models/restaurantAnalytics.model.js";
 
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
   pkg;
@@ -45,6 +46,12 @@ export const createRestaurant = async (req, res, next) => {
       ],
     });
     await newRestaurant.save();
+
+    // Initialize RestaurantAnalytics for the new restaurant
+    const newRestaurantAnalytics = new RestaurantAnalytics({
+      restaurantId: newRestaurant._id,
+    });
+    await newRestaurantAnalytics.save();
 
     const defaultQuestions = [
       createFormattedContent([
@@ -191,6 +198,7 @@ export const deleteRestaurant = async (req, res, next) => {
     await ChatBot.deleteMany({ restaurantId: restaurant._id });
     await Chat.deleteMany({ restaurantId: restaurant._id });
     await Menu.deleteMany({ restaurantId: restaurant._id });
+    await RestaurantAnalytics.deleteOne({ restaurantId }); // Delete RestaurantAnalytics
 
     // Update related user and dashboard records
     await User.updateMany(

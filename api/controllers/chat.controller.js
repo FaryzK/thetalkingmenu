@@ -3,10 +3,79 @@ import ChatBot from "../models/chatBot.model.js";
 import Menu from "../models/menu.model.js";
 import GlobalSystemPrompt from "../models/globalSystemPrompt.model.js";
 import Restaurant from "../models/restaurant.model.js";
-import TokenUsage from "../models/tokenUsage.model.js";
 import { OpenAI } from "openai";
 import { encode } from "gpt-tokenizer";
 import User from "../models/user.model.js";
+import RestaurantAnalytics from "../models/restaurantAnalytics.model.js";
+
+export const updateRestaurantAnalytics = async (
+  restaurantId,
+  updates,
+  currentMonth,
+  currentYear
+) => {
+  try {
+    // Fetch the current analytics document
+    const analytics = await RestaurantAnalytics.findOne({ restaurantId });
+
+    // Check if the monthly stats entry exists
+    const monthlyStatIndex = analytics?.monthlyStats.findIndex(
+      (stat) => stat.year === currentYear && stat.month === currentMonth
+    );
+
+    if (monthlyStatIndex !== -1) {
+      // Update existing monthly stats and increment overall counters
+      const updateQuery = {};
+      for (const key in updates) {
+        if (key.startsWith("monthlyStats")) {
+          const [, field] = key.split(".$[elem].");
+          updateQuery[`monthlyStats.${monthlyStatIndex}.${field}`] =
+            (analytics.monthlyStats[monthlyStatIndex][field] || 0) +
+            updates[key];
+        } else {
+          // Increment overall counters
+          updateQuery[key] = (analytics[key] || 0) + updates[key];
+        }
+      }
+
+      await RestaurantAnalytics.updateOne(
+        { restaurantId },
+        { $set: updateQuery }
+      );
+    } else {
+      // Create a new monthly stats entry if not exists and update overall counters
+      const newMonthlyStat = {
+        year: currentYear,
+        month: currentMonth,
+        chats: updates["monthlyStats.$[elem].chats"] || 0,
+        messages: updates["monthlyStats.$[elem].messages"] || 0,
+        total_tokens: updates["monthlyStats.$[elem].total_tokens"] || 0,
+        prompt_tokens: updates["monthlyStats.$[elem].prompt_tokens"] || 0,
+        completion_tokens:
+          updates["monthlyStats.$[elem].completion_tokens"] || 0,
+      };
+
+      const overallUpdates = {
+        totalChats: updates.totalChats || 0,
+        totalMessages: updates.totalMessages || 0,
+        total_tokens: updates.total_tokens || 0,
+        total_prompt_tokens: updates.prompt_tokens || 0,
+        total_completion_tokens: updates.completion_tokens || 0,
+      };
+
+      await RestaurantAnalytics.updateOne(
+        { restaurantId },
+        {
+          $push: { monthlyStats: newMonthlyStat },
+          $inc: overallUpdates,
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating RestaurantAnalytics:", error);
+    throw new Error("Failed to update restaurant analytics");
+  }
+};
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -29,6 +98,18 @@ export const startNewChat = async (req, res, next) => {
       tokenUsage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     });
     await chat.save();
+
+    // Update RestaurantAnalytics
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    await updateRestaurantAnalytics(
+      restaurantId,
+      { totalChats: 1, "monthlyStats.$[elem].chats": 1 },
+      currentMonth,
+      currentYear
+    );
 
     res.status(201).json({ chatId: chat._id });
   } catch (error) {
@@ -135,25 +216,25 @@ export const sendMessage = async (req, res, next) => {
       // Save the updated chat
       await chat.save();
 
-      // Update or create TokenUsage for the current month and year
       const now = new Date();
-      const currentMonth = now.getMonth() + 1; // Months are 0-based
+      const currentMonth = now.getMonth() + 1;
       const currentYear = now.getFullYear();
 
-      const tokenUsage = await TokenUsage.findOneAndUpdate(
+      // Update RestaurantAnalytics for messages and tokens
+      await updateRestaurantAnalytics(
+        restaurantId,
         {
-          restaurantId,
-          month: currentMonth,
-          year: currentYear,
+          totalMessages: 1,
+          total_tokens: promptTokens + completionTokens,
+          total_prompt_tokens: promptTokens,
+          total_completion_tokens: completionTokens,
+          "monthlyStats.$[elem].messages": 1,
+          "monthlyStats.$[elem].total_tokens": promptTokens + completionTokens,
+          "monthlyStats.$[elem].prompt_tokens": promptTokens,
+          "monthlyStats.$[elem].completion_tokens": completionTokens,
         },
-        {
-          $inc: {
-            "tokenUsageDetails.prompt_tokens": promptTokens,
-            "tokenUsageDetails.completion_tokens": completionTokens,
-            "tokenUsageDetails.total_tokens": promptTokens + completionTokens,
-          },
-        },
-        { new: true, upsert: true } // Create if not exists
+        currentMonth,
+        currentYear
       );
 
       res.end();

@@ -101,12 +101,13 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/system-prompt`
               )
             }
           >
-            Update Suggested Questions
+            Update Prompt
           </button>
+
           <button
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
@@ -122,12 +123,13 @@ export default function Restaurant() {
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
               navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/system-prompt`
+                `/dashboards/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
               )
             }
           >
-            Update Prompt
+            Update Suggested Questions
           </button>
+
           <button
             className="w-full bg-blue-500 text-white py-2 rounded"
             onClick={() =>
