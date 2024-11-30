@@ -17,6 +17,13 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [userId, setUserId] = useState(null);
   const [tempAssistantMessage, setTempAssistantMessage] = useState("");
+  const [info, setInfo] = useState({
+    restaurantName: "",
+    restaurantLogo: "",
+    suggestedQuestions: [],
+  });
+  const [showInfo, setShowInfo] = useState(true); // Controls visibility of intro
+
   const messages = useSelector((state) => state.chat.messages);
   const chatId = useSelector((state) => state.chat.chatId);
 
@@ -29,6 +36,18 @@ export default function Chat() {
       else setUserId(null);
     });
   }, []);
+
+  useEffect(() => {
+    fetch(`/api/chatbot/${restaurantId}/info`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setInfo(data);
+      })
+      .catch((error) => console.error("Error fetching info:", error));
+  }, [restaurantId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,6 +87,7 @@ export default function Chat() {
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
+    setShowInfo(false); // Hide intro after first message
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
     let currentChatId = chatId;
@@ -114,9 +134,86 @@ export default function Chat() {
       });
   };
 
+  const handleSuggestedQuestion = async (question) => {
+    setShowInfo(false); // Hide the intro immediately
+    dispatch(addMessage({ role: "user", content: question })); // Add the question to the messages
+    let currentChatId = chatId;
+
+    if (!currentChatId) {
+      const startChatResponse = await dispatch(
+        startNewChat({ restaurantId, userId })
+      );
+      currentChatId = startChatResponse.payload.chatId;
+      dispatch(setChatId(currentChatId));
+    }
+
+    fetch(`/api/chat/send-message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        restaurantId,
+        userId,
+        message: question,
+        chatId: currentChatId,
+      }),
+    })
+      .then((response) => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let assistantMessage = "";
+        function readChunk() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              dispatch(
+                addMessage({ role: "assistant", content: assistantMessage })
+              );
+              setTempAssistantMessage("");
+              return;
+            }
+            const chunk = decoder.decode(value);
+            assistantMessage += chunk;
+            setTempAssistantMessage(assistantMessage);
+            readChunk();
+          });
+        }
+        readChunk();
+      })
+      .catch((error) => {
+        console.error("Error with streaming:", error);
+      });
+  };
+
   return (
     <div className="flex justify-center bg-gray-900 text-white h-screen p-6 pt-20">
       <div className="flex flex-col w-full max-w-3xl h-full">
+        {showInfo && (
+          <div className="text-center space-y-4 p-4 bg-gray-800 rounded-lg mb-4">
+            <img
+              src={info.restaurantLogo}
+              alt={info.restaurantName}
+              className="w-20 h-20 mx-auto rounded-full"
+            />
+            <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {info.suggestedQuestions.map((question, index) => {
+                // Extract plain text from Draft.js content
+                const plainText = question.blocks
+                  .map((block) => block.text)
+                  .join(" ");
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestedQuestion(plainText)}
+                    className="px-4 py-2 bg-blue-500 rounded-lg text-white hover:bg-blue-600"
+                  >
+                    {plainText}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
           {messages.map((msg, index) => (
             <div

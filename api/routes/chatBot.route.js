@@ -3,6 +3,7 @@ import express from "express";
 import {
   getChatBot,
   updateSystemPrompt,
+  getChatBotAndRestaurantInfo,
 } from "../controllers/chatBot.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { updateSuggestedQuestions } from "../controllers/chatBot.controller.js";
@@ -16,5 +17,6 @@ router.patch(
   isAuthenticated,
   updateSuggestedQuestions
 );
+router.get("/:restaurantId/info", getChatBotAndRestaurantInfo);
 
 export default router;

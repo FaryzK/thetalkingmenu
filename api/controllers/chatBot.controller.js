@@ -1,6 +1,7 @@
 // src/controllers/chatBot.controller.js
 import ChatBot from "../models/chatBot.model.js";
 import { errorHandler } from "../utils/error.js";
+import Restaurant from "../models/restaurant.model.js";
 
 export const getChatBot = async (req, res, next) => {
   const { restaurantId } = req.params;
@@ -42,5 +43,26 @@ export const updateSuggestedQuestions = async (req, res, next) => {
     res.status(200).json({ suggestedQuestions: chatBot.suggestedQuestions });
   } catch (error) {
     next(errorHandler(500, "Failed to update suggested questions"));
+  }
+};
+
+// src/controllers/chatBot.controller.js
+export const getChatBotAndRestaurantInfo = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  try {
+    const chatBot = await ChatBot.findOne({ restaurantId });
+    const restaurant = await Restaurant.findById(restaurantId, "name logo");
+
+    if (!chatBot || !restaurant) {
+      return next(errorHandler(404, "Restaurant or chatbot not found"));
+    }
+
+    res.status(200).json({
+      restaurantName: restaurant.name,
+      restaurantLogo: restaurant.logo,
+      suggestedQuestions: chatBot.suggestedQuestions,
+    });
+  } catch (error) {
+    next(errorHandler(500, "Failed to fetch data"));
   }
 };
