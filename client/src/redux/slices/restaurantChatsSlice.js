@@ -63,11 +63,36 @@ export const toggleStarChat = createAsyncThunk(
   }
 );
 
+export const searchRestaurantChats = createAsyncThunk(
+  "restaurantChats/searchRestaurantChats",
+  async (
+    { token, restaurantId, keyword, filterStarred = false },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/chat/${restaurantId}/search?keyword=${encodeURIComponent(
+          keyword
+        )}${filterStarred ? "&starred=true" : ""}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to search chats");
+      return data; // Array of filtered chats
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const restaurantChatsSlice = createSlice({
   name: "restaurantChats",
   initialState: {
     allChats: [], // For regular chats
     starredChats: [], // For starred chats
+    searchResults: [], // For keyword search
     totalChats: 0, // Total number of regular chats for pagination
     status: "idle",
     error: null,
@@ -131,6 +156,17 @@ const restaurantChatsSlice = createSlice({
       .addCase(toggleStarChat.rejected, (state, action) => {
         state.status = "failed"; // Set status to failed when the action is rejected
         state.error = action.payload; // Save the error message
+      })
+      .addCase(searchRestaurantChats.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(searchRestaurantChats.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.searchResults = action.payload;
+      })
+      .addCase(searchRestaurantChats.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
       });
   },
 });

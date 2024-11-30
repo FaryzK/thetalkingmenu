@@ -7,6 +7,7 @@ import {
   fetchRestaurantChats,
   fetchStarredChats,
   toggleStarChat,
+  searchRestaurantChats,
 } from "../redux/slices/restaurantChatsSlice";
 
 // Memoized Header Component
@@ -39,19 +40,28 @@ const Tabs = React.memo(({ activeTab, setActiveTab }) => (
 // Memoized Chat Row Component
 const ChatRow = React.memo(
   ({ chat, handleToggleStarChat, isStarred, isLoading, navigate }) => (
-    <div className="p-4 mb-2 bg-white shadow-md rounded-lg flex justify-between items-center">
+    <div
+      className="p-4 mb-2 bg-white shadow-md rounded-lg flex justify-between items-center gap-4" // Added gap for consistent spacing
+    >
       <button
-        className="text-left flex-grow"
+        className="text-left flex-grow overflow-hidden"
         onClick={() =>
           navigate(`/restaurant/${chat.restaurantId}/chat/${chat._id}`)
         }
       >
-        <p className="text-gray-800 truncate">{chat.firstMessage}</p>
+        <p
+          className="text-gray-800 truncate"
+          title={chat.firstMessage} // Display full text on hover
+        >
+          {chat.firstMessage}
+        </p>
+
         <small className="text-gray-500">
           {new Date(chat.timestamp).toLocaleString()}
         </small>
       </button>
       <button
+        className="ml-2" // Ensure margin-left is applied
         onClick={() => handleToggleStarChat(chat._id)}
         disabled={isLoading}
       >
@@ -79,9 +89,21 @@ const RestaurantChats = () => {
   });
   const limit = 20;
 
-  const { allChats, starredChats, totalChats, error } = useSelector(
-    (state) => state.restaurantChats
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
+
+  const { allChats, searchResults, starredChats, totalChats, error } =
+    useSelector((state) => state.restaurantChats);
+
+  // Debounce search query
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timerId);
+  }, [searchQuery]);
 
   // Fetch token dynamically
   useEffect(() => {
@@ -98,13 +120,18 @@ const RestaurantChats = () => {
     return () => unsubscribe();
   }, []);
 
-  // Fetch data when activeTab or currentPage changes
+  // Reset search when changing tabs
   useEffect(() => {
+    // Clear search query and reset search active state
+    setSearchQuery("");
+    setDebouncedSearchQuery("");
+    setSearchActive(false);
+
+    // Fetch appropriate chats based on tab
     if (token) {
       setLoadingTabs((prev) => ({ ...prev, [activeTab]: true }));
 
       if (activeTab === "all") {
-        // Fetch both allChats and starredChats
         Promise.all([
           dispatch(
             fetchRestaurantChats({
@@ -124,7 +151,30 @@ const RestaurantChats = () => {
         );
       }
     }
-  }, [activeTab, currentPage, restaurantId, token, dispatch]);
+  }, [activeTab, restaurantId, token, dispatch, currentPage]);
+
+  // Perform search when debounced query changes
+  useEffect(() => {
+    // Only perform search if there's an actual query and it's not empty
+    if (debouncedSearchQuery.trim() && token) {
+      dispatch(
+        searchRestaurantChats({
+          token,
+          restaurantId,
+          keyword: debouncedSearchQuery,
+          // Only filter starred if we're on the starred tab
+          ...(activeTab === "starred" && { filterStarred: true }),
+        })
+      ).then((action) => {
+        if (searchRestaurantChats.fulfilled.match(action)) {
+          setSearchActive(true);
+        }
+      });
+    } else {
+      // When search query is empty, reset search active state
+      setSearchActive(false);
+    }
+  }, [debouncedSearchQuery]);
 
   // Memoized function to toggle star status
   const handleToggleStarChat = useCallback(
@@ -136,26 +186,42 @@ const RestaurantChats = () => {
     [dispatch, token]
   );
 
-  // Memoized filtered chats based on the active tab
-  const filteredChats = useMemo(() => {
-    return activeTab === "all" ? allChats : starredChats;
-  }, [activeTab, allChats, starredChats]);
-
   // Determine if a chat is starred
   const isChatStarred = (chatId) => starredChats.some((c) => c._id === chatId);
 
   // Calculate total pages
   const totalPages = Math.ceil(totalChats / limit);
 
+  // Determine chats to display
+  const chatsToDisplay = useMemo(() => {
+    if (searchActive) {
+      return searchResults;
+    }
+    return activeTab === "all" ? allChats : starredChats;
+  }, [searchActive, searchResults, activeTab, allChats, starredChats]);
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      {/* Search Feature */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search chats..."
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Chat List */}
       <div>
         {loadingTabs[activeTab] ? (
           <div>Loading {activeTab} chats...</div>
-        ) : filteredChats.length > 0 ? (
-          filteredChats.map((chat) => (
+        ) : chatsToDisplay.length > 0 ? (
+          chatsToDisplay.map((chat) => (
             <ChatRow
               key={chat._id}
               chat={chat}
@@ -166,9 +232,15 @@ const RestaurantChats = () => {
             />
           ))
         ) : (
-          <p>No chats available</p>
+          <p>
+            {searchActive && searchResults.length === 0
+              ? "No chats found matching your search"
+              : "No chats available"}
+          </p>
         )}
       </div>
+
+      {/* Pagination */}
       {activeTab === "all" && (
         <div className="flex justify-center mt-4 space-x-2">
           <button

@@ -6,6 +6,7 @@ import {
   toggleStarChat,
   getChatById,
   getStarredChatsByRestaurant,
+  searchChatsByKeyword,
 } from "../controllers/chat.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 
@@ -30,5 +31,7 @@ router.get(
   isAuthenticated,
   getStarredChatsByRestaurant
 );
+
+router.get("/:restaurantId/search", isAuthenticated, searchChatsByKeyword);
 
 export default router;

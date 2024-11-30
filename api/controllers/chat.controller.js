@@ -371,3 +371,43 @@ export const getStarredChatsByRestaurant = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch starred chats" });
   }
 };
+
+export const searchChatsByKeyword = async (req, res) => {
+  const { restaurantId } = req.params;
+  const { keyword, starred } = req.query; // Add a query param for starred
+  const { uid } = req.user;
+
+  if (!keyword) {
+    return res.status(400).json({ error: "Keyword is required for search" });
+  }
+
+  try {
+    let chats;
+    if (starred === "true") {
+      const user = await User.findOne({ uid }).populate("starredChats");
+      chats = user.starredChats.filter(
+        (chat) =>
+          chat.restaurantId.toString() === restaurantId &&
+          chat.messages.some((msg) =>
+            msg.message.toLowerCase().includes(keyword.toLowerCase())
+          )
+      );
+    } else {
+      chats = await Chat.find({
+        restaurantId,
+        "messages.message": { $regex: keyword, $options: "i" },
+      }).lean();
+    }
+
+    const formattedChats = chats.map((chat) => ({
+      _id: chat._id,
+      firstMessage: chat.messages[0]?.message || "No messages",
+      timestamp: chat.messages[0]?.timestamp || null,
+    }));
+
+    res.status(200).json(formattedChats);
+  } catch (error) {
+    console.error("Error searching chats:", error);
+    res.status(500).json({ error: "Failed to search chats" });
+  }
+};
