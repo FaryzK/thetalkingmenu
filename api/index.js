@@ -10,6 +10,7 @@ import chatBotRoutes from "./routes/chatBot.route.js";
 import employeeAccessRoutes from "./routes/employeeAccess.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import globalSystemPromptRoutes from "./routes/globalSystemPrompt.route.js";
+import restaurantAnalyticsRoutes from "./routes/restaurantAnalytics.route.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/employee-access", employeeAccessRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/global-system-prompt", globalSystemPromptRoutes);
+app.use("/api/restaurant-analytics", restaurantAnalyticsRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

@@ -11,6 +11,32 @@ import {
   clearRestaurantChatsState,
 } from "../redux/slices/restaurantChatsSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  fetchRestaurantAnalytics,
+  clearRestaurantAnalyticsState,
+} from "../redux/slices/restaurantAnalyticsSlice";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Chart } from "react-chartjs-2";
+
+// Register required Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function Restaurant() {
   const { dashboardId, restaurantId } = useParams();
@@ -33,6 +59,11 @@ export default function Restaurant() {
     status: chatsStatus,
     error: chatsError,
   } = useSelector((state) => state.restaurantChats);
+  const {
+    data: analytics,
+    status: analyticsStatus,
+    error: analyticsError,
+  } = useSelector((state) => state.restaurantAnalytics);
 
   useEffect(() => {
     const auth = getAuth();
@@ -41,6 +72,7 @@ export default function Restaurant() {
       dispatch(fetchRestaurant({ token, restaurantId }));
       dispatch(fetchChatBot({ token, restaurantId }));
       dispatch(fetchRestaurantChats({ token, restaurantId }));
+      dispatch(fetchRestaurantAnalytics({ token, restaurantId }));
     };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -50,6 +82,7 @@ export default function Restaurant() {
         dispatch(clearRestaurantState());
         dispatch(clearChatBotState());
         dispatch(clearRestaurantChatsState());
+        dispatch(clearRestaurantAnalyticsState());
       }
     });
 
@@ -62,6 +95,48 @@ export default function Restaurant() {
   if (chatBotStatus === "failed") return <div>Error: {chatBotError}</div>;
   if (chatsStatus === "failed") return <div>Error: {chatsError}</div>;
   if (!restaurant) return <div>No restaurant data available.</div>;
+  if (analyticsStatus === "failed") return <div>Error: {analyticsError}</div>;
+  if (!analytics || !analytics.monthlyStats) {
+    return <div>No analytics data available.</div>;
+  }
+
+  const { totalChats, totalMessages, monthlyStats } = analytics;
+
+  const chartData = {
+    labels: monthlyStats.map((stat) => `${stat.month}/${stat.year}`),
+    datasets: [
+      {
+        label: "Total Chats",
+        data: monthlyStats.map((stat) => stat.chats),
+        borderColor: "blue",
+        backgroundColor: "rgba(0, 123, 255, 0.5)",
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true },
+    },
+    scales: {
+      x: {
+        type: "category",
+        title: {
+          display: true,
+          text: "Month/Year",
+        },
+      },
+      y: {
+        type: "linear",
+        title: {
+          display: true,
+          text: "Chats",
+        },
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -69,6 +144,13 @@ export default function Restaurant() {
       <div className="bg-white p-4 rounded-lg shadow-md mb-4">
         <h1 className="text-2xl font-bold">{restaurant.name}</h1>
         <p className="text-gray-500">{restaurant.location}</p>
+      </div>
+
+      {/* Analytics Overview */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+        <h2 className="text-lg font-semibold">Analytics</h2>
+        <p>Total Chats: {totalChats}</p>
+        <p>Total Messages: {totalMessages}</p>
       </div>
 
       {/* Configure Container */}
@@ -143,15 +225,11 @@ export default function Restaurant() {
         </div>
       </div>
 
-      {/* Performance Container */}
+      {/* Performance Graph */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <h2 className="text-lg font-semibold">PERFORMANCE</h2>
-        <div className="mt-4">
-          <div className="bg-gray-200 h-40 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">
-              [Placeholder Graph for Chats by Month]
-            </p>
-          </div>
+        <h2 className="text-lg font-semibold">Performance</h2>
+        <div className="mt-4 h-64">
+          <Chart type="line" data={chartData} options={chartOptions} />
         </div>
       </div>
 
