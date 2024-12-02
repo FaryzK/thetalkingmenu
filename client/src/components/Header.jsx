@@ -97,6 +97,12 @@ export default function Header() {
         <Navbar.Link href="/" active={path === "/"}>
           Home
         </Navbar.Link>
+        <Navbar.Link href="/terms-of-use" active={path === "/terms-of-use"}>
+          Terms of Use
+        </Navbar.Link>
+        <Navbar.Link href="/privacy-policy" active={path === "/privacy-policy"}>
+          Privacy Policy
+        </Navbar.Link>
       </Navbar.Collapse>
     </Navbar>
   );

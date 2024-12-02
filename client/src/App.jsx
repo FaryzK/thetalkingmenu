@@ -28,7 +28,8 @@ import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
 import DashboardManager from "./pages/platform/DashboardManager.jsx";
 import RestaurantChats from "./pages/RestaurantChats.jsx";
-import Test from "./pages/Test.jsx";
+import TermsOfUse from "./pages/TermsOfUse.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 
 export default function App() {
   return (
@@ -36,7 +37,6 @@ export default function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/test" element={<Test />} />
         <Route path="/sign-in" element={<Signin />} />
         <Route path="/sign-up" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -45,6 +45,8 @@ export default function App() {
           path="/restaurant/:restaurantId/chat/:chat_id"
           element={<Chat />}
         />
+        <Route path="/terms-of-use" element={<TermsOfUse />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
         {/* Protect the /dashboards route with dashboardAllowedRoles */}
         <Route
