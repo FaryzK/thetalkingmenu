@@ -44,7 +44,13 @@ export default function Chat() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setInfo(data);
+        setInfo({
+          restaurantName: data.restaurantName || "",
+          restaurantLogo:
+            data.restaurantLogo ||
+            "https://cdn-icons-png.flaticon.com/512/4352/4352627.png", // Fallback to placeholder
+          suggestedQuestions: data.suggestedQuestions || [],
+        });
       })
       .catch((error) => console.error("Error fetching info:", error));
   }, [restaurantId]);
@@ -183,37 +189,54 @@ export default function Chat() {
       });
   };
 
+  const renderStyledQuestion = (question) => {
+    return question.blocks.map((block, idx) => {
+      const elements = [];
+      let lastOffset = 0;
+
+      const sortedRanges = block.inlineStyleRanges.sort(
+        (a, b) => a.offset - b.offset
+      );
+
+      sortedRanges.forEach((range, rangeIndex) => {
+        if (range.offset > lastOffset) {
+          elements.push(
+            <span key={`${idx}-${rangeIndex}-unstyled`}>
+              {block.text.slice(lastOffset, range.offset)}
+            </span>
+          );
+        }
+
+        elements.push(
+          <span
+            key={`${idx}-${rangeIndex}-bold`}
+            style={{
+              fontWeight: range.style === "BOLD" ? "bold" : "normal",
+            }}
+          >
+            {block.text.slice(range.offset, range.offset + range.length)}
+          </span>
+        );
+
+        lastOffset = range.offset + range.length;
+      });
+
+      if (lastOffset < block.text.length) {
+        elements.push(
+          <span key={`${idx}-remaining-unstyled`}>
+            {block.text.slice(lastOffset)}
+          </span>
+        );
+      }
+
+      return <p key={idx}>{elements}</p>;
+    });
+  };
+
   return (
     <div className="flex justify-center bg-gray-900 text-white h-screen p-6 pt-20">
       <div className="flex flex-col w-full max-w-3xl h-full">
-        {showInfo && (
-          <div className="text-center space-y-4 p-4 bg-gray-800 rounded-lg mb-4">
-            <img
-              src={info.restaurantLogo}
-              alt={info.restaurantName}
-              className="w-20 h-20 mx-auto rounded-full"
-            />
-            <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {info.suggestedQuestions.map((question, index) => {
-                // Extract plain text from Draft.js content
-                const plainText = question.blocks
-                  .map((block) => block.text)
-                  .join(" ");
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestedQuestion(plainText)}
-                    className="px-4 py-2 bg-blue-500 rounded-lg text-white hover:bg-blue-600"
-                  >
-                    {plainText}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
+        {/* Messages Section */}
         <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
           {messages.map((msg, index) => (
             <div
@@ -246,6 +269,35 @@ export default function Chat() {
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Suggested Questions Section */}
+        {showInfo && (
+          <div className="text-center space-y-4 p-4 rounded-lg mb-4">
+            <img
+              src={info.restaurantLogo}
+              alt={info.restaurantName}
+              className="w-20 h-20 mx-auto rounded-full"
+            />
+            <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
+              {info.suggestedQuestions.map((question, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    handleSuggestedQuestion(
+                      question.blocks.map((block) => block.text).join(" ")
+                    )
+                  }
+                  className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 border border-white text-left"
+                >
+                  {renderStyledQuestion(question)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Chatbox Section */}
         <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg sticky bottom-0">
           <input
             value={input}
@@ -261,7 +313,7 @@ export default function Chat() {
           />
           <button
             onClick={handleSendMessage}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
           >
             Send
           </button>

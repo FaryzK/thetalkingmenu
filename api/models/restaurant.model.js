@@ -43,7 +43,7 @@ const restaurantSchema = new mongoose.Schema({
   ],
   logo: {
     type: String,
-    default: "https://cdn-icons-png.flaticon.com/512/4904/4904233.png", // Default logo URL
+    default: "",
   },
 });
 

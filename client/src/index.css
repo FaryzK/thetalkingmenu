@@ -5,3 +5,11 @@
 .markdown > * {
   all: revert;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151; /* Gray color */
+  border-radius: 4px;
+}
