@@ -11,6 +11,7 @@ import employeeAccessRoutes from "./routes/employeeAccess.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import globalSystemPromptRoutes from "./routes/globalSystemPrompt.route.js";
 import restaurantAnalyticsRoutes from "./routes/restaurantAnalytics.route.js";
+import path from "path";
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+const __dirname = path.resolve();
 
 const app = express();
 
@@ -41,6 +44,12 @@ app.use("/api/employee-access", employeeAccessRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/global-system-prompt", globalSystemPromptRoutes);
 app.use("/api/restaurant-analytics", restaurantAnalyticsRoutes);
+
+app.use(express.static(path.join(__dirname, "client/dist")));
+
+app.get("*", (req, res) =>
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"))
+);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
