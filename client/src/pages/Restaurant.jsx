@@ -103,13 +103,20 @@ export default function Restaurant() {
   const { totalChats, totalMessages, monthlyStats } = analytics;
 
   const chartData = {
-    labels: monthlyStats.map((stat) => `${stat.month}/${stat.year}`),
+    labels:
+      monthlyStats.length > 0
+        ? monthlyStats.map((stat) => `${stat.month}/${stat.year}`)
+        : ["No Data"],
     datasets: [
       {
         label: "Total Chats",
-        data: monthlyStats.map((stat) => stat.chats),
+        data:
+          monthlyStats.length > 0
+            ? monthlyStats.map((stat) => stat.chats)
+            : [0],
         borderColor: "blue",
         backgroundColor: "rgba(0, 123, 255, 0.5)",
+        tension: 0.4, // Smooth curve
       },
     ],
   };
@@ -228,8 +235,14 @@ export default function Restaurant() {
       {/* Performance Graph */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-4">
         <h2 className="text-lg font-semibold">Performance</h2>
-        <div className="mt-4 h-64">
-          <Chart type="line" data={chartData} options={chartOptions} />
+        <div className="mt-4 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+          {monthlyStats.length > 0 ? (
+            <Chart type="line" data={chartData} options={chartOptions} />
+          ) : (
+            <p className="text-center text-gray-500">
+              No analytics data available to display.
+            </p>
+          )}
         </div>
       </div>
 
