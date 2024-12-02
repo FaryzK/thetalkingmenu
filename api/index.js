@@ -12,6 +12,7 @@ import chatRoutes from "./routes/chat.route.js";
 import globalSystemPromptRoutes from "./routes/globalSystemPrompt.route.js";
 import restaurantAnalyticsRoutes from "./routes/restaurantAnalytics.route.js";
 import path from "path";
+import cors from "cors";
 
 dotenv.config();
 
@@ -27,6 +28,15 @@ mongoose
 const __dirname = path.resolve();
 
 const app = express();
+
+// CORS Middleware
+app.use(
+  cors({
+    origin: "https://thetalkingmenu.onrender.com", // Replace with your frontend domain
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allow these HTTP methods
+    credentials: true, // Allow cookies/authorization headers
+  })
+);
 
 app.use(express.json());
 
