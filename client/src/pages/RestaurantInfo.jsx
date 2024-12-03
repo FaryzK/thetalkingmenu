@@ -32,10 +32,7 @@ export default function RestaurantInfo() {
           const fetchedRestaurant = resultAction.payload;
           setRestaurantName(fetchedRestaurant.name || "");
           setRestaurantLocation(fetchedRestaurant.location || "");
-          setLogoUrl(
-            fetchedRestaurant.logo ||
-              "https://cdn-icons-png.flaticon.com/512/4904/4904233.png"
-          );
+          setLogoUrl(fetchedRestaurant.logo || "");
         } else {
           setErrorMessage("Failed to fetch restaurant details.");
         }
@@ -50,10 +47,7 @@ export default function RestaurantInfo() {
       } else if (restaurant) {
         setRestaurantName(restaurant.name || "");
         setRestaurantLocation(restaurant.location || "");
-        setLogoUrl(
-          restaurant.logo ||
-            "https://cdn-icons-png.flaticon.com/512/4904/4904233.png"
-        );
+        setLogoUrl(restaurant.logo || "");
       }
     });
 
