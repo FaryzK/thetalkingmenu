@@ -63,7 +63,18 @@ export default function MenuAddItem() {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
-        const items = results.data.map((row) => ({
+        // Normalize column headers to lowercase
+        const normalizedData = results.data.map((row) => {
+          const normalizedRow = {};
+          for (const key in row) {
+            if (Object.hasOwnProperty.call(row, key)) {
+              normalizedRow[key.trim().toLowerCase()] = row[key];
+            }
+          }
+          return normalizedRow;
+        });
+
+        const items = normalizedData.map((row) => ({
           name: row.name,
           price: parseFloat(row.price),
           description: row.description,
@@ -113,6 +124,14 @@ export default function MenuAddItem() {
         setError(`Error parsing CSV: ${err.message}`);
       },
     });
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateUrl = "/the_talking_menu_csv_template.csv"; // Relative to the public folder root
+    const link = document.createElement("a");
+    link.href = templateUrl;
+    link.download = "menu_template.csv";
+    link.click();
   };
 
   return (
@@ -181,6 +200,12 @@ export default function MenuAddItem() {
             "A juicy beef burger with cheese")
           </li>
         </ul>
+        <button
+          onClick={handleDownloadTemplate}
+          className="px-4 py-2 bg-blue-500 text-white rounded mt-4"
+        >
+          Download Template CSV
+        </button>
       </div>
 
       <input
