@@ -24,8 +24,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  LineController,
 } from "chart.js";
-import { Chart } from "react-chartjs-2";
+import { Chart, Line } from "react-chartjs-2";
 
 // Register required Chart.js components
 ChartJS.register(
@@ -35,7 +36,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  LineController
 );
 
 export default function Restaurant() {
@@ -237,7 +239,7 @@ export default function Restaurant() {
         <h2 className="text-lg font-semibold">Performance</h2>
         <div className="mt-4 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
           {monthlyStats.length > 0 ? (
-            <Chart type="line" data={chartData} options={chartOptions} />
+            <Line data={chartData} options={chartOptions} />
           ) : (
             <p className="text-center text-gray-500">
               No analytics data available to display.
