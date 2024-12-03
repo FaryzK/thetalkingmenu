@@ -55,27 +55,9 @@ export default function Chat() {
       .catch((error) => console.error("Error fetching info:", error));
   }, [restaurantId]);
 
-  // Scroll to the bottom whenever messages or assistant messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, tempAssistantMessage]);
-
-  // Adjust viewport height dynamically for mobile
-  useEffect(() => {
-    const updateVH = () => {
-      document.documentElement.style.setProperty(
-        "--vh",
-        `${window.innerHeight * 0.01}px`
-      );
-    };
-
-    updateVH(); // Set on load
-    window.addEventListener("resize", updateVH);
-
-    return () => {
-      window.removeEventListener("resize", updateVH);
-    };
-  }, []);
 
   // if we are calling an existing chat
   useEffect(() => {
@@ -252,10 +234,7 @@ export default function Chat() {
   };
 
   return (
-    <div
-      className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6"
-      style={{ height: "calc(var(--vh, 1vh) * 100)" }} // Dynamically set height
-    >
+    <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
       <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
         <div className="flex-grow overflow-y-auto space-y-4 pr-4 scrollbar-hide">
