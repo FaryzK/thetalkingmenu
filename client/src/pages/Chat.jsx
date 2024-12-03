@@ -276,7 +276,7 @@ export default function Chat() {
             <img
               src={info.restaurantLogo}
               alt={info.restaurantName}
-              className="w-20 h-20 mx-auto rounded-full"
+              className="w-20 h-20 mx-auto"
             />
             <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
             <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">

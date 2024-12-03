@@ -58,7 +58,7 @@ export default function EmployeeAccessRevoke() {
   if (!employee) return <div>Employee not found.</div>;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">Revoke Employee Access</h1>
       <div className="bg-white p-4 rounded-lg mb-4 shadow-md">
         <p>

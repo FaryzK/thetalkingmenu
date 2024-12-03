@@ -8,7 +8,7 @@ export default function Home() {
     window.open("https://forms.gle/o2voWRF4q5njiYXV6", "_blank");
   };
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-50">
+    <div className="flex flex-col flex-1 bg-gray-900 text-gray-50">
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 md:pt-32">

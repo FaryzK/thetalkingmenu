@@ -355,7 +355,7 @@ const RestaurantChats = () => {
   }, [searchActive, searchResults, activeTab, allChats, starredChats]);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className=" bg-gray-100 p-6">
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 

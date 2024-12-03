@@ -19,7 +19,7 @@ export default function QRCode() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center">
+    <div className=" bg-gray-100 p-6 flex flex-col items-center">
       <h2 className="text-2xl font-bold mb-4">Share AI Chat</h2>
       <p className="text-gray-500 mb-2">
         Scan the QR code below to start a chat with {restaurantId}!

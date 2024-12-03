@@ -37,7 +37,7 @@ export default function RestaurantManager() {
   if (status === "failed") return <p>Error loading restaurants</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className=" bg-gray-100 p-6">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         Restaurant Management
       </h1>

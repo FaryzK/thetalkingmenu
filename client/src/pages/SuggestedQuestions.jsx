@@ -152,7 +152,7 @@ export default function SuggestedQuestions() {
   if (status === "failed") return <div>Error: {error}</div>;
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Update Suggested Questions</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

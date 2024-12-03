@@ -148,7 +148,7 @@ export default function Restaurant() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className=" bg-gray-100 p-6">
       {/* Restaurant Info Container */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-4">
         <h1 className="text-2xl font-bold">{restaurant.name}</h1>

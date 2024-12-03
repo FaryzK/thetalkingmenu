@@ -58,7 +58,7 @@ export default function Dashboard() {
   if (!dashboard) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="bg-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">
         Hello, {dashboard.dashboardOwnerName}
       </h1>

@@ -41,7 +41,7 @@ export default function Header() {
   };
 
   return (
-    <Navbar className="bg-gray-900 sticky top-0 z-50" fluid>
+    <Navbar className="bg-gray-900 fixed top-0 w-full z-50" fluid>
       <Navbar.Brand
         onClick={handleBrandClick} // Replacing href with onClick handler
         style={{ cursor: "pointer" }} // Make the brand clickable

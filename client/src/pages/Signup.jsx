@@ -5,7 +5,7 @@ import GoogleOAuth from "../components/GoogleOAuth";
 
 export default function Signup() {
   return (
-    <div className="flex items-start justify-center p-8 w-full h-screen bg-gray-900">
+    <div className="flex flex-1 items-start justify-center p-8 w-full bg-gray-900">
       {/* Center Container for Text and Form */}
       <div className="mt-[60px] flex flex-col lg:flex-row items-start lg:items-start lg:space-x-12 w-full max-w-5xl">
         {/* Text Section */}

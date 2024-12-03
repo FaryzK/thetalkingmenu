@@ -30,96 +30,113 @@ import DashboardManager from "./pages/platform/DashboardManager.jsx";
 import RestaurantChats from "./pages/RestaurantChats.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import { Outlet } from "react-router-dom";
+
+const PageLayout = () => {
+  return (
+    <div className="min-h-screen flex flex-col pt-14">
+      {/* min-h-screen ensures it spans the full viewport height 
+      I have some trouble adjusting the height of elements to compensate for the headers
+      So I am using PageLayout. The chat styling does not seem to be affected as scrollwheel does not appear*/}
+      <Outlet />
+    </div>
+  );
+};
 
 export default function App() {
   return (
     <BrowserRouter>
       <Header />
+
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/sign-in" element={<Signin />} />
-        <Route path="/sign-up" element={<Signup />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/restaurant/:restaurantId/chat" element={<Chat />} />
         <Route
           path="/restaurant/:restaurantId/chat/:chat_id"
           element={<Chat />}
         />
-        <Route path="/terms-of-use" element={<TermsOfUse />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/restaurant/:restaurantId/chat" element={<Chat />} />
 
-        {/* Protect the /dashboards route with dashboardAllowedRoles */}
-        <Route
-          element={<ProtectedRoute allowedRoles={dashboardAllowedRoles} />}
-        >
-          <Route path="/dashboards" element={<Dashboards />} />
-          <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId"
-            element={<Restaurant />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu"
-            element={<Menu />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/:itemId"
-            element={<MenuItem />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/add"
-            element={<MenuAddItem />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/qrcode"
-            element={<QRCode />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/system-prompt"
-            element={<SystemPrompt />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/suggested-questions"
-            element={<SuggestedQuestions />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access"
-            element={<EmployeeAccessOverview />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-add"
-            element={<EmployeeAccessAdd />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-revoke/:userId"
-            element={<EmployeeAccessRevoke />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/info"
-            element={<RestaurantInfo />}
-          />
-          <Route
-            path="/dashboards/:dashboardId/restaurant/:restaurantId/chats"
-            element={<RestaurantChats />}
-          />
-        </Route>
+        <Route element={<PageLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/sign-in" element={<Signin />} />
+          <Route path="/sign-up" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protect the route with platformControlPanelAllowedRoles  */}
-        <Route
-          element={
-            <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
-          }
-        >
+          <Route path="/terms-of-use" element={<TermsOfUse />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+          {/* Protect the /dashboards route with dashboardAllowedRoles */}
           <Route
-            path="/platform-control-panel"
-            element={<PlatformControlPanel />}
-          />
-          <Route path="/restaurant-manager" element={<RestaurantManager />} />
+            element={<ProtectedRoute allowedRoles={dashboardAllowedRoles} />}
+          >
+            <Route path="/dashboards" element={<Dashboards />} />
+            <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId"
+              element={<Restaurant />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/menu"
+              element={<Menu />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/:itemId"
+              element={<MenuItem />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/menu/add"
+              element={<MenuAddItem />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/qrcode"
+              element={<QRCode />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/system-prompt"
+              element={<SystemPrompt />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/suggested-questions"
+              element={<SuggestedQuestions />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access"
+              element={<EmployeeAccessOverview />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-add"
+              element={<EmployeeAccessAdd />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/employee-access-revoke/:userId"
+              element={<EmployeeAccessRevoke />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/info"
+              element={<RestaurantInfo />}
+            />
+            <Route
+              path="/dashboards/:dashboardId/restaurant/:restaurantId/chats"
+              element={<RestaurantChats />}
+            />
+          </Route>
+
+          {/* Protect the route with platformControlPanelAllowedRoles  */}
           <Route
-            path="/global-system-prompt"
-            element={<GlobalSystemPromptManager />}
-          />
-          <Route path="/dashboard-manager" element={<DashboardManager />} />
+            element={
+              <ProtectedRoute allowedRoles={platformControlPanelAllowedRoles} />
+            }
+          >
+            <Route
+              path="/platform-control-panel"
+              element={<PlatformControlPanel />}
+            />
+            <Route path="/restaurant-manager" element={<RestaurantManager />} />
+            <Route
+              path="/global-system-prompt"
+              element={<GlobalSystemPromptManager />}
+            />
+            <Route path="/dashboard-manager" element={<DashboardManager />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

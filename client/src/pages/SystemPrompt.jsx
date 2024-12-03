@@ -42,7 +42,7 @@ export default function SystemPrompt() {
   if (status === "failed") return <div>Error: {error}</div>;
 
   return (
-    <div className="min-h-screen p-6">
+    <div className=" p-6">
       <h2 className="text-2xl font-bold mb-4">Update System Prompt</h2>
 
       {/* Accordion */}

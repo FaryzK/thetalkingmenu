@@ -96,7 +96,7 @@ export default function MenuItem() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className=" bg-gray-100 p-6">
       <h2 className="text-2xl font-bold mb-4">Menu Item</h2>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <input
