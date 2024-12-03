@@ -237,22 +237,24 @@ export default function Chat() {
     <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
       <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
-        <div className="flex-grow overflow-y-auto space-y-4 pr-4 scrollbar-hide">
+        <div className="flex flex-col flex-grow overflow-y-auto pr-4 scrollbar-hide">
+          {/* Spacer to push messages to the bottom */}
+          <div className="flex-grow" />
+
+          {/* Render Messages */}
           {messages.map((msg, index) => (
             <div
               key={index}
-              className={
-                msg.role === "user"
-                  ? "flex justify-end"
-                  : "flex justify-start w-full"
-              }
+              className={`${
+                msg.role === "user" ? "flex justify-end" : "flex justify-start"
+              }`}
             >
               <div
                 className={`${
                   msg.role === "user"
                     ? "bg-gray-800 text-white max-w-xl"
                     : "markdown bg-transparent text-gray-200 w-full"
-                } px-4 py-2 ${
+                } px-4 py-2 mb-4 ${
                   msg.content.length < 50 ? "rounded-full" : "rounded-2xl"
                 }`}
               >
@@ -260,13 +262,17 @@ export default function Chat() {
               </div>
             </div>
           ))}
+
+          {/* Streaming AI Response */}
           {tempAssistantMessage && (
-            <div className="flex justify-start w-full">
-              <div className="markdown bg-transparent text-gray-200 p-4 w-full">
+            <div className="flex justify-start w-full mb-4">
+              <div className="markdown bg-transparent text-gray-200 px-4 py-2">
                 <ReactMarkdown>{tempAssistantMessage}</ReactMarkdown>
               </div>
             </div>
           )}
+
+          {/* Scroll to this element */}
           <div ref={messagesEndRef} />
         </div>
 
