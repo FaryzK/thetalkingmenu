@@ -234,10 +234,10 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex justify-center bg-gray-900 text-white h-screen p-6 pt-20">
-      <div className="flex flex-col w-full max-w-3xl h-full">
+    <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
+      <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
-        <div className="flex-grow overflow-y-auto space-y-4 pr-4 mb-4 scrollbar-hide">
+        <div className="flex-grow overflow-y-auto space-y-4 pr-4 scrollbar-hide">
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -270,53 +270,56 @@ export default function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Suggested Questions Section */}
-        {showInfo && (
-          <div className="text-center space-y-4 p-4 rounded-lg mb-4">
-            <img
-              src={info.restaurantLogo}
-              alt={info.restaurantName}
-              className="w-20 h-20 mx-auto"
-            />
-            <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
-              {info.suggestedQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() =>
-                    handleSuggestedQuestion(
-                      question.blocks.map((block) => block.text).join(" ")
-                    )
-                  }
-                  className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 border border-white text-left"
-                >
-                  {renderStyledQuestion(question)}
-                </button>
-              ))}
+        {/* Bottom Section Wrapper */}
+        <div className="flex flex-col gap-4">
+          {/* Suggested Questions Section */}
+          {showInfo && (
+            <div className="text-center space-y-4 p-4 rounded-lg">
+              <img
+                src={info.restaurantLogo}
+                alt={info.restaurantName}
+                className="w-20 h-20 mx-auto"
+              />
+              <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
+                {info.suggestedQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() =>
+                      handleSuggestedQuestion(
+                        question.blocks.map((block) => block.text).join(" ")
+                      )
+                    }
+                    className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 border border-white text-left"
+                  >
+                    {renderStyledQuestion(question)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Chatbox Section */}
-        <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg sticky bottom-0">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault(); // Prevent default behavior (like adding a new line in a textarea)
-                handleSendMessage(); // Call the send message function
-              }
-            }}
-            placeholder="Type a message"
-            className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-          />
-          <button
-            onClick={handleSendMessage}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
-          >
-            Send
-          </button>
+          {/* Chatbox Section */}
+          <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // Prevent default behavior (like adding a new line in a textarea)
+                  handleSendMessage(); // Call the send message function
+                }
+              }}
+              placeholder="Type a message"
+              className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+            />
+            <button
+              onClick={handleSendMessage}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
+            >
+              Send
+            </button>
+          </div>
         </div>
       </div>
     </div>

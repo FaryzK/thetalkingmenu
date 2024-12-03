@@ -35,9 +35,7 @@ import { Outlet } from "react-router-dom";
 const PageLayout = () => {
   return (
     <div className="min-h-screen flex flex-col pt-14">
-      {/* min-h-screen ensures it spans the full viewport height 
-      I have some trouble adjusting the height of elements to compensate for the headers
-      So I am using PageLayout. The chat styling does not seem to be affected as scrollwheel does not appear*/}
+      {/* min-h-screen ensures it spans the full viewport height */}
       <Outlet />
     </div>
   );
@@ -49,13 +47,12 @@ export default function App() {
       <Header />
 
       <Routes>
-        <Route
-          path="/restaurant/:restaurantId/chat/:chat_id"
-          element={<Chat />}
-        />
-        <Route path="/restaurant/:restaurantId/chat" element={<Chat />} />
-
         <Route element={<PageLayout />}>
+          <Route
+            path="/restaurant/:restaurantId/chat/:chat_id"
+            element={<Chat />}
+          />
+          <Route path="/restaurant/:restaurantId/chat" element={<Chat />} />
           <Route path="/" element={<Home />} />
           <Route path="/sign-in" element={<Signin />} />
           <Route path="/sign-up" element={<Signup />} />
