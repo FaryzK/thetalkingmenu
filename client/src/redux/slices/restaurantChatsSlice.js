@@ -136,7 +136,10 @@ const restaurantChatsSlice = createSlice({
       })
       .addCase(fetchRestaurantChats.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.allChats = action.payload.chats; // Store in allChats
+        state.allChats = action.payload.chats.map((chat) => ({
+          ...chat,
+          tableNumber: chat.tableNumber,
+        }));
         state.totalChats = action.payload.totalChats;
       })
       .addCase(fetchRestaurantChats.rejected, (state, action) => {

@@ -46,7 +46,9 @@ const ChatRow = React.memo(
       <button
         className="text-left flex-grow overflow-hidden"
         onClick={() =>
-          navigate(`/restaurant/${chat.restaurantId}/chat/${chat._id}`)
+          navigate(
+            `/restaurant/${chat.restaurantId}/chat/${chat.tableNumber}/${chat._id}`
+          )
         }
       >
         <p
@@ -57,6 +59,7 @@ const ChatRow = React.memo(
         </p>
 
         <small className="text-gray-500">
+          Table: {chat.tableNumber || "default"} -{" "}
           {new Date(chat.timestamp).toLocaleString()}
         </small>
       </button>

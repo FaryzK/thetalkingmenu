@@ -268,7 +268,9 @@ export default function Restaurant() {
             <button
               key={chat._id}
               onClick={() =>
-                navigate(`/restaurant/${restaurantId}/chat/${chat._id}`)
+                navigate(
+                  `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`
+                )
               }
               className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition text-left"
             >

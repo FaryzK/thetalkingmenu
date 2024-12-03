@@ -83,7 +83,7 @@ const openai = new OpenAI({
 
 // Controller to start a new chat session
 export const startNewChat = async (req, res, next) => {
-  const { restaurantId, userId = null } = req.body;
+  const { restaurantId, userId = null, tableNumber } = req.body;
 
   if (!restaurantId) {
     return res.status(400).json({ error: "restaurantId is required" });
@@ -94,6 +94,7 @@ export const startNewChat = async (req, res, next) => {
     const chat = new Chat({
       userId,
       restaurantId,
+      tableNumber,
       messages: [],
       tokenUsage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     });
@@ -120,7 +121,13 @@ export const startNewChat = async (req, res, next) => {
 
 // Existing sendMessage function remains as is
 export const sendMessage = async (req, res, next) => {
-  const { message, restaurantId, chatId = null, userId = null } = req.body;
+  const {
+    message,
+    restaurantId,
+    chatId = null,
+    userId = null,
+    tableNumber,
+  } = req.body;
 
   if (!restaurantId) {
     return res.status(400).json({ error: "restaurantId is required" });
@@ -141,8 +148,13 @@ export const sendMessage = async (req, res, next) => {
       if (!chat) {
         return res.status(404).json({ error: "Chat session not found" });
       }
+      if (chat.tableNumber !== tableNumber) {
+        return res.status(400).json({
+          error: `Invalid tableNumber for this chat. Expected ${chat.tableNumber}, got ${tableNumber}`,
+        });
+      }
     } else {
-      chat = new Chat({ userId, restaurantId, messages: [] });
+      chat = new Chat({ userId, restaurantId, tableNumber, messages: [] });
       await chat.save();
     }
     chat.messages.push({ message, sender: "user", timestamp: new Date() });
@@ -266,7 +278,7 @@ export const getChatsByRestaurant = async (req, res) => {
       .sort({ "messages.timestamp": -1 }) // Sort by latest message
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
-      .select("_id messages"); // Only fetch required fields
+      .select("_id messages tableNumber"); // Only fetch required fields
 
     // Count total chats for pagination info
     const totalChats = await Chat.countDocuments({ restaurantId });
@@ -276,6 +288,7 @@ export const getChatsByRestaurant = async (req, res) => {
         _id: chat._id,
         firstMessage: chat.messages[0]?.message || "No messages", // Get the first message for preview
         timestamp: chat.messages[0]?.timestamp || null, // Get the timestamp of the first message
+        tableNumber: chat.tableNumber || "default", // Include table number
       })),
       totalChats,
     });

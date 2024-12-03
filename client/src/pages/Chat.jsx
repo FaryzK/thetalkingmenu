@@ -12,7 +12,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from "react-markdown";
 
 export default function Chat() {
-  const { restaurantId, chat_id } = useParams();
+  const { restaurantId, chat_id, tableNumber } = useParams();
   const dispatch = useDispatch();
   const [input, setInput] = useState("");
   const [userId, setUserId] = useState(null);
@@ -64,7 +64,7 @@ export default function Chat() {
     if (chat_id) {
       // Fetch existing chat
       dispatch(clearMessages());
-      fetch(`/api/chat/${chat_id}`, {
+      fetch(`/api/chat/${chat_id}?tableNumber=${tableNumber}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       })
@@ -77,15 +77,17 @@ export default function Chat() {
         .then((data) => {
           dispatch(setChatId(data.chatId)); // Set the chatId in Redux
           dispatch(clearMessages()); // Clear existing messages (optional, if needed)
-          dispatch(
-            setMessages(
-              data.messages.map((message) => ({
-                role: message.sender,
-                content: message.message,
-                timestamp: message.timestamp,
-              }))
-            )
-          );
+          const formattedMessages = data.messages.map((message) => ({
+            role: message.sender,
+            content: message.message,
+            timestamp: message.timestamp,
+          }));
+          dispatch(setMessages(formattedMessages));
+
+          // Hide the info if messages already exist
+          if (formattedMessages.length > 0) {
+            setShowInfo(false);
+          }
         })
         .catch((error) => console.error("Error fetching chat:", error));
     }
@@ -99,7 +101,7 @@ export default function Chat() {
     let currentChatId = chatId;
     if (!currentChatId) {
       const startChatResponse = await dispatch(
-        startNewChat({ restaurantId, userId })
+        startNewChat({ restaurantId, tableNumber, userId })
       );
       currentChatId = startChatResponse.payload.chatId;
       dispatch(setChatId(currentChatId));
@@ -109,6 +111,7 @@ export default function Chat() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         restaurantId,
+        tableNumber,
         userId,
         message: input,
         chatId: currentChatId,
@@ -147,7 +150,7 @@ export default function Chat() {
 
     if (!currentChatId) {
       const startChatResponse = await dispatch(
-        startNewChat({ restaurantId, userId })
+        startNewChat({ restaurantId, tableNumber, userId })
       );
       currentChatId = startChatResponse.payload.chatId;
       dispatch(setChatId(currentChatId));
@@ -159,6 +162,7 @@ export default function Chat() {
       body: JSON.stringify({
         restaurantId,
         userId,
+        tableNumber,
         message: question,
         chatId: currentChatId,
       }),

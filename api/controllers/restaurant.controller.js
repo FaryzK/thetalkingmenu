@@ -72,12 +72,12 @@ export const createRestaurant = async (req, res, next) => {
     });
     await initialChatBot.save();
 
-    const initialChat = new Chat({
-      restaurantId: newRestaurant._id,
-      userId: restaurantOwnerId,
-      messages: [],
-    });
-    await initialChat.save();
+    // const initialChat = new Chat({
+    //   restaurantId: newRestaurant._id,
+    //   userId: restaurantOwnerId,
+    //   messages: [],
+    // });
+    // await initialChat.save();
 
     const initialMenu = new Menu({
       restaurantId: newRestaurant._id,
@@ -102,7 +102,7 @@ export const createRestaurant = async (req, res, next) => {
     res.status(201).json({
       restaurant: newRestaurant,
       chatBot: initialChatBot,
-      chat: initialChat,
+      // chat: initialChat,
       menu: initialMenu,
       dashboard: updatedDashboard,
       accessibleRestaurants: owner.accessibleRestaurants,

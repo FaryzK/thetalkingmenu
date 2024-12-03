@@ -7,6 +7,7 @@ const chatSchema = new mongoose.Schema({
     required: true,
     index: true, // Index for optimized queries
   },
+  tableNumber: { type: String, required: true, default: "default" },
   userId: {
     type: String,
     required: false, // Optional for anonymous users
