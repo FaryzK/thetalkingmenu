@@ -6,7 +6,7 @@ import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
 import { clearMenuState } from "../redux/slices/menuSlice";
 import { FiArrowLeft } from "react-icons/fi";
-import { Accordion } from "flowbite-react";
+import { Accordion, Button } from "flowbite-react";
 
 export default function MenuAddItem() {
   const { restaurantId, dashboardId } = useParams();
@@ -181,17 +181,18 @@ export default function MenuAddItem() {
               onChange={(e) => setDescription(e.target.value)}
               className="p-2 border rounded w-full h-24"
             />
-            <button
+            <Button
               onClick={handleAddSingleItem}
               disabled={status === "loading"}
-              className={`w-full px-4 py-2 bg-blue-500 text-white rounded ${
+              color="blue"
+              className={`w-full rounded ${
                 status === "loading"
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-blue-600"
               }`}
             >
               {status === "loading" ? "Adding..." : "Add Item"}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -243,12 +244,13 @@ export default function MenuAddItem() {
             </div>
           </div>
           <div className="mt-4">
-            <button
+            <Button
               onClick={handleUpload}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              color="blue"
+              className="w-full rounded hover:bg-blue-600"
             >
               Upload Items
-            </button>
+            </Button>
           </div>
         </div>
       </div>

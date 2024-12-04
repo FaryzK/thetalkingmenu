@@ -8,6 +8,7 @@ import {
 } from "../redux/slices/menuSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FiArrowLeft } from "react-icons/fi";
+import { Button } from "flowbite-react";
 
 export default function MenuItem() {
   const { dashboardId, restaurantId, itemId } = useParams();
@@ -135,24 +136,25 @@ export default function MenuItem() {
           className="p-2 border rounded w-full h-24"
         />
         <div className="flex space-x-4">
-          <button
-            onClick={handleUpdate}
+          <Button
+            onClick={handleDelete}
+            color="red"
             disabled={status === "loading"}
-            className={`px-4 py-2 bg-blue-500 text-white rounded flex-grow ${
-              status === "loading"
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-blue-600"
+            className="flex-grow"
+          >
+            {status === "loading" ? "Deleting..." : "Delete Item"}
+          </Button>
+
+          <Button
+            onClick={handleUpdate}
+            color="blue"
+            disabled={status === "loading"}
+            className={`flex-grow ${
+              status === "loading" ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
             {status === "loading" ? "Updating..." : "Update Item"}
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={status === "loading"}
-            className="px-4 py-2 bg-red-500 text-white rounded flex-grow hover:bg-red-600"
-          >
-            {status === "loading" ? "Deleting..." : "Delete Item"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

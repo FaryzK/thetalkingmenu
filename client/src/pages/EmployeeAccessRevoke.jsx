@@ -5,7 +5,7 @@ import { revokeEmployeeAccess } from "../redux/slices/userAccessSlice";
 import { fetchRestaurant } from "../redux/slices/restaurantSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FiArrowLeft } from "react-icons/fi";
-import { Alert } from "flowbite-react";
+import { Alert, Button } from "flowbite-react";
 
 export default function EmployeeAccessRevoke() {
   const { dashboardId, restaurantId, userId } = useParams();
@@ -95,17 +95,14 @@ export default function EmployeeAccessRevoke() {
         </div>
 
         {/* Revoke Button */}
-        <button
+        <Button
+          color={isRestaurantOwner ? "gray" : "red"}
           onClick={handleRevokeAccess}
           disabled={isRestaurantOwner}
-          className={`w-full px-4 py-2 rounded-lg text-white font-semibold ${
-            isRestaurantOwner
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-red-500 hover:bg-red-600"
-          }`}
+          className="w-full font-semibold"
         >
           Confirm Revoke Access
-        </button>
+        </Button>
 
         {isRestaurantOwner && (
           <p className="text-gray-600 mt-4 text-sm">

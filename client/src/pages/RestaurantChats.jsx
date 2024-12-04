@@ -10,6 +10,7 @@ import {
   toggleStarChat,
   searchRestaurantChats,
 } from "../redux/slices/restaurantChatsSlice";
+import { Button } from "flowbite-react";
 
 // Memoized Header Component
 const Header = React.memo(() => (
@@ -18,23 +19,23 @@ const Header = React.memo(() => (
 
 // Memoized Tabs Component
 const Tabs = React.memo(({ activeTab, setActiveTab }) => (
-  <div className="flex mb-4">
-    <button
+  <div className="flex mb-4 space-x-2">
+    <Button
       onClick={() => setActiveTab("all")}
-      className={`px-4 py-2 rounded-lg ${
-        activeTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200"
-      }`}
+      color={activeTab === "all" ? "blue" : "gray"}
+      outline={activeTab !== "all"}
+      className="rounded-lg"
     >
       All
-    </button>
-    <button
+    </Button>
+    <Button
       onClick={() => setActiveTab("starred")}
-      className={`px-4 py-2 rounded-lg ml-2 ${
-        activeTab === "starred" ? "bg-blue-500 text-white" : "bg-gray-200"
-      }`}
+      color={activeTab === "starred" ? "blue" : "gray"}
+      outline={activeTab !== "starred"}
+      className="rounded-lg"
     >
       Starred
-    </button>
+    </Button>
   </div>
 ));
 
@@ -372,6 +373,7 @@ const RestaurantChats = () => {
         Back to Dashboard
       </button>
       <Header />
+
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Search Feature */}
@@ -414,41 +416,36 @@ const RestaurantChats = () => {
       {!searchActive && activeTab === "all" && (
         <div className="flex justify-center mt-4 space-x-2">
           {/* Previous Button */}
-          <button
-            disabled={currentPage === 1}
+          <Button
             onClick={() => setCurrentPage((prev) => prev - 1)}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === 1 ? "bg-gray-300" : "bg-blue-500 text-white"
-            }`}
+            disabled={currentPage === 1}
+            color="blue"
+            outline={currentPage === 1}
           >
             Previous
-          </button>
+          </Button>
 
           {/* Page Numbers */}
           {getPaginationRange(currentPage, totalPages).map((page) => (
-            <button
+            <Button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-4 py-2 rounded-lg ${
-                currentPage === page ? "bg-blue-500 text-white" : "bg-gray-200"
-              }`}
+              color={currentPage === page ? "blue" : "gray"}
+              outline={currentPage !== page}
             >
               {page}
-            </button>
+            </Button>
           ))}
 
           {/* Next Button */}
-          <button
-            disabled={currentPage === totalPages}
+          <Button
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === totalPages
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white"
-            }`}
+            disabled={currentPage === totalPages}
+            color="blue"
+            outline={currentPage === totalPages}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
@@ -456,47 +453,38 @@ const RestaurantChats = () => {
       {!searchActive && activeTab === "starred" && (
         <div className="flex justify-center mt-4 space-x-2">
           {/* Previous Button */}
-          <button
-            disabled={currentStarredPage === 1}
+          <Button
             onClick={() => setCurrentStarredPage((prev) => prev - 1)}
-            className={`px-4 py-2 rounded-lg ${
-              currentStarredPage === 1
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white"
-            }`}
+            disabled={currentStarredPage === 1}
+            color="blue"
+            outline={currentStarredPage === 1}
           >
             Previous
-          </button>
+          </Button>
 
           {/* Page Numbers */}
           {getPaginationRange(currentStarredPage, totalStarredPages).map(
             (page) => (
-              <button
+              <Button
                 key={page}
                 onClick={() => setCurrentStarredPage(page)}
-                className={`px-4 py-2 rounded-lg ${
-                  currentStarredPage === page
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                }`}
+                color={currentStarredPage === page ? "blue" : "gray"}
+                outline={currentStarredPage !== page}
               >
                 {page}
-              </button>
+              </Button>
             )
           )}
 
           {/* Next Button */}
-          <button
-            disabled={currentStarredPage === totalStarredPages}
+          <Button
             onClick={() => setCurrentStarredPage((prev) => prev + 1)}
-            className={`px-4 py-2 rounded-lg ${
-              currentStarredPage === totalStarredPages
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white"
-            }`}
+            disabled={currentStarredPage === totalStarredPages}
+            color="blue"
+            outline={currentStarredPage === totalStarredPages}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
@@ -504,72 +492,74 @@ const RestaurantChats = () => {
       {searchActive && (
         <div className="flex justify-center mt-4 space-x-2">
           {/* Previous Button */}
-          <button
-            disabled={
-              activeTab === "all"
-                ? currentSearchPage === 1
-                : currentStarredSearchPage === 1
-            }
+          <Button
             onClick={() =>
               activeTab === "all"
                 ? setCurrentSearchPage((prev) => prev - 1)
                 : setCurrentStarredSearchPage((prev) => prev - 1)
             }
-            className={`px-4 py-2 rounded-lg ${
+            disabled={
+              activeTab === "all"
+                ? currentSearchPage === 1
+                : currentStarredSearchPage === 1
+            }
+            color="blue"
+            outline={
               (activeTab === "all" && currentSearchPage === 1) ||
               (activeTab === "starred" && currentStarredSearchPage === 1)
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white"
-            }`}
+            }
           >
             Previous
-          </button>
+          </Button>
 
           {/* Page Numbers */}
           {getPaginationRange(
             activeTab === "all" ? currentSearchPage : currentStarredSearchPage,
-            totalSearchPages // Use total search pages
+            totalSearchPages
           ).map((page) => (
-            <button
+            <Button
               key={page}
               onClick={() =>
                 activeTab === "all"
                   ? setCurrentSearchPage(page)
                   : setCurrentStarredSearchPage(page)
               }
-              className={`px-4 py-2 rounded-lg ${
+              color={
                 (activeTab === "all" && currentSearchPage === page) ||
                 (activeTab === "starred" && currentStarredSearchPage === page)
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
-              }`}
+                  ? "blue"
+                  : "gray"
+              }
+              outline={
+                (activeTab === "all" && currentSearchPage !== page) ||
+                (activeTab === "starred" && currentStarredSearchPage !== page)
+              }
             >
               {page}
-            </button>
+            </Button>
           ))}
 
           {/* Next Button */}
-          <button
-            disabled={
-              activeTab === "all"
-                ? currentSearchPage === totalSearchPages
-                : currentStarredSearchPage === totalSearchPages
-            }
+          <Button
             onClick={() =>
               activeTab === "all"
                 ? setCurrentSearchPage((prev) => prev + 1)
                 : setCurrentStarredSearchPage((prev) => prev + 1)
             }
-            className={`px-4 py-2 rounded-lg ${
+            disabled={
+              activeTab === "all"
+                ? currentSearchPage === totalSearchPages
+                : currentStarredSearchPage === totalSearchPages
+            }
+            color="blue"
+            outline={
               (activeTab === "all" && currentSearchPage === totalSearchPages) ||
               (activeTab === "starred" &&
                 currentStarredSearchPage === totalSearchPages)
-                ? "bg-gray-300"
-                : "bg-blue-500 text-white"
-            }`}
+            }
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </div>

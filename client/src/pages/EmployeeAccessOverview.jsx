@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { fetchRestaurant } from "../redux/slices/restaurantSlice";
 import { FiArrowLeft } from "react-icons/fi";
 import { FiChevronRight } from "react-icons/fi";
+import { Button } from "flowbite-react";
 
 export default function EmployeeAccessOverview() {
   const { dashboardId, restaurantId } = useParams();
@@ -67,16 +68,17 @@ export default function EmployeeAccessOverview() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="p-2 border border-gray-300 rounded flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
+        <Button
+          color="blue"
           onClick={() =>
             navigate(
               `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access-add`
             )
           }
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="rounded"
         >
           Add Employee
-        </button>
+        </Button>
       </div>
 
       {/* Employee List */}

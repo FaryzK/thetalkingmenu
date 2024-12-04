@@ -5,6 +5,7 @@ import { fetchMenu, clearMenuState } from "../redux/slices/menuSlice";
 import { fetchRestaurant } from "../redux/slices/restaurantSlice"; // Fetch restaurant if missing
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
+import { Button } from "flowbite-react";
 
 export default function Menu() {
   const { dashboardId, restaurantId } = useParams();
@@ -98,16 +99,17 @@ export default function Menu() {
             onChange={(e) => setSearch(e.target.value)}
             className="p-2 border rounded flex-grow"
           />
-          <button
+          <Button
             onClick={() =>
               navigate(
                 `/dashboards/${dashboardId}/restaurant/${restaurantId}/menu/add`
               )
             }
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            color="blue"
+            className="rounded transition"
           >
             Add Item
-          </button>
+          </Button>
         </div>
 
         {/* List of Menu Items */}

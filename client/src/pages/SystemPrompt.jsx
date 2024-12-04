@@ -5,6 +5,7 @@ import { fetchChatBot, updateSystemPrompt } from "../redux/slices/chatBotSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { Accordion, Alert } from "flowbite-react";
 import { FiArrowLeft } from "react-icons/fi";
+import { Button } from "flowbite-react";
 
 export default function SystemPrompt() {
   const { restaurantId, dashboardId } = useParams();
@@ -110,12 +111,13 @@ export default function SystemPrompt() {
       </div>
 
       {/* Update Button */}
-      <button
+      <Button
         onClick={handleUpdate}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition"
+        color="blue"
+        className="mt-4 font-semibold rounded transition"
       >
         Update Prompt
-      </button>
+      </Button>
     </div>
   );
 }

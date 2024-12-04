@@ -123,12 +123,9 @@ export default function Dashboards() {
       )}
 
       <div className="w-full max-w-md mt-6">
-        <button
-          onClick={handleCreateDashboard}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        <Button onClick={handleCreateDashboard} color="blue" className="w-full">
           Create Dashboard
-        </button>
+        </Button>
       </div>
     </div>
   );

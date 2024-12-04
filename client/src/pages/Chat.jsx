@@ -11,6 +11,9 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from "react-markdown";
 
+import { Button } from "flowbite-react"; // Import Flowbite Button if not already imported
+import { TextInput } from "flowbite-react"; // Import Flowbite TextInput
+
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
   const dispatch = useDispatch();

@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { addEmployeeAccess } from "../redux/slices/userAccessSlice"; // Moved to userAccessSlice
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FiArrowLeft } from "react-icons/fi";
-import { Alert } from "flowbite-react";
+import { Alert, Button } from "flowbite-react";
 import { HiExclamationCircle } from "react-icons/hi";
 
 export default function EmployeeAccessAdd() {
@@ -119,16 +119,14 @@ export default function EmployeeAccessAdd() {
           </div>
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
-            className={`w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg ${
-              !email || !token
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-blue-600"
-            }`}
+            color="blue"
+            className="w-full font-semibold"
+            disabled={!email || !token}
           >
             Add Employee
-          </button>
+          </Button>
         </form>
       </div>
     </div>

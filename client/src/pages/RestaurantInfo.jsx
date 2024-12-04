@@ -7,6 +7,7 @@ import {
 } from "../redux/slices/restaurantSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FiArrowLeft } from "react-icons/fi";
+import { Button } from "flowbite-react";
 
 export default function RestaurantInfo() {
   const { dashboardId, restaurantId } = useParams();
@@ -151,12 +152,9 @@ export default function RestaurantInfo() {
         </div>
 
         {/* Save Changes Button */}
-        <button
-          onClick={handleSaveChanges}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition duration-300"
-        >
+        <Button onClick={handleSaveChanges} color="blue" className="w-full ">
           Save Changes
-        </button>
+        </Button>
       </div>
     </div>
   );
