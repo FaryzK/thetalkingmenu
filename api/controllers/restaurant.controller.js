@@ -7,6 +7,9 @@ import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import RestaurantAnalytics from "../models/restaurantAnalytics.model.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const { ContentState, convertToRaw, EditorState, SelectionState, RichUtils } =
   pkg;
@@ -220,5 +223,95 @@ export const deleteRestaurant = async (req, res, next) => {
   } catch (error) {
     console.error(`Error deleting restaurant: ${error.message}`);
     next(errorHandler(500, "Failed to delete restaurant"));
+  }
+};
+
+export const transferOwnership = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  const { newOwnerEmail } = req.body;
+
+  try {
+    // Fetch restaurant, new owner, and current owner
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
+
+    const newOwner = await User.findOne({ email: newOwnerEmail });
+    if (!newOwner) return next(errorHandler(404, "New owner not found"));
+
+    const currentOwner = await User.findOne({
+      uid: restaurant.restaurantOwnerId,
+    });
+    if (!currentOwner)
+      return next(errorHandler(404, "Current owner not found"));
+
+    // Check if the new owner has a dashboard
+    let newOwnerDashboard = await Dashboard.findOne({
+      dashboardOwnerId: newOwner.uid,
+    });
+
+    //! If no dashboard exists, create one for the new owner.
+    // Note we do this instead of calling endpoint for smoother customer experience
+    // If we use the endpoint we need to ask user to give us their firebase token
+    // Or alternatively create dashboards when user signs in (will also include non-admins)
+    if (!newOwnerDashboard) {
+      newOwnerDashboard = new Dashboard({
+        dashboardOwnerId: newOwner.uid,
+        restaurants: [],
+        userAccess: [
+          {
+            userId: newOwner.uid,
+            userEmail: newOwner.email,
+            role: "restaurant main admin",
+          },
+        ],
+      });
+
+      await newOwnerDashboard.save();
+
+      // Update the new owner's accessible dashboards
+      newOwner.accessibleDashboards.push(newOwnerDashboard._id.toString());
+      await newOwner.save();
+    }
+
+    // Update Restaurant Owner
+    restaurant.restaurantOwnerId = newOwner.uid;
+
+    // Update userAccess: Remove current owner, add new owner
+    restaurant.userAccess = restaurant.userAccess.filter(
+      (access) => access.userId !== currentOwner.uid
+    );
+    restaurant.userAccess.push({
+      userId: newOwner.uid,
+      userEmail: newOwner.email,
+      role: "restaurant main admin",
+    });
+
+    await restaurant.save();
+
+    // Update Dashboards
+    await Dashboard.updateOne(
+      { dashboardOwnerId: currentOwner.uid },
+      { $pull: { restaurants: restaurantId } }
+    );
+
+    newOwnerDashboard.restaurants.push(restaurantId);
+    await newOwnerDashboard.save();
+
+    // Update User Accessible Restaurants
+    currentOwner.accessibleRestaurants =
+      currentOwner.accessibleRestaurants.filter((id) => id !== restaurantId);
+    await currentOwner.save();
+
+    newOwner.accessibleRestaurants.push(restaurantId);
+    await newOwner.save();
+
+    res.status(200).json({
+      message: "Ownership transferred successfully",
+      restaurant,
+      newOwnerEmail: newOwner.email,
+    });
+  } catch (error) {
+    console.error("Error transferring ownership:", error);
+    next(errorHandler(500, "Failed to transfer ownership"));
   }
 };

@@ -5,7 +5,8 @@ import {
   getRestaurant,
   getAllRestaurants,
   deleteRestaurant,
-  updateRestaurant, // Import the update function
+  updateRestaurant,
+  transferOwnership,
 } from "../controllers/restaurant.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { isAdmin } from "../utils/isAdmin.js";
@@ -34,6 +35,13 @@ router.delete(
   isAuthenticated,
   isAdmin,
   deleteRestaurant
+);
+
+router.put(
+  "/restaurant/:restaurantId/transfer",
+  isAuthenticated,
+  isAdmin,
+  transferOwnership
 );
 
 export default router;

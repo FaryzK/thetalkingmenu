@@ -43,6 +43,34 @@ export const deleteRestaurant = createAsyncThunk(
   }
 );
 
+// Transfer restaurant ownership (admin only)
+export const transferRestaurantOwnership = createAsyncThunk(
+  "platformControlPanelRestaurants/transferRestaurantOwnership",
+  async ({ token, restaurantId, newOwnerEmail }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/restaurant/${restaurantId}/transfer`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newOwnerEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(data.message || "Failed to transfer ownership");
+      }
+
+      // Include newOwnerEmail in the returned payload
+      return { ...data, newOwnerEmail };
+    } catch (error) {
+      return rejectWithValue(error.message || "Network error occurred");
+    }
+  }
+);
+
 const platformControlPanelRestaurantsSlice = createSlice({
   name: "platformControlPanelRestaurants",
   initialState: {
@@ -82,6 +110,23 @@ const platformControlPanelRestaurantsSlice = createSlice({
       .addCase(deleteRestaurant.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to delete restaurant";
+      })
+      .addCase(transferRestaurantOwnership.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(transferRestaurantOwnership.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // Find and update the restaurant's ownerEmail
+        const index = state.allRestaurants.findIndex(
+          (restaurant) => restaurant._id === action.payload.restaurant._id
+        );
+        if (index !== -1) {
+          state.allRestaurants[index].ownerEmail = action.payload.newOwnerEmail;
+        }
+      })
+      .addCase(transferRestaurantOwnership.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to transfer ownership";
       });
   },
 });
