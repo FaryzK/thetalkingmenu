@@ -5,6 +5,8 @@ import { addMenuItem, addMenuItemsBulk } from "../redux/slices/menuSlice";
 import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
 import { clearMenuState } from "../redux/slices/menuSlice";
+import { FiArrowLeft } from "react-icons/fi";
+import { Accordion } from "flowbite-react";
 
 export default function MenuAddItem() {
   const { restaurantId, dashboardId } = useParams();
@@ -135,91 +137,121 @@ export default function MenuAddItem() {
   };
 
   return (
-    <div className=" bg-gray-100 p-6">
+    <div className="bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Menu
+      </button>
+
       <h2 className="text-2xl font-bold mb-4">Add Menu Item</h2>
+
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {uploadStatus && (
         <div className="text-green-500 mb-4">{uploadStatus}</div>
       )}
 
-      {/* Add Single Item */}
-      <h3 className="text-lg font-semibold mb-2">Add Single Item</h3>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <input
-        type="number"
-        placeholder="Price"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <input
-        type="text"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <button
-        onClick={handleAddSingleItem}
-        disabled={status === "loading"}
-        className={`px-4 py-2 bg-green-500 text-white rounded mt-4 ${
-          status === "loading" ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-      >
-        {status === "loading" ? "Adding..." : "Add Item"}
-      </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Add Single Item */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-4">Add Single Item</h3>
+          <div className="space-y-4">
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="p-2 border rounded w-2/3"
+              />
+              <input
+                type="number"
+                placeholder="Price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="p-2 border rounded w-1/3"
+              />
+            </div>
+            <textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="p-2 border rounded w-full h-24"
+            />
+            <button
+              onClick={handleAddSingleItem}
+              disabled={status === "loading"}
+              className={`w-full px-4 py-2 bg-blue-500 text-white rounded ${
+                status === "loading"
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-blue-600"
+              }`}
+            >
+              {status === "loading" ? "Adding..." : "Add Item"}
+            </button>
+          </div>
+        </div>
 
-      <hr className="my-6" />
-
-      {/* Bulk Upload */}
-      <h3 className="text-lg font-semibold mb-2">Bulk Upload Items</h3>
-
-      <div className="bg-yellow-100 p-4 rounded-lg shadow-md mt-4">
-        <h4 className="text-lg font-bold mb-2">CSV Format Guidelines</h4>
-        <p className="text-gray-700 mb-2">
-          Please ensure your CSV file is properly formatted with the following
-          columns:
-        </p>
-        <ul className="list-disc list-inside text-gray-700 mb-4">
-          <li>
-            <strong>name</strong>: The name of the menu item (e.g.,
-            "Cheeseburger")
-          </li>
-          <li>
-            <strong>price</strong>: The price of the menu item as a number
-            (e.g., "10.99")
-          </li>
-          <li>
-            <strong>description</strong>: A description of the menu item (e.g.,
-            "A juicy beef burger with cheese")
-          </li>
-        </ul>
-        <button
-          onClick={handleDownloadTemplate}
-          className="px-4 py-2 bg-blue-500 text-white rounded mt-4"
-        >
-          Download Template CSV
-        </button>
+        {/* Bulk Upload */}
+        <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Bulk Upload Items</h3>
+            <Accordion collapseAll>
+              <Accordion.Panel>
+                <Accordion.Title>How to Upload CSV?</Accordion.Title>
+                <Accordion.Content>
+                  <p className="text-gray-700 mb-2">
+                    Ensure your CSV has the following columns:
+                  </p>
+                  <ul className="list-disc list-inside text-gray-700 mb-4">
+                    <li>
+                      <strong>name</strong>: Name of the item. eg. "Cheese
+                      burger"
+                    </li>
+                    <li>
+                      <strong>price</strong>: Price of the item without dollar
+                      sign. eg. "10.99"
+                    </li>
+                    <li>
+                      <strong>description</strong>: Description of the item.
+                      "Amazing juicy burger"
+                    </li>
+                  </ul>
+                  <p className="text-gray-700 mb-2">
+                    CSV needs to contain the headers. Download template to see
+                    more.
+                  </p>
+                  <button
+                    onClick={handleDownloadTemplate}
+                    className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Download Template
+                  </button>
+                </Accordion.Content>
+              </Accordion.Panel>
+            </Accordion>
+            <div className="mt-4">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="p-2 border rounded w-full"
+              />
+            </div>
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={handleUpload}
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Upload Items
+            </button>
+          </div>
+        </div>
       </div>
-
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <button
-        onClick={handleUpload}
-        className="px-4 py-2 bg-blue-500 text-white rounded mt-4"
-      >
-        Upload Items
-      </button>
     </div>
   );
 }

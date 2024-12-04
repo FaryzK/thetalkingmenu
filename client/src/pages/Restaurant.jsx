@@ -26,7 +26,20 @@ import {
   Legend,
   LineController,
 } from "chart.js";
-import { Chart, Line } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
+import {
+  FiSettings,
+  FiMessageCircle,
+  FiBarChart,
+  FiMail,
+  FiShare2,
+  FiInfo,
+  FiEdit,
+  FiList,
+  FiHelpCircle,
+  FiUsers,
+} from "react-icons/fi";
+import FlowbiteBreadcrumbs from "../components/FlowbiteBreadcrumbs";
 
 // Register required Chart.js components
 ChartJS.register(
@@ -91,34 +104,47 @@ export default function Restaurant() {
     return () => unsubscribe();
   }, [dispatch, restaurantId]);
 
-  if (restaurantStatus === "loading" || chatBotStatus === "loading")
-    return <div>Loading...</div>;
-  if (restaurantStatus === "failed") return <div>Error: {restaurantError}</div>;
-  if (chatBotStatus === "failed") return <div>Error: {chatBotError}</div>;
-  if (chatsStatus === "failed") return <div>Error: {chatsError}</div>;
-  if (!restaurant) return <div>No restaurant data available.</div>;
-  if (analyticsStatus === "failed") return <div>Error: {analyticsError}</div>;
-  if (!analytics || !analytics.monthlyStats) {
-    return <div>No analytics data available.</div>;
-  }
+  const totalChats = analytics?.totalChats ?? 0;
+  const totalMessages = analytics?.totalMessages ?? 0;
+  const monthlyStats = analytics?.monthlyStats ?? [];
 
-  const { totalChats, totalMessages, monthlyStats } = analytics;
-
-  const chartData = {
+  const reversedMonthlyStats = [...monthlyStats].reverse(); // Reverse the order to go from oldest to newest
+  const chatsChartData = {
     labels:
-      monthlyStats.length > 0
-        ? monthlyStats.map((stat) => `${stat.month}/${stat.year}`)
+      reversedMonthlyStats.length > 0
+        ? reversedMonthlyStats.map((stat) => `${stat.month}/${stat.year}`)
         : ["No Data"],
     datasets: [
       {
         label: "Total Chats",
         data:
-          monthlyStats.length > 0
-            ? monthlyStats.map((stat) => stat.chats)
+          reversedMonthlyStats.length > 0
+            ? reversedMonthlyStats.map((stat) => stat.chats)
             : [0],
-        borderColor: "blue",
-        backgroundColor: "rgba(0, 123, 255, 0.5)",
+        borderColor: "rgba(75, 192, 192, 1)", // Light green line
+        backgroundColor: "rgba(75, 192, 192, 0.2)", // Light green fill
         tension: 0.4, // Smooth curve
+        fill: true,
+      },
+    ],
+  };
+
+  const messagesChartData = {
+    labels:
+      reversedMonthlyStats.length > 0
+        ? reversedMonthlyStats.map((stat) => `${stat.month}/${stat.year}`)
+        : ["No Data"],
+    datasets: [
+      {
+        label: "Total Messages",
+        data:
+          reversedMonthlyStats.length > 0
+            ? reversedMonthlyStats.map((stat) => stat.messages)
+            : [0],
+        borderColor: "rgba(54, 162, 235, 1)", // Light blue line
+        backgroundColor: "rgba(54, 162, 235, 0.2)", // Light blue fill
+        tension: 0.4, // Smooth curve
+        fill: true,
       },
     ],
   };
@@ -127,154 +153,299 @@ export default function Restaurant() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: {
+        display: true,
+        position: "top",
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem) => {
+            const { datasetIndex, raw } = tooltipItem;
+            const label = datasetIndex === 0 ? "Chats" : "Messages";
+            return `${label}: ${raw}`;
+          },
+        },
+      },
     },
     scales: {
       x: {
-        type: "category",
         title: {
           display: true,
           text: "Month/Year",
+          font: {
+            size: 14,
+          },
         },
       },
       y: {
-        type: "linear",
         title: {
           display: true,
-          text: "Chats",
+          text: "Count",
+          font: {
+            size: 14,
+          },
+        },
+        ticks: {
+          stepSize: 1, // Adjust based on your data range
         },
       },
     },
   };
 
   return (
-    <div className=" bg-gray-100 p-6">
-      {/* Restaurant Info Container */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <h1 className="text-2xl font-bold">{restaurant.name}</h1>
-        <p className="text-gray-500">{restaurant.location}</p>
+    <div className="bg-gray-100 p-6">
+      <FlowbiteBreadcrumbs />
+      {/* Restaurant Info */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">{restaurant?.name}</h1>
+        <p className="text-gray-500">{restaurant?.location}</p>
       </div>
 
-      {/* Analytics Overview */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <h2 className="text-lg font-semibold">Analytics</h2>
-        <p>Total Chats: {totalChats}</p>
-        <p>Total Messages: {totalMessages}</p>
+      {/* Combined Analytics Overview */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+          <FiBarChart className="mr-2" /> Analytics Overview
+        </h2>
+
+        <div className="mt-4 space-y-6">
+          {/* Header for "This Month" */}
+          <div>
+            <h3 className="text-md font-bold text-gray-700 mb-2">This Month</h3>
+            <div className="bg-gray-100 p-4 rounded-lg shadow-md">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">Chats</h4>
+                  <p className="text-xl font-bold text-gray-800">
+                    {monthlyStats[0]?.chats || 0}
+                  </p>
+                  <p
+                    className={`text-sm flex items-center ${
+                      monthlyStats[1]
+                        ? monthlyStats[0]?.chats > monthlyStats[1]?.chats
+                          ? "text-green-500"
+                          : monthlyStats[0]?.chats < monthlyStats[1]?.chats
+                          ? "text-red-500"
+                          : "text-gray-500"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {monthlyStats[1] ? (
+                      <>
+                        {monthlyStats[0]?.chats - monthlyStats[1]?.chats > 0 ? (
+                          <span className="mr-1">▲</span>
+                        ) : monthlyStats[0]?.chats - monthlyStats[1]?.chats <
+                          0 ? (
+                          <span className="mr-1">▼</span>
+                        ) : (
+                          <span className="mr-1">•</span>
+                        )}
+                        {`${Math.abs(
+                          monthlyStats[0]?.chats - monthlyStats[1]?.chats
+                        )} chats since last month`}
+                      </>
+                    ) : (
+                      "No data for last month"
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">
+                    Messages
+                  </h4>
+                  <p className="text-xl font-bold text-gray-800">
+                    {monthlyStats[0]?.messages || 0}
+                  </p>
+                  <p
+                    className={`text-sm flex items-center ${
+                      monthlyStats[1]
+                        ? monthlyStats[0]?.messages > monthlyStats[1]?.messages
+                          ? "text-green-500"
+                          : monthlyStats[0]?.messages <
+                            monthlyStats[1]?.messages
+                          ? "text-red-500"
+                          : "text-gray-500"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {monthlyStats[1] ? (
+                      <>
+                        {monthlyStats[0]?.messages - monthlyStats[1]?.messages >
+                        0 ? (
+                          <span className="mr-1">▲</span>
+                        ) : monthlyStats[0]?.messages -
+                            monthlyStats[1]?.messages <
+                          0 ? (
+                          <span className="mr-1">▼</span>
+                        ) : (
+                          <span className="mr-1">•</span>
+                        )}
+                        {`${Math.abs(
+                          monthlyStats[0]?.messages - monthlyStats[1]?.messages
+                        )} messages since last month`}
+                      </>
+                    ) : (
+                      "No data for last month"
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Header for "Total" */}
+          <div>
+            <h3 className="text-md font-bold text-gray-700 mb-2">Total</h3>
+            <div className="bg-gray-100 p-4 rounded-lg shadow-md">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">Chats</h4>
+                  <p className="text-xl font-bold text-gray-800">
+                    {totalChats}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">
+                    Messages
+                  </h4>
+                  <p className="text-xl font-bold text-gray-800">
+                    {totalMessages}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Configure Container */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <h2 className="text-lg font-semibold">CONFIGURE</h2>
-        <div className="mt-2 space-y-2">
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/qrcode`
-              )
-            }
-          >
-            Share AI Chat
-          </button>
-
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/info`
-              )
-            }
-          >
-            Restaurant Info
-          </button>
-
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/system-prompt`
-              )
-            }
-          >
-            Update Prompt
-          </button>
-
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/menu`
-              )
-            }
-          >
-            Update Menu
-          </button>
-
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/suggested-questions`
-              )
-            }
-          >
-            Update Suggested Questions
-          </button>
-
-          <button
-            className="w-full bg-blue-500 text-white py-2 rounded"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access`
-              )
-            }
-          >
-            Manage Employee Access
-          </button>
+      {/* Improved Configure Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+          <FiSettings className="mr-2" /> Configure
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+          {[
+            {
+              label: "Share AI Chat",
+              route: "qrcode",
+              icon: <FiShare2 className="text-blue-500" />,
+            },
+            {
+              label: "Restaurant Info",
+              route: "info",
+              icon: <FiInfo className="text-green-500" />,
+            },
+            {
+              label: "Update Prompt",
+              route: "system-prompt",
+              icon: <FiEdit className="text-purple-500" />,
+            },
+            {
+              label: "Update Menu",
+              route: "menu",
+              icon: <FiList className="text-yellow-500" />,
+            },
+            {
+              label: "Update Questions",
+              route: "suggested-questions",
+              icon: <FiHelpCircle className="text-red-500" />,
+            },
+            {
+              label: "Manage Employees",
+              route: "employee-access",
+              icon: <FiUsers className="text-indigo-500" />,
+            },
+          ].map(({ label, route, icon }) => (
+            <button
+              key={route}
+              onClick={() =>
+                navigate(
+                  `/dashboards/${dashboardId}/restaurant/${restaurantId}/${route}`
+                )
+              }
+              className="p-4 rounded-lg shadow-md flex flex-col items-center justify-center bg-gray-100 hover:bg-gray-200 transition"
+            >
+              <div className="text-3xl mb-2">{icon}</div>
+              <span className="text-sm font-semibold text-center">{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Performance Graph */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <h2 className="text-lg font-semibold">Performance</h2>
-        <div className="mt-4 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-          {monthlyStats.length > 0 ? (
-            <Line data={chartData} options={chartOptions} />
-          ) : (
-            <p className="text-center text-gray-500">
-              No analytics data available to display.
-            </p>
-          )}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+          <FiBarChart className="mr-2" /> Performance
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          {/* Chats Graph */}
+          <div className="bg-gray-50 p-4 rounded-lg shadow-md border">
+            <h3 className="text-sm font-semibold text-gray-500 mb-4">
+              Total Chats Over Time
+            </h3>
+            <div className="h-64">
+              {monthlyStats.length > 0 ? (
+                <Line data={chatsChartData} options={chartOptions} />
+              ) : (
+                <p className="text-gray-500">
+                  No chats data available to display.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Messages Graph */}
+          <div className="bg-gray-50 p-4 rounded-lg shadow-md border">
+            <h3 className="text-sm font-semibold text-gray-500 mb-4">
+              Total Messages Over Time
+            </h3>
+            <div className="h-64">
+              {monthlyStats.length > 0 ? (
+                <Line data={messagesChartData} options={chartOptions} />
+              ) : (
+                <p className="text-gray-500">
+                  No messages data available to display.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Latest Chats Container */}
-      <div className="bg-white p-4 rounded-lg shadow-md">
+      {/* Latest Chats */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">LATEST CHATS</h2>
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+            <FiMessageCircle className="mr-2" /> Latest Chats
+          </h2>
           <button
             onClick={() =>
               navigate(
                 `/dashboards/${dashboardId}/restaurant/${restaurantId}/chats`
               )
             }
-            className="text-blue-500 underline"
+            className="text-blue-500 underline hover:text-blue-600"
           >
             See All
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {restaurantChats?.map((chat) => (
             <button
               key={chat._id}
               onClick={() =>
-                navigate(
-                  `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`
+                window.open(
+                  `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
+                  "_blank"
                 )
               }
-              className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition text-left"
+              className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition flex justify-between items-center text-left"
             >
-              <p className="text-gray-700 truncate">{chat.firstMessage}</p>
+              <p className="text-gray-800 truncate flex-1 pr-4">
+                {chat.firstMessage}
+              </p>
+              <span className="text-sm text-gray-500 whitespace-nowrap">
+                {new Date(chat.timestamp).toLocaleString()}
+              </span>
             </button>
           ))}
         </div>

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FaStar, FaRegStar } from "react-icons/fa";
+import { FiArrowLeft } from "react-icons/fi";
 import {
   fetchRestaurantChats,
   fetchStarredChats,
@@ -46,8 +47,9 @@ const ChatRow = React.memo(
       <button
         className="text-left flex-grow overflow-hidden"
         onClick={() =>
-          navigate(
-            `/restaurant/${chat.restaurantId}/chat/${chat.tableNumber}/${chat._id}`
+          window.open(
+            `/restaurant/${chat.restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
+            "_blank"
           )
         }
       >
@@ -79,7 +81,7 @@ const ChatRow = React.memo(
 );
 
 const RestaurantChats = () => {
-  const { restaurantId } = useParams();
+  const { restaurantId, dashboardId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState("all");
@@ -359,6 +361,16 @@ const RestaurantChats = () => {
 
   return (
     <div className=" bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() =>
+          navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}`)
+        }
+        className="mb-6 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Dashboard
+      </button>
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Editor,
   EditorState,
@@ -14,16 +14,18 @@ import {
 } from "../redux/slices/chatBotSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "draft-js/dist/Draft.css";
-import setImmediate from "setimmediate";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function SuggestedQuestions() {
-  const { restaurantId } = useParams();
+  const { restaurantId, dashboardId } = useParams();
   const dispatch = useDispatch();
   const {
     data: chatBot,
     status,
     error,
   } = useSelector((state) => state.chatBot);
+
+  const navigate = useNavigate();
 
   const [questions, setQuestions] = useState(() => {
     if (!chatBot?.suggestedQuestions?.length) {
@@ -148,41 +150,56 @@ export default function SuggestedQuestions() {
     );
   };
 
-  if (status === "loading") return <div>Loading...</div>;
-  if (status === "failed") return <div>Error: {error}</div>;
-
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Update Suggested Questions</h2>
+    <div className="p-6 bg-gray-100">
+      {/* Back Button */}
+      <button
+        onClick={() =>
+          navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}`)
+        }
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Dashboard
+      </button>
+
+      <h2 className="text-2xl font-bold mb-6">Update Suggested Questions</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h3 className="font-semibold mb-2">Editor</h3>
-          {questions.map((editorState, index) => (
-            <div key={index} className="mb-4">
-              <Editor
-                editorState={editorState}
-                onChange={(newState) =>
-                  setQuestions(
-                    questions.map((q, i) => (i === index ? newState : q))
-                  )
-                }
-                handleKeyCommand={(command) =>
-                  handleKeyCommand(command, editorState, index)
-                }
-              />
-            </div>
-          ))}
+        {/* Editor Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="font-semibold text-lg mb-4">Editor</h3>
+          <div className="space-y-4">
+            {questions.map((editorState, index) => (
+              <div
+                key={index}
+                className="border rounded-lg p-4 bg-gray-50 shadow-sm"
+              >
+                <Editor
+                  editorState={editorState}
+                  onChange={(newState) =>
+                    setQuestions(
+                      questions.map((q, i) => (i === index ? newState : q))
+                    )
+                  }
+                  handleKeyCommand={(command) =>
+                    handleKeyCommand(command, editorState, index)
+                  }
+                />
+              </div>
+            ))}
+          </div>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Save Questions
           </button>
         </div>
 
-        <div className="mt-8 md:mt-0">
-          <h3 className="font-semibold mb-2">Mobile Preview</h3>
+        {/* Mobile Preview Section */}
+        <div className="mt-8 md:mt-0 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="font-semibold text-lg mb-4">Mobile Preview</h3>
           <div className="border rounded-lg shadow-lg p-4 max-w-xs mx-auto bg-gray-900">
             <div className="flex flex-col gap-2">
               {savedQuestions.map((question, index) => (
@@ -199,13 +216,11 @@ export default function SuggestedQuestions() {
                     const elements = [];
                     let lastOffset = 0;
 
-                    // Sort inline styles by offset to process sequentially
                     const sortedRanges = block.inlineStyleRanges.sort(
                       (a, b) => a.offset - b.offset
                     );
 
                     sortedRanges.forEach((range, rangeIndex) => {
-                      // Add unstyled text before the styled range
                       if (range.offset > lastOffset) {
                         elements.push(
                           <span key={`${idx}-${rangeIndex}-unstyled`}>
@@ -214,7 +229,6 @@ export default function SuggestedQuestions() {
                         );
                       }
 
-                      // Add styled text
                       elements.push(
                         <span
                           key={`${idx}-${rangeIndex}-styled`}
@@ -230,11 +244,9 @@ export default function SuggestedQuestions() {
                         </span>
                       );
 
-                      // Update lastOffset to the end of the current range
                       lastOffset = range.offset + range.length;
                     });
 
-                    // Add remaining unstyled text if any
                     if (lastOffset < block.text.length) {
                       elements.push(
                         <span key={`${idx}-remaining-unstyled`}>

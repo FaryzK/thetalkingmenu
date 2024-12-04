@@ -66,7 +66,12 @@ export const updateRestaurantAnalytics = async (
       await RestaurantAnalytics.updateOne(
         { restaurantId },
         {
-          $push: { monthlyStats: newMonthlyStat },
+          $push: {
+            monthlyStats: {
+              $each: [newMonthlyStat],
+              $sort: { year: -1, month: -1 },
+            },
+          },
           $inc: overallUpdates,
         }
       );

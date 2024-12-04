@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { fetchChatBot, updateSystemPrompt } from "../redux/slices/chatBotSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { Accordion, Alert } from "flowbite-react";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function SystemPrompt() {
-  const { restaurantId } = useParams();
+  const { restaurantId, dashboardId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const {
     data: chatBot,
@@ -13,7 +16,7 @@ export default function SystemPrompt() {
     error,
   } = useSelector((state) => state.chatBot);
   const [systemPrompt, setSystemPrompt] = useState(chatBot?.systemPrompt || "");
-  const [isAccordionOpen, setAccordionOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const auth = getAuth();
@@ -35,42 +38,81 @@ export default function SystemPrompt() {
   const handleUpdate = async () => {
     const auth = getAuth();
     const token = await auth.currentUser.getIdToken();
-    dispatch(updateSystemPrompt({ token, restaurantId, systemPrompt }));
+    try {
+      await dispatch(
+        updateSystemPrompt({ token, restaurantId, systemPrompt })
+      ).unwrap();
+      setSuccessMessage("Prompt updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000); // Clear success message after 3 seconds
+    } catch (error) {
+      setSuccessMessage("Failed to update prompt. Please try again.");
+    }
   };
 
-  if (status === "loading") return <div>Loading...</div>;
-  if (status === "failed") return <div>Error: {error}</div>;
-
   return (
-    <div className=" p-6">
+    <div className="bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() =>
+          navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}`)
+        }
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Dashboard
+      </button>
+
       <h2 className="text-2xl font-bold mb-4">Update System Prompt</h2>
 
-      {/* Accordion */}
+      {/* Reserved Space for Success/Error Notification */}
       <div className="mb-4">
-        <button
-          onClick={() => setAccordionOpen(!isAccordionOpen)}
-          className="flex items-center justify-between w-full bg-gray-100 p-3 rounded-md text-left focus:outline-none"
-        >
-          <span className="font-semibold">What is a prompt?</span>
-          <span>{isAccordionOpen ? "-" : "+"}</span>
-        </button>
-        {isAccordionOpen && (
-          <p className="p-4 bg-gray-50 rounded-b-md text-gray-700">
-            A prompt is a set of instructions for the bot to understand how it
-            needs to behave when responding to a customer.
-          </p>
-        )}
+        <div className="min-h-[60px]">
+          {successMessage && (
+            <Alert
+              color={
+                successMessage.includes("successfully") ? "success" : "failure"
+              }
+            >
+              {successMessage}
+            </Alert>
+          )}
+        </div>
       </div>
 
-      <textarea
-        value={systemPrompt}
-        onChange={(e) => setSystemPrompt(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-        rows="6"
-      />
+      {/* Accordion */}
+      <Accordion collapseAll>
+        <Accordion.Panel>
+          <Accordion.Title>What is a prompt?</Accordion.Title>
+          <Accordion.Content>
+            A prompt is a set of instructions for the chatbot to understand how
+            it needs to behave when responding to a customer. It can include
+            information not found in the menu, such as opening hours,
+            promotions, or additional details you want to provide.
+          </Accordion.Content>
+        </Accordion.Panel>
+      </Accordion>
+
+      {/* Textarea for System Prompt */}
+      <div className="mt-6">
+        <label
+          htmlFor="systemPrompt"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          System Prompt
+        </label>
+        <textarea
+          id="systemPrompt"
+          value={systemPrompt}
+          onChange={(e) => setSystemPrompt(e.target.value)}
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          rows="6"
+        />
+      </div>
+
+      {/* Update Button */}
       <button
         onClick={handleUpdate}
-        className="px-4 py-2 bg-blue-500 text-white rounded"
+        className="mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition"
       >
         Update Prompt
       </button>

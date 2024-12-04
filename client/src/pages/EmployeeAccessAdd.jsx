@@ -4,6 +4,9 @@ import { useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { addEmployeeAccess } from "../redux/slices/userAccessSlice"; // Moved to userAccessSlice
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { FiArrowLeft } from "react-icons/fi";
+import { Alert } from "flowbite-react";
+import { HiExclamationCircle } from "react-icons/hi";
 
 export default function EmployeeAccessAdd() {
   const { dashboardId, restaurantId } = useParams();
@@ -54,45 +57,80 @@ export default function EmployeeAccessAdd() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 ">
-      <h1 className="text-2xl font-bold mb-4">Add Employee Access</h1>
-
-      {/* Form for adding employee */}
-      <form
-        onSubmit={handleAddEmployee}
-        className="bg-white p-6 rounded-lg shadow-md"
+    <div className="bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() =>
+          navigate(
+            `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access`
+          )
+        }
+        className="mb-4 flex items-center text-blue-500 hover:underline"
       >
-        {error && <p className="text-red-500">{error}</p>}
+        <FiArrowLeft className="mr-2" />
+        Back to Employee Access
+      </button>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Employee Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-            placeholder="Enter employee's email"
-          />
-        </div>
+      <h1 className="text-2xl font-bold mb-6">Add Employee Access</h1>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Role</label>
-          <input
-            type="text"
-            value="Restaurant Admin"
-            readOnly
-            className="w-full p-2 border border-gray-300 rounded bg-gray-200 cursor-not-allowed"
-          />
-        </div>
+      <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        {error && (
+          <Alert color="failure" icon={HiExclamationCircle}>
+            {error}
+          </Alert>
+        )}
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded"
-        >
-          Add Employee
-        </button>
-      </form>
+        {/* Form for adding employee */}
+        <form onSubmit={handleAddEmployee} className="space-y-6">
+          {/* Employee Email */}
+          <div>
+            <label
+              htmlFor="employeeEmail"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Employee Email
+            </label>
+            <input
+              id="employeeEmail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter employee's email"
+            />
+          </div>
+
+          {/* Role */}
+          <div>
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Role
+            </label>
+            <input
+              id="role"
+              type="text"
+              value="Restaurant Admin"
+              readOnly
+              className="w-full p-3 border rounded-lg bg-gray-100 cursor-not-allowed text-gray-500"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className={`w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg ${
+              !email || !token
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-blue-600"
+            }`}
+          >
+            Add Employee
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 // src/components/MyRestaurants.js
 import React, { useState } from "react";
+import { Button } from "flowbite-react";
 
 export default function MyRestaurants({
   restaurants,
@@ -18,52 +19,57 @@ export default function MyRestaurants({
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-      <h2 className="text-lg font-semibold">MY RESTAURANTS</h2>
-      {restaurants?.map((restaurant) => (
-        <button
-          key={restaurant._id}
-          onClick={() => onRestaurantClick(restaurant._id)}
-          className="w-full bg-gray-100 p-4 mt-2 rounded-lg shadow hover:bg-gray-200 transition"
+    <div>
+      {/* Restaurant List */}
+      {restaurants?.length > 0 && (
+        <div className="space-y-4">
+          {restaurants.map((restaurant) => (
+            <button
+              key={restaurant._id}
+              onClick={() => onRestaurantClick(restaurant._id)}
+              className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
+            >
+              <h3 className="text-lg font-semibold text-gray-700">
+                {restaurant.name}
+              </h3>
+              <p className="text-sm text-gray-500">{restaurant.location}</p>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Add Restaurant Button */}
+      <div className="mt-6 text-center">
+        <Button
+          onClick={() => setShowRestaurantForm(!showRestaurantForm)}
+          color="blue"
         >
-          <h3 className="text-lg font-semibold text-gray-700">
-            {restaurant.name}
-          </h3>
-          <p className="text-gray-500">{restaurant.location}</p>
-        </button>
-      ))}
+          Add Restaurant
+        </Button>
+      </div>
 
-      {/* Button to toggle restaurant form */}
-      <button
-        onClick={() => setShowRestaurantForm(!showRestaurantForm)}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Add Restaurant
-      </button>
-
-      {/* Form to add a new restaurant */}
+      {/* Add Restaurant Form */}
       {showRestaurantForm && (
-        <div className="mt-4">
+        <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-md">
           <input
             type="text"
             placeholder="Restaurant Name"
             value={restaurantName}
             onChange={(e) => setRestaurantName(e.target.value)}
-            className="w-full p-2 border rounded mb-2"
+            className="w-full p-3 border rounded-lg mb-3"
           />
           <input
             type="text"
             placeholder="Restaurant Location"
             value={restaurantLocation}
             onChange={(e) => setRestaurantLocation(e.target.value)}
-            className="w-full p-2 border rounded mb-2"
+            className="w-full p-3 border rounded-lg mb-3"
           />
-          <button
-            onClick={handleAddRestaurant}
-            className="px-4 py-2 bg-green-500 text-white rounded"
-          >
-            Save Restaurant
-          </button>
+          <div className="flex justify-end">
+            <Button color="green" onClick={handleAddRestaurant}>
+              Save Restaurant
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { fetchRestaurant } from "../redux/slices/restaurantSlice";
+import { FiArrowLeft } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 
 export default function EmployeeAccessOverview() {
   const { dashboardId, restaurantId } = useParams();
@@ -32,10 +34,6 @@ export default function EmployeeAccessOverview() {
     return () => unsubscribe();
   }, [dispatch, restaurantId]);
 
-  if (loading || status === "loading") {
-    return <div>Loading employee access data...</div>;
-  }
-
   const userAccess = restaurant?.userAccess || [];
 
   // Filtered employees based on search term
@@ -46,17 +44,28 @@ export default function EmployeeAccessOverview() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 ">
+    <div className="p-6 bg-gray-100">
+      {/* Back Button */}
+      <button
+        onClick={() =>
+          navigate(`/dashboards/${dashboardId}/restaurant/${restaurantId}`)
+        }
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Dashboard
+      </button>
+
       <h1 className="text-2xl font-bold mb-4">Manage Employee Access</h1>
 
       {/* Search Bar and Add Button */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="max-w-4xl mx-auto flex items-center gap-4 mb-6">
         <input
           type="text"
           placeholder="Search by email or role"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300 rounded w-2/3"
+          className="p-2 border border-gray-300 rounded flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={() =>
@@ -64,36 +73,44 @@ export default function EmployeeAccessOverview() {
               `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access-add`
             )
           }
-          className="bg-blue-500 text-white py-2 px-4 rounded"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Add Employee
         </button>
       </div>
 
       {/* Employee List */}
-      {filteredEmployees.length > 0 ? (
-        filteredEmployees.map((employee) => (
-          <div
-            key={employee.userId}
-            className="bg-white p-4 rounded-lg mb-4 shadow-md cursor-pointer"
-            onClick={() =>
-              navigate(
-                `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access-revoke/${employee.userId}`
-              )
-            }
-          >
-            <p>
-              <strong>Email:</strong> {employee.userEmail}
-            </p>
-            <p>
-              <strong>Role:</strong>{" "}
-              {employee.role.charAt(0).toUpperCase() + employee.role.slice(1)}
-            </p>
-          </div>
-        ))
-      ) : (
-        <p>No employees match your search criteria.</p>
-      )}
+      <div className="max-w-4xl mx-auto space-y-4">
+        {filteredEmployees.length > 0 ? (
+          filteredEmployees.map((employee) => (
+            <button
+              key={employee.userId}
+              onClick={() =>
+                navigate(
+                  `/dashboards/${dashboardId}/restaurant/${restaurantId}/employee-access-revoke/${employee.userId}`
+                )
+              }
+              className="w-full text-left bg-white p-4 rounded-lg shadow hover:bg-gray-100 transition flex justify-between items-center"
+            >
+              <div>
+                <p className="text-sm text-gray-700">
+                  <strong>Email:</strong> {employee.userEmail}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Role:</strong>{" "}
+                  {employee.role.charAt(0).toUpperCase() +
+                    employee.role.slice(1)}
+                </p>
+              </div>
+              <FiChevronRight className="text-gray-400" />
+            </button>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">
+            No employees match your search criteria.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   deleteMenuItem,
 } from "../redux/slices/menuSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function MenuItem() {
   const { dashboardId, restaurantId, itemId } = useParams();
@@ -96,46 +97,64 @@ export default function MenuItem() {
   };
 
   return (
-    <div className=" bg-gray-100 p-6">
-      <h2 className="text-2xl font-bold mb-4">Menu Item</h2>
+    <div className="bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Menu
+      </button>
+
+      <h2 className="text-2xl font-bold mb-4">Edit Menu Item</h2>
+
       {error && <div className="text-red-500 mb-4">{error}</div>}
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <input
-        type="number"
-        placeholder="Price"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <input
-        type="text"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="p-2 border rounded w-full mb-2"
-      />
-      <button
-        onClick={handleUpdate}
-        disabled={status === "loading"}
-        className={`px-4 py-2 bg-blue-500 text-white rounded mt-4 mr-2 ${
-          status === "loading" ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-      >
-        {status === "loading" ? "Updating..." : "Update Item"}
-      </button>
-      <button
-        onClick={handleDelete}
-        disabled={status === "loading"}
-        className="px-4 py-2 bg-red-500 text-white rounded mt-4"
-      >
-        {status === "loading" ? "Deleting..." : "Delete Item"}
-      </button>
+
+      <div className="max-w-lg text-left mb-4 space-y-4">
+        <div className="flex space-x-4">
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="p-2 border rounded w-2/3"
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="p-2 border rounded w-1/3"
+          />
+        </div>
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="p-2 border rounded w-full h-24"
+        />
+        <div className="flex space-x-4">
+          <button
+            onClick={handleUpdate}
+            disabled={status === "loading"}
+            className={`px-4 py-2 bg-blue-500 text-white rounded flex-grow ${
+              status === "loading"
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-blue-600"
+            }`}
+          >
+            {status === "loading" ? "Updating..." : "Update Item"}
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={status === "loading"}
+            className="px-4 py-2 bg-red-500 text-white rounded flex-grow hover:bg-red-600"
+          >
+            {status === "loading" ? "Deleting..." : "Delete Item"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
