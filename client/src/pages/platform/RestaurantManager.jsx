@@ -7,6 +7,7 @@ import {
   transferRestaurantOwnership,
 } from "../../redux/slices/platformControlPanelRestaurantsSlice";
 import { Modal, Button, TextInput, Alert } from "flowbite-react";
+import { useNavigate } from "react-router-dom";
 
 export default function RestaurantManager() {
   const dispatch = useDispatch();
@@ -17,6 +18,8 @@ export default function RestaurantManager() {
   const [errorMessage, setErrorMessage] = useState(""); // Track error state
   const [successMessage, setSuccessMessage] = useState(""); // Track success state
   const [searchQuery, setSearchQuery] = useState(""); // Search input
+
+  const navigate = useNavigate();
 
   const { allRestaurants: restaurants, status } = useSelector(
     (state) => state.platformControlPanelRestaurants
@@ -91,74 +94,96 @@ export default function RestaurantManager() {
   );
 
   return (
-    <div className="bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        Restaurant Management
-      </h1>
+    <div className="bg-gray-100 p-6 min-h-screen">
+      <div className="container mx-auto max-w-4xl">
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          Restaurant Management
+        </h1>
 
-      {/* Search Input */}
-      <TextInput
-        type="text"
-        placeholder="Search by restaurant name or owner email"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="mb-4"
-      />
+        {/* Search Input */}
+        <div className="mb-6">
+          <TextInput
+            type="text"
+            placeholder="Search by restaurant name or owner email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
 
-      {/* Success Alert */}
-      {successMessage && (
-        <Alert
-          color="green"
-          onDismiss={() => setSuccessMessage("")}
-          className="mb-4"
-        >
-          {successMessage}
-        </Alert>
-      )}
-
-      {/* Error Alert */}
-      {errorMessage && (
-        <Alert
-          color="red"
-          onDismiss={() => setErrorMessage("")}
-          className="mb-4"
-        >
-          {errorMessage}
-        </Alert>
-      )}
-
-      <div className="space-y-4">
-        {filteredRestaurants.map((restaurant) => (
-          <div
-            key={restaurant._id}
-            className="bg-white p-4 rounded-lg shadow-md"
+        {/* Success Alert */}
+        {successMessage && (
+          <Alert
+            color="green"
+            onDismiss={() => setSuccessMessage("")}
+            className="mb-4"
           >
-            <h2 className="text-lg font-semibold">
-              {restaurant.name} ({restaurant.ownerEmail})
-            </h2>
-            <p className="text-gray-500">{restaurant.location}</p>
-            <div className="mt-2 space-x-4">
-              <button
-                className="text-red-500"
-                onClick={() => {
-                  setSelectedRestaurant(restaurant);
-                  setIsDeleteModalOpen(true);
-                }}
-              >
-                Delete
-              </button>
-              <button
-                className="text-blue-500"
-                onClick={() => {
-                  setSelectedRestaurant(restaurant);
-                  setIsTransferModalOpen(true);
-                }}
-              >
-                Transfer Ownership
-              </button>
+            {successMessage}
+          </Alert>
+        )}
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <Alert
+            color="red"
+            onDismiss={() => setErrorMessage("")}
+            className="mb-4"
+          >
+            {errorMessage}
+          </Alert>
+        )}
+
+        {/* Restaurant List */}
+        <div className="space-y-4">
+          {filteredRestaurants.map((restaurant) => (
+            <div
+              key={restaurant._id}
+              className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
+            >
+              <h2 className="text-lg font-semibold text-gray-700">
+                {restaurant.name} ({restaurant.ownerEmail})
+              </h2>
+              <p className="text-gray-500">{restaurant.location}</p>
+
+              {/* Management Buttons */}
+              <div className="mt-4 flex flex-col md:flex-row md:justify-between md:items-center">
+                {/* Left Section for Management Actions */}
+                <div className="space-x-4 mb-4 md:mb-0">
+                  <button
+                    className="text-blue-500 hover:text-blue-700"
+                    onClick={() => {
+                      navigate(
+                        `/dashboards/${restaurant.dashboardId}/restaurant/${restaurant._id}`
+                      );
+                    }}
+                  >
+                    View Restaurant
+                  </button>
+                  <button
+                    className="text-blue-500 hover:text-blue-700"
+                    onClick={() => {
+                      setSelectedRestaurant(restaurant);
+                      setIsTransferModalOpen(true);
+                    }}
+                  >
+                    Transfer Ownership
+                  </button>
+                </div>
+
+                {/* Right Section for Delete Button */}
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => {
+                    setSelectedRestaurant(restaurant);
+                    setIsDeleteModalOpen(true);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Delete Modal */}

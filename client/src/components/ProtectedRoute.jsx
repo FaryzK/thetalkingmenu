@@ -35,7 +35,9 @@ export default function ProtectedRoute({ allowedRoles }) {
     return true;
   })();
 
-  const isAuthorized = hasRoleAccess && hasResourceAccess;
+  const isAuthorized =
+    userRoles.includes("the talking menu admin") ||
+    (hasRoleAccess && hasResourceAccess);
 
   useEffect(() => {
     const poll = () => {

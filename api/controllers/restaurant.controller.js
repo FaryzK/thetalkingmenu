@@ -148,10 +148,22 @@ export const getAllRestaurants = async (req, res, next) => {
       return acc;
     }, {});
 
+    // Find dashboards for owners
+    const dashboards = await Dashboard.find(
+      { dashboardOwnerId: { $in: ownerIds } },
+      "_id dashboardOwnerId"
+    );
+
+    const dashboardMap = dashboards.reduce((acc, dashboard) => {
+      acc[dashboard.dashboardOwnerId] = dashboard._id;
+      return acc;
+    }, {});
+
     const restaurantsWithOwners = restaurants.map((restaurant) => ({
       ...restaurant.toObject(),
       ownerEmail:
         ownerEmailMap[restaurant.restaurantOwnerId] || "Owner not found",
+      dashboardId: dashboardMap[restaurant.restaurantOwnerId] || null,
     }));
 
     res.status(200).json(restaurantsWithOwners);
