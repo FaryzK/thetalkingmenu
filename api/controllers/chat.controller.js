@@ -230,7 +230,10 @@ export const sendMessage = async (req, res, next) => {
         timestamp: new Date(),
       });
 
-      // Save the updated chat
+      chat.tokenUsage.prompt_tokens += promptTokens;
+      chat.tokenUsage.completion_tokens += completionTokens;
+      chat.tokenUsage.total_tokens += promptTokens + completionTokens;
+
       await chat.save();
 
       const now = new Date();
