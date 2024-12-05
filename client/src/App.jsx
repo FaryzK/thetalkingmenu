@@ -31,6 +31,7 @@ import RestaurantChats from "./pages/RestaurantChats.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import { Outlet } from "react-router-dom";
+import ChatManager from "./pages/platform/ChatManager.jsx";
 
 const PageLayout = () => {
   return (
@@ -136,6 +137,10 @@ export default function App() {
               element={<GlobalSystemPromptManager />}
             />
             <Route path="/dashboard-manager" element={<DashboardManager />} />
+            <Route
+              path="/:dashboardId/:restaurantId/chat-manager"
+              element={<ChatManager />}
+            />
           </Route>
         </Route>
       </Routes>

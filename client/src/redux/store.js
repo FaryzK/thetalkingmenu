@@ -8,6 +8,7 @@ import storage from "redux-persist/lib/storage";
 import chatBotReducer from "./slices/chatBotSlice";
 import userAccessReducer from "./slices/userAccessSlice";
 import platformControlPanelRestaurantsReducer from "./slices/platformControlPanelRestaurantsSlice";
+import platformControlPanelChatsReducer from "./slices/platformControlPanelChatsSlice";
 import chatReducer from "./slices/chatSlice";
 import restaurantChatsReducer from "./slices/restaurantChatsSlice";
 import restaurantAnalyticsReducer from "./slices/restaurantAnalyticsSlice";
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   chatBot: chatBotReducer,
   userAccess: userAccessReducer,
   platformControlPanelRestaurants: platformControlPanelRestaurantsReducer,
+  platformControlPanelChats: platformControlPanelChatsReducer,
   chat: chatReducer,
   restaurantChats: restaurantChatsReducer,
   restaurantAnalytics: restaurantAnalyticsReducer,
@@ -35,6 +37,7 @@ const persistConfig = {
     "menu",
     "chatBot",
     "platformControlPanelRestaurants",
+    "platformControlPanelChats",
     "chat",
     "restaurantChats",
     "restaurantAnalytics",

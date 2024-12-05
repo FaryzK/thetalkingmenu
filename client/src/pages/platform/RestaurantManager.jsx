@@ -94,7 +94,7 @@ export default function RestaurantManager() {
   );
 
   return (
-    <div className="bg-gray-100 p-6 min-h-screen">
+    <div className="bg-gray-100 p-6 ">
       <div className="container mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
           Restaurant Management
@@ -158,6 +158,16 @@ export default function RestaurantManager() {
                     }}
                   >
                     View Restaurant
+                  </button>
+                  <button
+                    className="text-blue-500 hover:text-blue-700"
+                    onClick={() => {
+                      navigate(
+                        `/${restaurant.dashboardId}/${restaurant._id}/chat-manager`
+                      );
+                    }}
+                  >
+                    Manage Chats
                   </button>
                   <button
                     className="text-blue-500 hover:text-blue-700"

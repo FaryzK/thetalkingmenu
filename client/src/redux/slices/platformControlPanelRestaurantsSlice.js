@@ -74,12 +74,12 @@ export const transferRestaurantOwnership = createAsyncThunk(
 const platformControlPanelRestaurantsSlice = createSlice({
   name: "platformControlPanelRestaurants",
   initialState: {
-    allRestaurants: [], // List of all restaurants for admin
-    status: "idle", // Fetching status for admin operations
+    allRestaurants: [],
+    status: "idle",
     error: null,
   },
   reducers: {
-    clearPlatformControlPanelState: (state) => {
+    clearRestaurantState: (state) => {
       state.allRestaurants = [];
       state.status = "idle";
       state.error = null;
@@ -96,7 +96,7 @@ const platformControlPanelRestaurantsSlice = createSlice({
       })
       .addCase(fetchAllRestaurants.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "Failed to fetch restaurants";
+        state.error = action.payload;
       })
       .addCase(deleteRestaurant.pending, (state) => {
         state.status = "loading";
@@ -109,14 +109,13 @@ const platformControlPanelRestaurantsSlice = createSlice({
       })
       .addCase(deleteRestaurant.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "Failed to delete restaurant";
+        state.error = action.payload;
       })
       .addCase(transferRestaurantOwnership.pending, (state) => {
         state.status = "loading";
       })
       .addCase(transferRestaurantOwnership.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // Find and update the restaurant's ownerEmail
         const index = state.allRestaurants.findIndex(
           (restaurant) => restaurant._id === action.payload.restaurant._id
         );
@@ -126,11 +125,11 @@ const platformControlPanelRestaurantsSlice = createSlice({
       })
       .addCase(transferRestaurantOwnership.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || "Failed to transfer ownership";
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearPlatformControlPanelState } =
+export const { clearRestaurantState } =
   platformControlPanelRestaurantsSlice.actions;
 export default platformControlPanelRestaurantsSlice.reducer;

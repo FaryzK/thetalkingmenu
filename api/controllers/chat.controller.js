@@ -468,3 +468,97 @@ export const searchChatsByKeyword = async (req, res) => {
     res.status(500).json({ error: "Failed to search chats" });
   }
 };
+
+// Controller to delete a chat
+export const deleteChat = async (req, res) => {
+  const { chatId } = req.params;
+
+  try {
+    // Find the chat to delete
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    const { restaurantId, tokenUsage } = chat;
+
+    // Filter user messages
+    const userMessages = chat.messages.filter((msg) => msg.sender === "user");
+    const userMessageCount = userMessages.length;
+
+    // Remove the chat
+    await Chat.findByIdAndDelete(chatId);
+
+    // Update restaurant analytics
+    const analytics = await RestaurantAnalytics.findOne({ restaurantId });
+    if (analytics) {
+      // Update total stats
+      analytics.totalChats = Math.max(0, analytics.totalChats - 1);
+      analytics.totalMessages = Math.max(
+        0,
+        analytics.totalMessages - userMessageCount
+      );
+      analytics.total_tokens = Math.max(
+        0,
+        analytics.total_tokens - (tokenUsage?.total_tokens || 0)
+      );
+      analytics.total_prompt_tokens = Math.max(
+        0,
+        analytics.total_prompt_tokens - (tokenUsage?.prompt_tokens || 0)
+      );
+      analytics.total_completion_tokens = Math.max(
+        0,
+        analytics.total_completion_tokens - (tokenUsage?.completion_tokens || 0)
+      );
+
+      // Update monthly stats
+      const chatMonth = new Date(chat.messages[0]?.timestamp).getMonth() + 1;
+      const chatYear = new Date(chat.messages[0]?.timestamp).getFullYear();
+
+      const monthlyStats = analytics.monthlyStats.find(
+        (stat) => stat.year === chatYear && stat.month === chatMonth
+      );
+
+      if (monthlyStats) {
+        monthlyStats.chats = Math.max(0, monthlyStats.chats - 1);
+        monthlyStats.messages = Math.max(
+          0,
+          monthlyStats.messages - userMessageCount
+        );
+        monthlyStats.total_tokens = Math.max(
+          0,
+          monthlyStats.total_tokens - (tokenUsage?.total_tokens || 0)
+        );
+        monthlyStats.prompt_tokens = Math.max(
+          0,
+          monthlyStats.prompt_tokens - (tokenUsage?.prompt_tokens || 0)
+        );
+        monthlyStats.completion_tokens = Math.max(
+          0,
+          monthlyStats.completion_tokens - (tokenUsage?.completion_tokens || 0)
+        );
+      }
+
+      await analytics.save();
+    }
+
+    // Remove the chat ID from user's starred chats
+    await User.updateMany(
+      { starredChats: chatId },
+      { $pull: { starredChats: chatId } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Chat deleted successfully",
+      updatedStats: {
+        totalChats: analytics?.totalChats,
+        totalMessages: analytics?.totalMessages,
+        totalTokens: analytics?.total_tokens,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({ error: "Failed to delete chat" });
+  }
+};

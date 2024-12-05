@@ -7,8 +7,10 @@ import {
   getChatById,
   getStarredChatsByRestaurant,
   searchChatsByKeyword,
+  deleteChat,
 } from "../controllers/chat.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
+import { isAdmin } from "../utils/isAdmin.js";
 
 const router = express.Router();
 
@@ -33,5 +35,8 @@ router.get(
 );
 
 router.get("/:restaurantId/search", isAuthenticated, searchChatsByKeyword);
+
+// Route to delete a chat by ID
+router.delete("/:chatId", isAuthenticated, isAdmin, deleteChat);
 
 export default router;
