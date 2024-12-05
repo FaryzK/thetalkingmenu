@@ -333,53 +333,56 @@ export default function Chat() {
 
           {/* Chatbox Section */}
           <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full space-x-3">
-            {/* Text Input */}
-            <TextInput
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Send a message..."
-              className="flex-grow py-2 pl-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white color: gray"
-            />
+            {/* Container for Input and Icons */}
+            <div className="relative flex-grow">
+              <TextInput
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Send a message..."
+                className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+              />
 
-            {/* Icons for Menu and Order (Only when input is empty) */}
-            {!input && (
-              <div className="flex items-center space-x-3">
-                {info.menuLink && (
-                  <button
-                    className="text-gray-400 hover:text-gray-200"
-                    onClick={() => window.open(info.menuLink, "_blank")}
-                    title="Menu"
-                  >
-                    <MdMenuBook size={20} />
-                  </button>
-                )}
-                {info.orderLink && (
-                  <button
-                    className="text-gray-400 hover:text-gray-200"
-                    onClick={() => window.open(info.orderLink, "_blank")}
-                    title="Order"
-                  >
-                    <FaUtensils size={20} />
-                  </button>
-                )}
-              </div>
-            )}
+              {/* Icons positioned absolutely within the input container */}
+              {!input && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-3 pr-2">
+                  {info.menuLink && (
+                    <button
+                      className="text-gray-600 hover:text-gray-400"
+                      onClick={() => window.open(info.menuLink, "_blank")}
+                      title="Menu"
+                    >
+                      <MdMenuBook size={20} />
+                    </button>
+                  )}
+                  {info.orderLink && (
+                    <button
+                      className="text-gray-600 hover:text-gray-400"
+                      onClick={() => window.open(info.orderLink, "_blank")}
+                      title="Order"
+                    >
+                      <FaUtensils size={20} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Send Button */}
             <button
               onClick={handleSendMessage}
               disabled={aiTyping}
-              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
-                aiTyping
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              }`}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
+    ${
+      aiTyping
+        ? "bg-gray-500 cursor-not-allowed"
+        : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+    }`}
             >
               {aiTyping ? (
                 <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
