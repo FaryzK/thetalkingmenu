@@ -345,7 +345,7 @@ export default function Restaurant() {
               icon: <FiList className="text-yellow-500" />,
             },
             {
-              label: "Update Questions",
+              label: "Update Suggested Questions",
               route: "suggested-questions",
               icon: <FiHelpCircle className="text-red-500" />,
             },

@@ -38,6 +38,7 @@ export default function Chat() {
   const [aiTyping, setAiTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -45,6 +46,13 @@ export default function Chat() {
       if (user) setUserId(user.uid);
       else setUserId(null);
     });
+  }, []);
+
+  useEffect(() => {
+    // Automatically focus on the input field when the component loads
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   }, []);
 
   useEffect(() => {
@@ -299,7 +307,7 @@ export default function Chat() {
 
         {/* Bottom Section Wrapper */}
         <div className="flex flex-col gap-4">
-          {/* Suggested Questions Section */}
+          {/* Restaurant name and info */}
           {showInfo && (
             <div className="text-center space-y-4 p-4 rounded-lg">
               <img
@@ -313,6 +321,7 @@ export default function Chat() {
                   {info.restaurantLocation}
                 </p>
               )}
+              {/* Suggested Questions */}
               <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
                 {info.suggestedQuestions.map((question, index) => (
                   <button
@@ -322,7 +331,9 @@ export default function Chat() {
                         question.blocks.map((block) => block.text).join(" ")
                       )
                     }
-                    className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 border border-white text-left"
+                    className={`w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 ${
+                      input ? "text-gray-500" : "text-gray-400"
+                    } hover:bg-gray-600 text-left`}
                   >
                     {renderStyledQuestion(question)}
                   </button>
@@ -336,6 +347,7 @@ export default function Chat() {
             {/* Container for Input and Icons */}
             <div className="relative flex-grow">
               <TextInput
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -350,10 +362,10 @@ export default function Chat() {
 
               {/* Icons positioned absolutely within the input container */}
               {!input && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-3 pr-2">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
                   {info.menuLink && (
                     <button
-                      className="text-gray-600 hover:text-gray-400"
+                      className="text-gray-500 hover:text-gray-300"
                       onClick={() => window.open(info.menuLink, "_blank")}
                       title="Menu"
                     >
@@ -362,7 +374,7 @@ export default function Chat() {
                   )}
                   {info.orderLink && (
                     <button
-                      className="text-gray-600 hover:text-gray-400"
+                      className="text-gray-500 hover:text-gray-300"
                       onClick={() => window.open(info.orderLink, "_blank")}
                       title="Order"
                     >

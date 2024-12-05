@@ -208,7 +208,7 @@ export default function SuggestedQuestions() {
                       question.blocks.map((block) => block.text).join(" ")
                     )
                   }
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 border border-white text-left"
+                  className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-600 text-left"
                 >
                   {question.blocks.map((block, idx) => {
                     const elements = [];
