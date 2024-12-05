@@ -36,6 +36,7 @@ export default function RestaurantInfo() {
         );
         if (fetchRestaurant.fulfilled.match(resultAction)) {
           const fetchedRestaurant = resultAction.payload;
+          console.log(fetchedRestaurant.menuLink); // Ensure this logs the correct menuLink
           setRestaurantName(fetchedRestaurant.name || "");
           setRestaurantLocation(fetchedRestaurant.location || "");
           setLogoUrl(fetchedRestaurant.logo || "");
@@ -56,11 +57,13 @@ export default function RestaurantInfo() {
         setRestaurantName(restaurant.name || "");
         setRestaurantLocation(restaurant.location || "");
         setLogoUrl(restaurant.logo || "");
+        setMenuLink(restaurant.menuLink || ""); // Use restaurant.menuLink here
+        setOrderLink(restaurant.orderLink || ""); // Use restaurant.orderLink here
       }
     });
 
     return () => unsubscribe();
-  }, [dispatch, restaurantId, restaurant]);
+  }, [auth, dispatch, restaurantId, restaurant]); // Ensure dependencies include relevant variables
 
   const handleSaveChanges = async () => {
     const token = await auth.currentUser.getIdToken();

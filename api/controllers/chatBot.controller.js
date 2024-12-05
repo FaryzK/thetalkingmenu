@@ -51,7 +51,10 @@ export const getChatBotAndRestaurantInfo = async (req, res, next) => {
   const { restaurantId } = req.params;
   try {
     const chatBot = await ChatBot.findOne({ restaurantId });
-    const restaurant = await Restaurant.findById(restaurantId, "name logo");
+    const restaurant = await Restaurant.findById(
+      restaurantId,
+      "name location logo menuLink orderLink"
+    );
 
     if (!chatBot || !restaurant) {
       return next(errorHandler(404, "Restaurant or chatbot not found"));
@@ -60,6 +63,9 @@ export const getChatBotAndRestaurantInfo = async (req, res, next) => {
     res.status(200).json({
       restaurantName: restaurant.name,
       restaurantLogo: restaurant.logo,
+      restaurantLocation: restaurant.location,
+      menuLink: restaurant.menuLink,
+      orderLink: restaurant.orderLink,
       suggestedQuestions: chatBot.suggestedQuestions,
     });
   } catch (error) {

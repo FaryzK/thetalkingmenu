@@ -11,8 +11,10 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from "react-markdown";
 
-import { Button } from "flowbite-react"; // Import Flowbite Button if not already imported
-import { TextInput } from "flowbite-react"; // Import Flowbite TextInput
+import { Button, TextInput } from "flowbite-react";
+import { AiOutlineSend } from "react-icons/ai";
+import { MdMenuBook } from "react-icons/md"; // Menu Book Icon
+import { FaUtensils } from "react-icons/fa"; // Fork and Spoon Icon
 
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
@@ -23,12 +25,17 @@ export default function Chat() {
   const [info, setInfo] = useState({
     restaurantName: "",
     restaurantLogo: "",
+    restaurantLocation: "",
+    restaurantLocation: "",
     suggestedQuestions: [],
+    menuLink: "",
+    orderLink: "",
   });
   const [showInfo, setShowInfo] = useState(true); // Controls visibility of intro
 
   const messages = useSelector((state) => state.chat.messages);
   const chatId = useSelector((state) => state.chat.chatId);
+  const [aiTyping, setAiTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -53,6 +60,9 @@ export default function Chat() {
             data.restaurantLogo ||
             "https://cdn-icons-png.flaticon.com/512/4352/4352627.png", // Fallback to placeholder
           suggestedQuestions: data.suggestedQuestions || [],
+          restaurantLocation: data.restaurantLocation || "",
+          menuLink: data.menuLink || "",
+          orderLink: data.orderLink || "",
         });
       })
       .catch((error) => console.error("Error fetching info:", error));
@@ -99,6 +109,7 @@ export default function Chat() {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     setShowInfo(false); // Hide intro after first message
+    setAiTyping(true);
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
     let currentChatId = chatId;
@@ -127,6 +138,7 @@ export default function Chat() {
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
+              setAiTyping(false);
               dispatch(
                 addMessage({ role: "assistant", content: assistantMessage })
               );
@@ -135,7 +147,7 @@ export default function Chat() {
             }
             const chunk = decoder.decode(value);
             assistantMessage += chunk;
-            setTempAssistantMessage(assistantMessage);
+            setTempAssistantMessage(assistantMessage + "⚪");
             readChunk();
           });
         }
@@ -147,6 +159,7 @@ export default function Chat() {
   };
 
   const handleSuggestedQuestion = async (question) => {
+    setAiTyping(true);
     setShowInfo(false); // Hide the intro immediately
     dispatch(addMessage({ role: "user", content: question })); // Add the question to the messages
     let currentChatId = chatId;
@@ -177,6 +190,7 @@ export default function Chat() {
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
+              setAiTyping(false);
               dispatch(
                 addMessage({ role: "assistant", content: assistantMessage })
               );
@@ -185,7 +199,7 @@ export default function Chat() {
             }
             const chunk = decoder.decode(value);
             assistantMessage += chunk;
-            setTempAssistantMessage(assistantMessage);
+            setTempAssistantMessage(assistantMessage + "⚪");
             readChunk();
           });
         }
@@ -294,6 +308,11 @@ export default function Chat() {
                 className="w-20 h-20 mx-auto"
               />
               <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
+              {info.restaurantLocation && (
+                <p className="text-sm text-gray-400">
+                  {info.restaurantLocation}
+                </p>
+              )}
               <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
                 {info.suggestedQuestions.map((question, index) => (
                   <button
@@ -313,24 +332,60 @@ export default function Chat() {
           )}
 
           {/* Chatbox Section */}
-          <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg">
-            <input
+          <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full space-x-3">
+            {/* Text Input */}
+            <TextInput
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  e.preventDefault(); // Prevent default behavior (like adding a new line in a textarea)
-                  handleSendMessage(); // Call the send message function
+                  e.preventDefault();
+                  handleSendMessage();
                 }
               }}
-              placeholder="Type a message"
-              className="flex-grow p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+              placeholder="Send a message..."
+              className="flex-grow py-2 pl-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white color: gray"
             />
+
+            {/* Icons for Menu and Order (Only when input is empty) */}
+            {!input && (
+              <div className="flex items-center space-x-3">
+                {info.menuLink && (
+                  <button
+                    className="text-gray-400 hover:text-gray-200"
+                    onClick={() => window.open(info.menuLink, "_blank")}
+                    title="Menu"
+                  >
+                    <MdMenuBook size={20} />
+                  </button>
+                )}
+                {info.orderLink && (
+                  <button
+                    className="text-gray-400 hover:text-gray-200"
+                    onClick={() => window.open(info.orderLink, "_blank")}
+                    title="Order"
+                  >
+                    <FaUtensils size={20} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Send Button */}
             <button
               onClick={handleSendMessage}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600"
+              disabled={aiTyping}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
+                aiTyping
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              }`}
             >
-              Send
+              {aiTyping ? (
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+              ) : (
+                <AiOutlineSend size={20} className="text-white" />
+              )}
             </button>
           </div>
         </div>
