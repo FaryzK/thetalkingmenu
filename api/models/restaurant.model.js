@@ -45,6 +45,14 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  menuLink: {
+    type: String, // URL for the menu
+    default: "",
+  },
+  orderLink: {
+    type: String, // URL for online ordering
+    default: "",
+  },
 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

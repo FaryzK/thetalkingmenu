@@ -21,6 +21,9 @@ export default function RestaurantInfo() {
   const [restaurantName, setRestaurantName] = useState("");
   const [restaurantLocation, setRestaurantLocation] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [menuLink, setMenuLink] = useState("");
+  const [orderLink, setOrderLink] = useState("");
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,6 +39,8 @@ export default function RestaurantInfo() {
           setRestaurantName(fetchedRestaurant.name || "");
           setRestaurantLocation(fetchedRestaurant.location || "");
           setLogoUrl(fetchedRestaurant.logo || "");
+          setMenuLink(fetchedRestaurant.menuLink || "");
+          setOrderLink(fetchedRestaurant.orderLink || "");
         } else {
           setErrorMessage("Failed to fetch restaurant details.");
         }
@@ -63,6 +68,8 @@ export default function RestaurantInfo() {
       name: restaurantName,
       location: restaurantLocation,
       logo: logoUrl,
+      menuLink,
+      orderLink,
     };
 
     try {
@@ -149,6 +156,34 @@ export default function RestaurantInfo() {
               className="mt-4 w-24 h-24 object-cover rounded-lg mx-auto shadow-md"
             />
           )}
+        </div>
+
+        {/*Menu */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-semibold mb-2">
+            Menu Link
+          </label>
+          <input
+            type="text"
+            placeholder="Enter menu link"
+            value={menuLink}
+            onChange={(e) => setMenuLink(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/*Order */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-semibold mb-2">
+            Order Link
+          </label>
+          <input
+            type="text"
+            placeholder="Enter order link"
+            value={orderLink}
+            onChange={(e) => setOrderLink(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
         </div>
 
         {/* Save Changes Button */}

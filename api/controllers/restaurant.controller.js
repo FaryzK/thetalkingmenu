@@ -124,6 +124,7 @@ export const getRestaurant = async (req, res, next) => {
       .populate("menu")
       .populate("chats");
     if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
+
     res.status(200).json(restaurant);
   } catch (error) {
     console.error("Error fetching restaurant:", error);
@@ -176,7 +177,7 @@ export const getAllRestaurants = async (req, res, next) => {
 // Update restaurant information by ID
 export const updateRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;
-  const { name, location, logo } = req.body; // Assume the updated data is sent in the body
+  const { name, location, logo, menuLink, orderLink } = req.body;
 
   try {
     const restaurant = await Restaurant.findById(restaurantId);
@@ -186,6 +187,8 @@ export const updateRestaurant = async (req, res, next) => {
     if (name) restaurant.name = name;
     if (location) restaurant.location = location;
     if (logo) restaurant.logo = logo;
+    if (menuLink) restaurant.menuLink = menuLink;
+    if (orderLink) restaurant.orderLink = orderLink;
 
     await restaurant.save();
 
