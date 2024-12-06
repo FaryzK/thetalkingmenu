@@ -26,7 +26,6 @@ export default function Chat() {
     restaurantName: "",
     restaurantLogo: "",
     restaurantLocation: "",
-    restaurantLocation: "",
     suggestedQuestions: [],
     menuLink: "",
     orderLink: "",
