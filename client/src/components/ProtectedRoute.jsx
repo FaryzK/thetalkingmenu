@@ -85,5 +85,5 @@ export default function ProtectedRoute({ allowedRoles }) {
     };
   }, [isAuthorized, currentUser, dispatch, isFetching]);
 
-  return isAuthorized ? <Outlet /> : <Navigate to="/" />;
+  return isAuthorized ? <Outlet /> : <Navigate to="/unauthorized" />;
 }

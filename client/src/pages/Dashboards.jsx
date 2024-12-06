@@ -15,12 +15,12 @@ const EmptyState = () => (
     <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4">
       <h2 className="text-xl font-semibold text-gray-800">No Dashboard Yet?</h2>
       <p className="text-gray-600">
-        It looks like you don’t have a dashboard yet. We’re still in the
-        prototyping phase, and dashboards are created upon request.
+        We’re building something amazing. Dashboards are currently created upon
+        request as part of our prototyping phase.
       </p>
       <p className="text-gray-600">
-        Please fill in the details in the form below, and we’ll get in touch to
-        set up a dashboard for you.
+        Fill out the form below, and we’ll help you get started with a custom
+        dashboard tailored to your needs.
       </p>
 
       <Button
@@ -30,7 +30,7 @@ const EmptyState = () => (
           window.open("https://forms.gle/zZEqaupHhgs4yBVc7", "_blank")
         }
       >
-        Fill out the Request Form
+        Join the Waiting List
       </Button>
 
       {/* <iframe
@@ -141,7 +141,7 @@ export default function Dashboards() {
               <DashboardCard dashboard={dashboard} key={dashboard._id} />
             ))}
           </div>
-          <div className="w-full max-w-md mt-6">
+          {/* <div className="w-full max-w-md mt-6">
             <Button
               onClick={handleCreateDashboard}
               color="blue"
@@ -149,7 +149,7 @@ export default function Dashboards() {
             >
               Create Dashboard
             </Button>
-          </div>
+          </div> */}
         </>
       ) : (
         status === "succeeded" && <EmptyState />

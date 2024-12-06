@@ -15,7 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import the allowed roles list
 
-const SigninEmailPasswordForm = () => {
+const SigninEmailPasswordForm = ({ referrer }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const { loading, error } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -64,13 +64,7 @@ const SigninEmailPasswordForm = () => {
         dispatch(setAccessibleDashboards(accessibleDashboards));
         dispatch(setAccessibleRestaurants(accessibleRestaurants));
 
-        // Check if the user's roles include any allowed role
-        const userRoles = remainingData.roles || [];
-        const hasAllowedRole = userRoles.some((role) =>
-          dashboardAllowedRoles.includes(role)
-        );
-
-        navigate(hasAllowedRole ? "/dashboards" : "/");
+        navigate(referrer);
       }
     } catch (error) {
       dispatch(signInFailure(error.message));

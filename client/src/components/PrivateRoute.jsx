@@ -13,5 +13,5 @@ export default function PrivateRoute({ allowedRoles }) {
     )
   );
 
-  return hasAccess ? <Outlet /> : <Navigate to="/" />;
+  return hasAccess ? <Outlet /> : <Navigate to="/unauthorized" />;
 }

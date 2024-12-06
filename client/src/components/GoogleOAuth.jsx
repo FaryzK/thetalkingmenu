@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
 
-export default function GoogleOAuth() {
+export default function GoogleOAuth({ referrer }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -49,14 +49,7 @@ export default function GoogleOAuth() {
         dispatch(setAccessibleDashboards(accessibleDashboards));
         dispatch(setAccessibleRestaurants(accessibleRestaurants));
 
-        // Navigate based on user roles
-        const userRoles = remainingData.roles || [];
-
-        const hasAllowedRole = userRoles.some((role) =>
-          dashboardAllowedRoles.includes(role)
-        );
-
-        navigate(hasAllowedRole ? "/dashboards" : "/");
+        navigate(referrer);
       }
     } catch (error) {
       console.log(error);

@@ -14,13 +14,14 @@ export default function Header() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const path = useLocation().pathname;
 
   const handleSignOut = async () => {
     try {
       await signOut(auth); // Sign out the user from Firebase
       dispatch(signOutSuccess()); // Dispatch an action to update Redux state
-      navigate("/sign-in");
+      navigate("/");
     } catch (error) {
       console.log("Error signing out: ", error);
     }
@@ -87,7 +88,10 @@ export default function Header() {
             <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
           </Dropdown>
         ) : (
-          <Link to="/sign-in">
+          <Link
+            to="/sign-in"
+            state={{ referrer: location.pathname }} // Pass current location as referrer
+          >
             <Button gradientDuoTone="purpleToBlue">Sign in</Button>
           </Link>
         )}

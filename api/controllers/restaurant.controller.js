@@ -58,13 +58,10 @@ export const createRestaurant = async (req, res, next) => {
     await newRestaurantAnalytics.save();
 
     const defaultQuestions = [
+      createFormattedContent(["What's on your menu?", "Break it down for me!"]),
       createFormattedContent([
-        "I want a meal around $15",
-        "to keep within my budget.",
-      ]),
-      createFormattedContent([
-        "I’m feeling for something light",
-        "so I won’t get bloated.",
+        "I’d like to try something unique.",
+        "What stands out?",
       ]),
     ];
 

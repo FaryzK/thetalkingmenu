@@ -33,6 +33,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import { Outlet } from "react-router-dom";
 import ChatManager from "./pages/platform/ChatManager.jsx";
 import UserManager from "./pages/platform/UserManager.jsx";
+import Unauthorized from "./pages/Unauthorised.jsx";
 
 const PageLayout = () => {
   return (
@@ -62,12 +63,11 @@ export default function App() {
           <Route path="/sign-in" element={<Signin />} />
           <Route path="/sign-up" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-
           <Route path="/terms-of-use" element={<TermsOfUse />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
           <Route path="/dashboards" element={<Dashboards />} />
 
+          <Route path="/unauthorized" element={<Unauthorized />} />
           {/* Protect the /dashboards route with dashboardAllowedRoles */}
           <Route
             element={<ProtectedRoute allowedRoles={dashboardAllowedRoles} />}
@@ -122,7 +122,6 @@ export default function App() {
               element={<RestaurantChats />}
             />
           </Route>
-
           {/* Protect the route with platformControlPanelAllowedRoles  */}
           <Route
             element={
