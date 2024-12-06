@@ -66,11 +66,12 @@ export default function App() {
           <Route path="/terms-of-use" element={<TermsOfUse />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
+          <Route path="/dashboards" element={<Dashboards />} />
+
           {/* Protect the /dashboards route with dashboardAllowedRoles */}
           <Route
             element={<ProtectedRoute allowedRoles={dashboardAllowedRoles} />}
           >
-            <Route path="/dashboards" element={<Dashboards />} />
             <Route path="/dashboards/:dashboardId" element={<Dashboard />} />
             <Route
               path="/dashboards/:dashboardId/restaurant/:restaurantId"

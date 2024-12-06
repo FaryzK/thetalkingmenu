@@ -6,15 +6,52 @@ import {
   createDashboard,
   clearDashboardsState,
 } from "../redux/slices/dashboardsSlice";
-import { fetchUserAccessData } from "../redux/slices/userAccessSlice"; // Import access data fetch
+import { fetchUserAccessData } from "../redux/slices/userAccessSlice";
 import { useNavigate } from "react-router-dom";
 import { Spinner, Button } from "flowbite-react";
+
+const EmptyState = () => (
+  <div className="mt-8 w-full max-w-lg mx-auto">
+    <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4">
+      <h2 className="text-xl font-semibold text-gray-800">No Dashboard Yet?</h2>
+      <p className="text-gray-600">
+        It looks like you don’t have a dashboard yet. We’re still in the
+        prototyping phase, and dashboards are created upon request.
+      </p>
+      <p className="text-gray-600">
+        Please fill in the details in the form below, and we’ll get in touch to
+        set up a dashboard for you.
+      </p>
+
+      <Button
+        color="blue"
+        className="w-full mt-6"
+        onClick={() =>
+          window.open("https://forms.gle/zZEqaupHhgs4yBVc7", "_blank")
+        }
+      >
+        Fill out the Request Form
+      </Button>
+
+      {/* <iframe
+        src="https://forms.gle/zZEqaupHhgs4yBVc7"
+        width="100%"
+        height="600"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        title="Dashboard Request Form"
+      >
+        Loading…
+      </iframe> */}
+    </div>
+  </div>
+);
 
 export default function Dashboards() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Access dashboards and status from Redux store
   const dashboards = useSelector((state) => state.dashboards.data);
   const status = useSelector((state) => state.dashboards.status);
   let error = useSelector((state) => state.dashboards.error);
@@ -25,23 +62,13 @@ export default function Dashboards() {
     error = JSON.stringify(error);
   }
 
-  // Helper function to capitalize the first letter of each word
-  const capitalizeFirstLetter = (str) => {
-    if (!str) return "";
-    return str
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  // Fetch dashboards and access data when the component mounts
   useEffect(() => {
     const auth = getAuth();
 
     const fetchData = async (user) => {
       const token = await user.getIdToken();
       dispatch(fetchDashboards(token));
-      dispatch(fetchUserAccessData(user.uid)); // Fetch user access
+      dispatch(fetchUserAccessData(user.uid));
     };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -83,26 +110,18 @@ export default function Dashboards() {
         {dashboard.dashboardOwnerEmail}
       </h2>
       <p className="text-sm md:text-base text-gray-500">
-        Your Role: {capitalizeFirstLetter(dashboard.role || "")}
+        Your Role:{" "}
+        {dashboard.role
+          ? dashboard.role.charAt(0).toUpperCase() + dashboard.role.slice(1)
+          : ""}
       </p>
     </button>
   );
 
-  const EmptyState = () => (
-    <div className="text-center text-gray-500">
-      <p>No dashboards available.</p>
-      <p>Create a new dashboard to get started!</p>
-    </div>
-  );
-
   return (
-    <div className="bg-gray-100 p-4 md:p-6 flex flex-col items-center">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800">
-        MY DASHBOARDS
-      </h1>
-
+    <div className="bg-gray-100 p-4 md:p-6 min-h-screen flex flex-col items-center">
       {status === "loading" && (
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-10">
           <Spinner size="lg" />
         </div>
       )}
@@ -113,20 +132,28 @@ export default function Dashboards() {
       )}
 
       {dashboards.length > 0 ? (
-        <div className="w-full max-w-md space-y-4">
-          {dashboards.map((dashboard) => (
-            <DashboardCard dashboard={dashboard} key={dashboard._id} />
-          ))}
-        </div>
+        <>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800">
+            MY DASHBOARDS
+          </h1>
+          <div className="w-full max-w-md space-y-4">
+            {dashboards.map((dashboard) => (
+              <DashboardCard dashboard={dashboard} key={dashboard._id} />
+            ))}
+          </div>
+          <div className="w-full max-w-md mt-6">
+            <Button
+              onClick={handleCreateDashboard}
+              color="blue"
+              className="w-full"
+            >
+              Create Dashboard
+            </Button>
+          </div>
+        </>
       ) : (
         status === "succeeded" && <EmptyState />
       )}
-
-      <div className="w-full max-w-md mt-6">
-        <Button onClick={handleCreateDashboard} color="blue" className="w-full">
-          Create Dashboard
-        </Button>
-      </div>
     </div>
   );
 }

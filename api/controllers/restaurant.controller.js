@@ -331,7 +331,7 @@ export const transferOwnership = async (req, res, next) => {
     newOwnerDashboard.restaurants.push(restaurantId);
     await newOwnerDashboard.save();
 
-    // Update User Accessible Restaurants
+    // Update Current Owner Accessible Restaurants
     currentOwner.accessibleRestaurants =
       currentOwner.accessibleRestaurants.filter((id) => id !== restaurantId);
     await currentOwner.save();
@@ -355,6 +355,24 @@ export const transferOwnership = async (req, res, next) => {
       currentOwner.roles = currentOwner.roles.filter(
         (r) => r !== "restaurant main admin"
       );
+
+      // Now that we have removed "restaurant main admin" from currentOwner,
+      // find the dashboard they own and delete it.
+      const currentOwnerDashboard = await Dashboard.findOne({
+        dashboardOwnerId: currentOwner.uid,
+      });
+
+      if (currentOwnerDashboard) {
+        // Remove this dashboard from currentOwner's accessibleDashboards
+        currentOwner.accessibleDashboards =
+          currentOwner.accessibleDashboards.filter(
+            (dbId) => dbId !== currentOwnerDashboard._id.toString()
+          );
+        await currentOwner.save();
+
+        // Delete the dashboard
+        await Dashboard.deleteOne({ _id: currentOwnerDashboard._id });
+      }
     }
 
     // Check if currentOwner has no accessible restaurants left

@@ -338,7 +338,9 @@ export default function Chat() {
                       <button
                         key={index}
                         onClick={() => handleSuggestedQuestion(questionText)}
-                        className={`w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-600 text-left text-gray-400`}
+                        className={`w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 ${
+                          input ? "text-gray-500" : "text-gray-400"
+                        } hover:bg-gray-600 text-left`}
                       >
                         {renderStyledQuestion(question)}
                       </button>
