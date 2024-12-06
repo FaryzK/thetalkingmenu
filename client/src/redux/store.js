@@ -9,6 +9,7 @@ import chatBotReducer from "./slices/chatBotSlice";
 import userAccessReducer from "./slices/userAccessSlice";
 import platformControlPanelRestaurantsReducer from "./slices/platformControlPanelRestaurantsSlice";
 import platformControlPanelChatsReducer from "./slices/platformControlPanelChatsSlice";
+import platformControlPanelUsersReducer from "./slices/platformControlPanelUsersSlice";
 import chatReducer from "./slices/chatSlice";
 import restaurantChatsReducer from "./slices/restaurantChatsSlice";
 import restaurantAnalyticsReducer from "./slices/restaurantAnalyticsSlice";
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   chat: chatReducer,
   restaurantChats: restaurantChatsReducer,
   restaurantAnalytics: restaurantAnalyticsReducer,
+  platformControlPanelUsers: platformControlPanelUsersReducer,
 });
 
 const persistConfig = {
@@ -38,6 +40,7 @@ const persistConfig = {
     "chatBot",
     "platformControlPanelRestaurants",
     "platformControlPanelChats",
+    "platformControlPanelUsers",
     "chat",
     "restaurantChats",
     "restaurantAnalytics",

@@ -32,6 +32,7 @@ import TermsOfUse from "./pages/TermsOfUse.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import { Outlet } from "react-router-dom";
 import ChatManager from "./pages/platform/ChatManager.jsx";
+import UserManager from "./pages/platform/UserManager.jsx";
 
 const PageLayout = () => {
   return (
@@ -141,6 +142,7 @@ export default function App() {
               path="/:dashboardId/:restaurantId/chat-manager"
               element={<ChatManager />}
             />
+            <Route path="/user-manager" element={<UserManager />} />
           </Route>
         </Route>
       </Routes>

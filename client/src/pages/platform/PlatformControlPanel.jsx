@@ -11,22 +11,28 @@ export default function PlatformControlPanel() {
       </h1>
       <div className="space-y-4">
         <button
+          onClick={() => navigate("/dashboard-manager")}
+          className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
+        >
+          Dashboard Manager
+        </button>
+        <button
           onClick={() => navigate("/restaurant-manager")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
         >
           Restaurant Manager
         </button>
         <button
+          onClick={() => navigate("/user-manager")}
+          className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
+        >
+          User Manager
+        </button>
+        <button
           onClick={() => navigate("/global-system-prompt")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
         >
           Global System Prompt Manager
-        </button>
-        <button
-          onClick={() => navigate("/dashboard-manager")}
-          className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
-        >
-          Dashboard Manager
         </button>
       </div>
     </div>

@@ -183,12 +183,12 @@ export const updateRestaurant = async (req, res, next) => {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) return next(errorHandler(404, "Restaurant not found"));
 
-    // Update fields if they are provided
-    if (name) restaurant.name = name;
-    if (location) restaurant.location = location;
-    if (logo) restaurant.logo = logo;
-    if (menuLink) restaurant.menuLink = menuLink;
-    if (orderLink) restaurant.orderLink = orderLink;
+    // Check for undefined instead of truthiness to allow empty strings
+    if (typeof name !== "undefined") restaurant.name = name;
+    if (typeof location !== "undefined") restaurant.location = location;
+    if (typeof logo !== "undefined") restaurant.logo = logo;
+    if (typeof menuLink !== "undefined") restaurant.menuLink = menuLink;
+    if (typeof orderLink !== "undefined") restaurant.orderLink = orderLink;
 
     await restaurant.save();
 
@@ -288,7 +288,7 @@ export const transferOwnership = async (req, res, next) => {
       await newOwner.save();
     }
 
-    // Update Restaurant Owner
+    // Update Restaurant Owner to new owner in Restaurant schema
     restaurant.restaurantOwnerId = newOwner.uid;
 
     // Update userAccess: Remove current owner, add new owner
@@ -319,6 +319,36 @@ export const transferOwnership = async (req, res, next) => {
 
     newOwner.accessibleRestaurants.push(restaurantId);
     await newOwner.save();
+
+    // Ensure newOwner has "restaurant main admin" role if not present
+    if (!newOwner.roles.includes("restaurant main admin")) {
+      newOwner.roles.push("restaurant main admin");
+      await newOwner.save();
+    }
+
+    // Check if currentOwner is still the owner of any restaurant
+    const stillOwner = await Restaurant.findOne({
+      restaurantOwnerId: currentOwner.uid,
+    });
+
+    // If not owner of any restaurant, remove "restaurant main admin" if present
+    if (!stillOwner && currentOwner.roles.includes("restaurant main admin")) {
+      currentOwner.roles = currentOwner.roles.filter(
+        (r) => r !== "restaurant main admin"
+      );
+    }
+
+    // Check if currentOwner has no accessible restaurants left
+    if (currentOwner.accessibleRestaurants.length === 0) {
+      // Remove "restaurant admin" if present
+      if (currentOwner.roles.includes("restaurant admin")) {
+        currentOwner.roles = currentOwner.roles.filter(
+          (r) => r !== "restaurant admin"
+        );
+      }
+    }
+
+    await currentOwner.save();
 
     res.status(200).json({
       message: "Ownership transferred successfully",
