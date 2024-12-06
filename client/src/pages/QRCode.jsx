@@ -92,8 +92,9 @@ export default function QRCode() {
             includeMargin
             style={{ margin: "auto" }}
           />
-          <p className="text-center text-gray-700 mt-2">
-            Want some recommendations? (Table: {tableNumber || "Default"})
+          <p className="text-lg font-bold text-center text-gray-700 mt-2">
+            Recommendation Chatbot
+            {tableNumber !== "" && ` (Table: ${tableNumber || "Default"})`}
           </p>
         </div>
 

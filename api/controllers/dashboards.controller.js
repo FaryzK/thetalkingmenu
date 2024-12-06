@@ -117,6 +117,7 @@ export const getDashboards = async (req, res, next) => {
         // Fetch the dashboard owner's email
         const owner = await User.findOne({ uid: dashboard.dashboardOwnerId });
         const dashboardOwnerEmail = owner ? owner.email : "Unknown";
+        const dashboardOwnerName = owner ? owner.username : "";
 
         // Filter restaurants: Main Admin sees all, invited Admin sees only assigned restaurants
         const accessibleRestaurants = isMainAdmin
@@ -128,6 +129,7 @@ export const getDashboards = async (req, res, next) => {
         return {
           _id: dashboard._id,
           dashboardOwnerEmail,
+          dashboardOwnerName,
           role,
           userAccess: dashboard.userAccess,
           restaurants: accessibleRestaurants.map((restaurant) => ({

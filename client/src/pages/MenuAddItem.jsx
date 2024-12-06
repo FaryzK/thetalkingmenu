@@ -6,7 +6,7 @@ import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
 import { clearMenuState } from "../redux/slices/menuSlice";
 import { FiArrowLeft } from "react-icons/fi";
-import { Accordion, Button } from "flowbite-react";
+import { Accordion, Button, Tooltip } from "flowbite-react";
 
 export default function MenuAddItem() {
   const { restaurantId, dashboardId } = useParams();
@@ -175,12 +175,25 @@ export default function MenuAddItem() {
                 className="p-2 border rounded w-1/3"
               />
             </div>
+            <div className="flex items-center justify-between">
+              <label className="font-semibold">Description</label>
+              <Tooltip content="Include ingredients, if it's chef recommendations, and any of its highlights!">
+                <span className="text-blue-500 hover:underline cursor-pointer">
+                  Need help?
+                </span>
+              </Tooltip>
+            </div>
             <textarea
-              placeholder="Description"
+              placeholder="e.g. A refreshing summer salad with organic greens, ripe strawberries, and a balsamic glaze. Ideal for a light lunch, best-seller, and currently on promo!'"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="p-2 border rounded w-full h-24"
+              className="p-2 border rounded w-full h-48"
             />
+            <p className="text-sm text-gray-500 mt-2">
+              The more detail you provide, the better our chatbot can assist
+              diners!
+            </p>
+
             <Button
               onClick={handleAddSingleItem}
               disabled={status === "loading"}

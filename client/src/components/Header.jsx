@@ -81,7 +81,7 @@ export default function Header() {
             </Dropdown.Header>
             {canViewDashboards && (
               <Dropdown.Item onClick={() => navigate("/dashboards")}>
-                Dashboards
+                Dashboard
               </Dropdown.Item>
             )}
             <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>

@@ -363,7 +363,7 @@ export default function Chat() {
                     }
                   }}
                   placeholder="Send a message..."
-                  className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                  className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white text-base"
                 />
 
                 {/* Icons positioned absolutely within the input container */}
