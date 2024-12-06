@@ -200,63 +200,70 @@ export default function SuggestedQuestions() {
           <h3 className="font-semibold text-lg mb-4">Mobile Preview</h3>
           <div className="border rounded-lg shadow-lg p-4 max-w-xs mx-auto bg-gray-900">
             <div className="flex flex-col gap-2">
-              {savedQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() =>
-                    console.log(
-                      question.blocks.map((block) => block.text).join(" ")
-                    )
-                  }
-                  className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-600 text-left"
-                >
-                  {question.blocks.map((block, idx) => {
-                    const elements = [];
-                    let lastOffset = 0;
+              {savedQuestions.map((question, index) => {
+                // Extract the full question text
+                const questionText = question.blocks
+                  .map((block) => block.text)
+                  .join(" ")
+                  .trim();
 
-                    const sortedRanges = block.inlineStyleRanges.sort(
-                      (a, b) => a.offset - b.offset
-                    );
+                // If the questionText is empty, skip rendering this question
+                if (!questionText) return null;
 
-                    sortedRanges.forEach((range, rangeIndex) => {
-                      if (range.offset > lastOffset) {
+                return (
+                  <button
+                    key={index}
+                    onClick={() => console.log(questionText)}
+                    className="w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-600 text-left"
+                  >
+                    {question.blocks.map((block, idx) => {
+                      const elements = [];
+                      let lastOffset = 0;
+
+                      const sortedRanges = block.inlineStyleRanges.sort(
+                        (a, b) => a.offset - b.offset
+                      );
+
+                      sortedRanges.forEach((range, rangeIndex) => {
+                        if (range.offset > lastOffset) {
+                          elements.push(
+                            <span key={`${idx}-${rangeIndex}-unstyled`}>
+                              {block.text.slice(lastOffset, range.offset)}
+                            </span>
+                          );
+                        }
+
                         elements.push(
-                          <span key={`${idx}-${rangeIndex}-unstyled`}>
-                            {block.text.slice(lastOffset, range.offset)}
+                          <span
+                            key={`${idx}-${rangeIndex}-styled`}
+                            style={{
+                              fontWeight:
+                                range.style === "BOLD" ? "bold" : "normal",
+                            }}
+                          >
+                            {block.text.slice(
+                              range.offset,
+                              range.offset + range.length
+                            )}
+                          </span>
+                        );
+
+                        lastOffset = range.offset + range.length;
+                      });
+
+                      if (lastOffset < block.text.length) {
+                        elements.push(
+                          <span key={`${idx}-remaining-unstyled`}>
+                            {block.text.slice(lastOffset)}
                           </span>
                         );
                       }
 
-                      elements.push(
-                        <span
-                          key={`${idx}-${rangeIndex}-styled`}
-                          style={{
-                            fontWeight:
-                              range.style === "BOLD" ? "bold" : "normal",
-                          }}
-                        >
-                          {block.text.slice(
-                            range.offset,
-                            range.offset + range.length
-                          )}
-                        </span>
-                      );
-
-                      lastOffset = range.offset + range.length;
-                    });
-
-                    if (lastOffset < block.text.length) {
-                      elements.push(
-                        <span key={`${idx}-remaining-unstyled`}>
-                          {block.text.slice(lastOffset)}
-                        </span>
-                      );
-                    }
-
-                    return <p key={idx}>{elements}</p>;
-                  })}
-                </button>
-              ))}
+                      return <p key={idx}>{elements}</p>;
+                    })}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

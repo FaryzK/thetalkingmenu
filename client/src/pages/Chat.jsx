@@ -306,104 +306,111 @@ export default function Chat() {
         </div>
 
         {/* Bottom Section Wrapper */}
-        <div className="flex flex-col gap-4">
-          {/* Restaurant name and info */}
-          {showInfo && (
-            <div className="text-center space-y-4 p-4 rounded-lg">
-              <img
-                src={info.restaurantLogo}
-                alt={info.restaurantName}
-                className="w-20 h-20 mx-auto"
-              />
-              <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
-              {info.restaurantLocation && (
-                <p className="text-sm text-gray-400">
-                  {info.restaurantLocation}
-                </p>
-              )}
-              {/* Suggested Questions */}
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
-                {info.suggestedQuestions.map((question, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      handleSuggestedQuestion(
-                        question.blocks.map((block) => block.text).join(" ")
-                      )
-                    }
-                    className={`w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 ${
-                      input ? "text-gray-500" : "text-gray-400"
-                    } hover:bg-gray-600 text-left`}
-                  >
-                    {renderStyledQuestion(question)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+        {!chat_id && (
+          <div className="flex flex-col gap-4">
+            {/* Restaurant name and info */}
+            {showInfo && (
+              <div className="text-center space-y-4 p-4 rounded-lg">
+                <img
+                  src={info.restaurantLogo}
+                  alt={info.restaurantName}
+                  className="w-20 h-20 mx-auto"
+                />
+                <h2 className="text-lg font-semibold">{info.restaurantName}</h2>
+                {info.restaurantLocation && (
+                  <p className="text-sm text-gray-400">
+                    {info.restaurantLocation}
+                  </p>
+                )}
+                {/* Suggested Questions */}
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start max-w-xl mx-auto">
+                  {info.suggestedQuestions.map((question, index) => {
+                    // Extract the full question text by joining all block texts
+                    const questionText = question.blocks
+                      .map((block) => block.text)
+                      .join(" ")
+                      .trim();
 
-          {/* Chatbox Section */}
-          <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full space-x-3">
-            {/* Container for Input and Icons */}
-            <div className="relative flex-grow">
-              <TextInput
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder="Send a message..."
-                className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-              />
+                    // If questionText is empty, return null to skip rendering
+                    if (!questionText) return null;
 
-              {/* Icons positioned absolutely within the input container */}
-              {!input && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
-                  {info.menuLink && (
-                    <button
-                      className="text-gray-500 hover:text-gray-300"
-                      onClick={() => window.open(info.menuLink, "_blank")}
-                      title="Menu"
-                    >
-                      <MdMenuBook size={20} />
-                    </button>
-                  )}
-                  {info.orderLink && (
-                    <button
-                      className="text-gray-500 hover:text-gray-300"
-                      onClick={() => window.open(info.orderLink, "_blank")}
-                      title="Order"
-                    >
-                      <FaUtensils size={20} />
-                    </button>
-                  )}
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestedQuestion(questionText)}
+                        className={`w-full md:w-[calc(50%-0.5rem)] px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-600 text-left text-gray-400`}
+                      >
+                        {renderStyledQuestion(question)}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Send Button */}
-            <button
-              onClick={handleSendMessage}
-              disabled={aiTyping}
-              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
-    ${
-      aiTyping
-        ? "bg-gray-500 cursor-not-allowed"
-        : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-    }`}
-            >
-              {aiTyping ? (
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-              ) : (
-                <AiOutlineSend size={20} className="text-white" />
-              )}
-            </button>
+            {/* Chatbox Section */}
+            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full space-x-3">
+              {/* Container for Input and Icons */}
+              <div className="relative flex-grow">
+                <TextInput
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Send a message..."
+                  className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                />
+
+                {/* Icons positioned absolutely within the input container */}
+                {!input && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
+                    {info.menuLink && (
+                      <button
+                        className="text-gray-500 hover:text-gray-300"
+                        onClick={() => window.open(info.menuLink, "_blank")}
+                        title="Menu"
+                      >
+                        <MdMenuBook size={20} />
+                      </button>
+                    )}
+                    {info.orderLink && (
+                      <button
+                        className="text-gray-500 hover:text-gray-300"
+                        onClick={() => window.open(info.orderLink, "_blank")}
+                        title="Order"
+                      >
+                        <FaUtensils size={20} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                onClick={handleSendMessage}
+                disabled={aiTyping}
+                className={`w-10 h-10 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
+      ${
+        aiTyping
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+      }`}
+              >
+                {aiTyping ? (
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                ) : (
+                  <AiOutlineSend size={20} className="text-white" />
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
