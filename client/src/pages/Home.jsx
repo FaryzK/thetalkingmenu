@@ -217,16 +217,42 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-gray-100 mb-8">
             Watch Our Demo
           </h2>
-          <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/wi5cm1vS-lc"
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="mx-auto shadow-xl rounded-lg"
-          ></iframe>
+
+          <div className="flex flex-col lg:flex-row justify-center items-center gap-8">
+            {/* Chat Bot Interface */}
+            <div className="flex flex-col items-center">
+              <h3 className="text-lg font-bold text-gray-200 mb-4">
+                Chat Bot Interface
+              </h3>
+              <iframe
+                width="200"
+                height="300"
+                src="https://www.youtube.com/embed/2M_-O2DhqaE"
+                title="Chat Bot Demo"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="shadow-xl rounded-lg"
+              ></iframe>
+            </div>
+
+            {/* Admin Dashboard */}
+            <div className="flex flex-col items-center">
+              <h3 className="text-lg font-bold text-gray-200 mb-4">
+                Admin Dashboard
+              </h3>
+              <iframe
+                width="200"
+                height="300"
+                src="https://www.youtube.com/embed/4_4OcN6OlEE"
+                title="Admin Dashboard Demo"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="shadow-xl rounded-lg"
+              ></iframe>
+            </div>
+          </div>
         </motion.section>
       </main>
 

@@ -180,7 +180,7 @@ export default function Restaurant() {
       y: {
         title: {
           display: true,
-          text: "Count",
+          text: "",
           font: {
             size: 14,
           },
