@@ -67,7 +67,7 @@ export default function Home() {
           className="py-16 bg-gray-200"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 0 }}
           variants={staggerContainer}
         >
           <div className="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
