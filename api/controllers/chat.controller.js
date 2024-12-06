@@ -7,6 +7,7 @@ import { OpenAI } from "openai";
 import { encode } from "gpt-tokenizer";
 import User from "../models/user.model.js";
 import RestaurantAnalytics from "../models/restaurantAnalytics.model.js";
+import UserChats from "../models/userChats.model.js";
 
 export const updateRestaurantAnalytics = async (
   restaurantId,
@@ -104,6 +105,24 @@ export const startNewChat = async (req, res, next) => {
       tokenUsage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     });
     await chat.save();
+
+    // If userId is present, update the UserChats collection
+    if (userId) {
+      let userChats = await UserChats.findOne({ userId });
+
+      if (!userChats) {
+        // Create a new UserChats document if doesn't exist
+        userChats = new UserChats({
+          userId,
+          chatIds: [chat._id], // Insert the new chat at the start
+        });
+      } else {
+        // Prepend the new chatId to the front of the array
+        userChats.chatIds.unshift(chat._id);
+      }
+
+      await userChats.save();
+    }
 
     // Update RestaurantAnalytics
     const now = new Date();
@@ -546,6 +565,12 @@ export const deleteChat = async (req, res) => {
     await User.updateMany(
       { starredChats: chatId },
       { $pull: { starredChats: chatId } }
+    );
+
+    // Remove the chat ID from UserChat documents
+    await UserChats.updateMany(
+      { chatIds: chatId },
+      { $pull: { chatIds: chatId } }
     );
 
     res.status(200).json({

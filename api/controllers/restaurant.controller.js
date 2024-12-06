@@ -7,6 +7,7 @@ import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import RestaurantAnalytics from "../models/restaurantAnalytics.model.js";
+import UserChats from "../models/userChats.model.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -203,7 +204,6 @@ export const updateRestaurant = async (req, res, next) => {
 };
 
 // Delete restaurant by ID and associated data
-// Delete restaurant by ID and associated data
 export const deleteRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;
 
@@ -222,6 +222,12 @@ export const deleteRestaurant = async (req, res, next) => {
       await User.updateMany(
         { starredChats: { $in: chatIds } },
         { $pull: { starredChats: { $in: chatIds } } }
+      );
+
+      // Also remove these chatIds from UserChat documents
+      await UserChats.updateMany(
+        { chatIds: { $in: chatIds } },
+        { $pull: { chatIds: { $in: chatIds } } }
       );
     }
 
