@@ -203,6 +203,7 @@ export const updateRestaurant = async (req, res, next) => {
 };
 
 // Delete restaurant by ID and associated data
+// Delete restaurant by ID and associated data
 export const deleteRestaurant = async (req, res, next) => {
   const { restaurantId } = req.params;
 
@@ -210,6 +211,18 @@ export const deleteRestaurant = async (req, res, next) => {
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       return next(errorHandler(404, "Restaurant not found"));
+    }
+
+    // Fetch all chat IDs for this restaurant before deleting
+    const chats = await Chat.find({ restaurantId: restaurant._id }, { _id: 1 }); // only fetch _id
+    const chatIds = chats.map((chat) => chat._id);
+
+    // Remove these chatIds from starredChats of users
+    if (chatIds.length > 0) {
+      await User.updateMany(
+        { starredChats: { $in: chatIds } },
+        { $pull: { starredChats: { $in: chatIds } } }
+      );
     }
 
     // Delete associated data
