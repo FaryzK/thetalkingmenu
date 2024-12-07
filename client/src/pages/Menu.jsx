@@ -124,14 +124,14 @@ export default function Menu() {
               }
               className="flex items-center justify-between w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition"
             >
-              <div className="text-left">
+              <div className="flex-1 text-left">
                 <h3 className="text-lg font-semibold">{item.name}</h3>
                 <p className="text-sm text-gray-500">{item.description}</p>
                 <p className="text-sm text-gray-500">
                   ${item.price.toFixed(2)}
                 </p>
               </div>
-              <FiChevronRight className="text-gray-400 text-xl" />
+              <FiChevronRight className="flex-shrink-0 text-gray-400 text-xl ml-4" />
             </button>
           ))}
         </div>

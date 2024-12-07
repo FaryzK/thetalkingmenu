@@ -166,6 +166,10 @@ export const sendMessage = async (req, res, next) => {
     menu = await Menu.findOne({ restaurantId });
     restaurant = await Restaurant.findById(restaurantId);
 
+    // Get current date and time
+    const now = new Date();
+    const currentDateTime = now.toISOString(); // This can be formatted as needed (e.g., "YYYY-MM-DD HH:mm:ss")
+
     // Prepare the chat messages
     if (chatId) {
       chat = await Chat.findById(chatId);
@@ -197,6 +201,10 @@ export const sendMessage = async (req, res, next) => {
         content: `Menu details: ${menu.menuItems
           .map((item) => `${item.name} - ${item.description} ($${item.price})`)
           .join("; ")}`,
+      },
+      {
+        role: "system",
+        content: `The current date and time is: ${currentDateTime}`,
       },
       ...chat.messages.map((msg) => ({
         role: msg.sender,
