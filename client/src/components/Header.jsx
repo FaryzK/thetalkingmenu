@@ -6,7 +6,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { signOutSuccess } from "../redux/slices/userSlice";
-import { dashboardAllowedRoles } from "../utils/allowedRoles"; // Import allowed roles
+import {
+  dashboardAllowedRoles,
+  platformControlPanelAllowedRoles,
+} from "../utils/allowedRoles"; // Import allowed roles
 
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
@@ -30,6 +33,11 @@ export default function Header() {
   // Define roles that are allowed to see the dashboards
   const canViewDashboards = userRoles.some((role) =>
     dashboardAllowedRoles.includes(role)
+  );
+
+  // Define roles that are allowed to see the dashboards
+  const canViewPlatformControlPanel = userRoles.some((role) =>
+    platformControlPanelAllowedRoles.includes(role)
   );
 
   // Handle navigation based on roles when clicking the Navbar.Brand
@@ -80,6 +88,13 @@ export default function Header() {
                 {currentUser?.email}
               </span>
             </Dropdown.Header>
+            {canViewPlatformControlPanel && (
+              <Dropdown.Item
+                onClick={() => navigate("/platform-control-panel")}
+              >
+                Admin
+              </Dropdown.Item>
+            )}
             {canViewDashboards && (
               <Dropdown.Item onClick={() => navigate("/dashboards")}>
                 Dashboard
