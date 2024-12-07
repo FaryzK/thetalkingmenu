@@ -370,7 +370,7 @@ export default function Chat() {
             )}
 
             {/* Chatbox Section */}
-            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full space-x-3">
+            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full">
               {/* Container for Input and Icons */}
               <div className="relative flex-grow">
                 <TextInput
