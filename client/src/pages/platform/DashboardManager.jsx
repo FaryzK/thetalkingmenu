@@ -1,55 +1,64 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAllDashboards,
+  deleteDashboard,
+} from "../../redux/slices/platformControlPanelDashboardsSlice";
+import { debounce } from "lodash";
+import { FiArrowLeft } from "react-icons/fi";
 
 const DashboardManager = () => {
-  const [dashboards, setDashboards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // **Redux State Selectors**
+  const { dashboards, status, error } = useSelector(
+    (state) => state.platformControlPanelDashboards
+  );
+
+  // **Local State for Modal Handling**
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDashboard, setSelectedDashboard] = useState(null);
   const [emailInput, setEmailInput] = useState("");
   const [deleteError, setDeleteError] = useState(null);
-  const navigate = useNavigate();
+  const [filteredDashboards, setFilteredDashboards] = useState(dashboards);
 
-  // Fetch all dashboards on component mount
+  // **Fetch all dashboards on component mount**
   useEffect(() => {
     const auth = getAuth();
-
-    const fetchDashboards = async (token) => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/dashboards/all", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboards");
-        }
-        const data = await response.json();
-        setDashboards(data.dashboards);
-      } catch (err) {
-        setError("Failed to load dashboards.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const token = await user.getIdToken();
-        fetchDashboards(token);
-      } else {
-        setError("Authentication required.");
-        setLoading(false);
+        dispatch(fetchAllDashboards({ token, page: 1, search: "" })); // fetch initial page 1
       }
     });
 
     return () => unsubscribe(); // Cleanup on unmount
-  }, []);
+  }, [dispatch]);
+
+  // **Update filtered dashboards whenever dashboards or searchQuery changes**
+  useEffect(() => {
+    if (searchQuery === "") {
+      setFilteredDashboards(dashboards); // Show all dashboards if no search
+    } else {
+      const filtered = dashboards.filter((dashboard) =>
+        dashboard.dashboardOwnerEmail
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+      setFilteredDashboards(filtered);
+    }
+  }, [dashboards, searchQuery]);
+
+  const handleSearch = useCallback(
+    debounce((query) => {
+      setSearchQuery(query);
+    }, 300), // Wait 300ms after user stops typing
+    []
+  );
 
   const handleDashboardClick = (dashboardId) => {
     navigate(`/dashboards/${dashboardId}`);
@@ -80,50 +89,57 @@ const DashboardManager = () => {
       const user = auth.currentUser;
       const token = await user.getIdToken();
 
-      const response = await fetch(`/api/dashboards/${selectedDashboard._id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete dashboard");
-      }
-
-      // Refresh the dashboard list after deletion
-      setDashboards((prevDashboards) =>
-        prevDashboards.filter((d) => d._id !== selectedDashboard._id)
-      );
-      closeModal();
+      // **Dispatch Redux Action to Delete Dashboard**
+      dispatch(deleteDashboard({ token, dashboardId: selectedDashboard._id }))
+        .unwrap()
+        .then(() => {
+          closeModal();
+        })
+        .catch((err) => {
+          setDeleteError(err || "Failed to delete dashboard.");
+        });
     } catch (err) {
       setDeleteError("Failed to delete dashboard.");
     }
   };
-
-  if (loading) {
-    return <p className="text-center text-gray-600">Loading dashboards...</p>;
-  }
 
   if (error) {
     return <p className="text-center text-red-500">{error}</p>;
   }
 
   return (
-    <div className=" bg-gray-100 p-6">
+    <div className="bg-gray-100 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(`/platform-control-panel`)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Admin
+      </button>
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         ALL DASHBOARDS
       </h1>
 
-      {dashboards.length === 0 ? (
+      {/* **Search Input** */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by owner's email"
+          onChange={(e) => handleSearch(e.target.value)}
+          className="w-full border rounded-lg p-2"
+        />
+      </div>
+
+      {filteredDashboards.length === 0 ? (
         <p className="text-center text-gray-600">No dashboards available.</p>
       ) : (
         <div className="space-y-4">
-          {dashboards.map((dashboard) => (
-            <div
+          {filteredDashboards.map((dashboard) => (
+            <button
               key={dashboard._id}
-              className="bg-white p-4 rounded-lg shadow-md w-full text-left hover:bg-gray-200 transition"
+              onClick={() => handleDashboardClick(dashboard._id)} // Click event for whole card
+              className="bg-white p-4 rounded-lg shadow-md w-full text-left hover:bg-gray-200 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               <h2 className="text-xl font-semibold text-gray-700">
                 Dashboard Owner: {dashboard.dashboardOwnerEmail}
@@ -135,13 +151,18 @@ const DashboardManager = () => {
                   </li>
                 ))}
               </ul>
+
+              {/* Delete Button */}
               <button
-                onClick={() => openDeleteModal(dashboard)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent event from triggering parent onClick
+                  openDeleteModal(dashboard);
+                }}
                 className="mt-4 text-red-500 underline"
               >
                 Delete Dashboard
               </button>
-            </div>
+            </button>
           ))}
         </div>
       )}

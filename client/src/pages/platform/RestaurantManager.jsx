@@ -8,6 +8,8 @@ import {
 } from "../../redux/slices/platformControlPanelRestaurantsSlice";
 import { Modal, Button, TextInput, Alert } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
+import { debounce } from "lodash";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function RestaurantManager() {
   const dispatch = useDispatch();
@@ -17,11 +19,12 @@ export default function RestaurantManager() {
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // Track error state
   const [successMessage, setSuccessMessage] = useState(""); // Track success state
-  const [searchQuery, setSearchQuery] = useState(""); // Search input
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const navigate = useNavigate();
 
-  const { allRestaurants: restaurants, status } = useSelector(
+  const { allRestaurants, totalPages, currentPage, status } = useSelector(
     (state) => state.platformControlPanelRestaurants
   );
 
@@ -29,7 +32,7 @@ export default function RestaurantManager() {
     const auth = getAuth();
     const fetchData = async (user) => {
       const token = await user.getIdToken();
-      dispatch(fetchAllRestaurants(token));
+      dispatch(fetchAllRestaurants({ token, page, search: searchQuery }));
     };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -37,7 +40,17 @@ export default function RestaurantManager() {
     });
 
     return () => unsubscribe();
-  }, [dispatch]);
+  }, [dispatch, page, searchQuery]);
+
+  // Debounced search
+  const handleSearchChange = debounce((query) => {
+    setPage(1); // Reset to page 1 when search is performed
+    setSearchQuery(query);
+  }, 300);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
 
   const handleDeleteRestaurant = async () => {
     setErrorMessage("");
@@ -86,30 +99,27 @@ export default function RestaurantManager() {
     }
   };
 
-  // Filter restaurants based on search query
-  const filteredRestaurants = restaurants.filter(
-    (restaurant) =>
-      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.ownerEmail.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="bg-gray-100 p-6 ">
+      <button
+        onClick={() => navigate(`/platform-control-panel`)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Admin
+      </button>
       <div className="container mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
           Restaurant Management
         </h1>
 
-        {/* Search Input */}
-        <div className="mb-6">
-          <TextInput
-            type="text"
-            placeholder="Search by restaurant name or owner email"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
+        {/* Search Bar */}
+        <TextInput
+          type="text"
+          placeholder="Search by restaurant name or location"
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="mb-6"
+        />
 
         {/* Success Alert */}
         {successMessage && (
@@ -135,7 +145,7 @@ export default function RestaurantManager() {
 
         {/* Restaurant List */}
         <div className="space-y-4">
-          {filteredRestaurants.map((restaurant) => (
+          {allRestaurants.map((restaurant) => (
             <div
               key={restaurant._id}
               className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
@@ -195,6 +205,24 @@ export default function RestaurantManager() {
           ))}
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center space-x-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNum) => (
+              <Button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                disabled={pageNum === currentPage}
+                color={pageNum === currentPage ? "info" : "light"}
+              >
+                {pageNum}
+              </Button>
+            )
+          )}
+        </div>
+      )}
 
       {/* Delete Modal */}
       <Modal

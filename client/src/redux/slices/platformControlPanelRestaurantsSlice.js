@@ -1,22 +1,25 @@
 // platformControlPanelRestaurantsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-// Fetch all restaurants (admin only)
+// Fetch restaurants with pagination and search
 export const fetchAllRestaurants = createAsyncThunk(
   "platformControlPanelRestaurants/fetchAllRestaurants",
-  async (token, { rejectWithValue }) => {
+  async ({ token, page = 1, limit = 20, search = "" }, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/restaurants", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `/api/restaurants?page=${page}&limit=${limit}&search=${search}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
 
       if (!response.ok) {
         return rejectWithValue(data);
       }
 
-      return data; // List of all restaurants
+      return data; // Paginated response
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -75,6 +78,9 @@ const platformControlPanelRestaurantsSlice = createSlice({
   name: "platformControlPanelRestaurants",
   initialState: {
     allRestaurants: [],
+    totalRestaurants: 0,
+    currentPage: 1,
+    totalPages: 1,
     status: "idle",
     error: null,
   },
@@ -92,7 +98,10 @@ const platformControlPanelRestaurantsSlice = createSlice({
       })
       .addCase(fetchAllRestaurants.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.allRestaurants = action.payload;
+        state.allRestaurants = action.payload.restaurants;
+        state.totalRestaurants = action.payload.totalRestaurants;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
       })
       .addCase(fetchAllRestaurants.rejected, (state, action) => {
         state.status = "failed";

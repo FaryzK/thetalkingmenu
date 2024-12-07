@@ -60,10 +60,30 @@ export const createDashboard = async (req, res, next) => {
 
 export const getAllDashboards = async (req, res, next) => {
   try {
-    const dashboards = await Dashboard.find().populate({
-      path: "restaurants",
-      select: "name location userAccess",
-    });
+    const { page = 1, limit = 20, search = "" } = req.query; // Default pagination values
+    const skip = (page - 1) * limit;
+
+    // **Find users matching the search email**
+    const usersWithMatchingEmail = await User.find(
+      { email: { $regex: search, $options: "i" } },
+      { uid: 1 }
+    );
+    const matchingUserIds = usersWithMatchingEmail.map((user) => user.uid);
+
+    // **Query dashboards based on owner emails**
+    const query =
+      matchingUserIds.length > 0
+        ? { dashboardOwnerId: { $in: matchingUserIds } }
+        : {};
+
+    const totalDashboards = await Dashboard.countDocuments(query);
+    const dashboards = await Dashboard.find(query)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate({
+        path: "restaurants",
+        select: "name location userAccess",
+      });
 
     // Fetch the dashboard owner emails
     const ownerIds = dashboards.map((dashboard) => dashboard.dashboardOwnerId);
@@ -88,7 +108,12 @@ export const getAllDashboards = async (req, res, next) => {
       })),
     }));
 
-    res.status(200).json({ dashboards: formattedDashboards });
+    res.status(200).json({
+      totalDashboards,
+      totalPages: Math.ceil(totalDashboards / limit),
+      currentPage: parseInt(page),
+      dashboards: formattedDashboards,
+    });
   } catch (error) {
     console.error("Error fetching all dashboards:", error);
     next(errorHandler(500, "Failed to fetch dashboards"));
@@ -194,8 +219,21 @@ export const deleteDashboard = async (req, res, next) => {
       { $pull: { accessibleDashboards: dashboardId } }
     );
 
+    // **Get the dashboard owner ID**
+    const dashboardOwnerId = dashboard.dashboardOwnerId;
+
     // Delete the dashboard
     await dashboard.deleteOne();
+
+    // **Check if the owner has any more dashboards**
+    const remainingDashboards = await Dashboard.find({ dashboardOwnerId });
+    if (remainingDashboards.length === 0) {
+      // **If no more dashboards exist, remove "restaurant main admin" role**
+      await User.updateOne(
+        { uid: dashboardOwnerId },
+        { $pull: { roles: "restaurant main admin" } }
+      );
+    }
 
     res.status(200).json({ message: "Dashboard deleted successfully" });
   } catch (error) {

@@ -130,34 +130,70 @@ export const getRestaurant = async (req, res, next) => {
   }
 };
 
-// Fetch all restaurants (restricted to admin)
+// Fetch all restaurants (with pagination, search, and owner email) - restricted to admin
 export const getAllRestaurants = async (req, res, next) => {
   try {
-    const restaurants = await Restaurant.find()
+    const { page = 1, limit = 20, search = "" } = req.query; // Default values
+    const skip = (page - 1) * limit;
+
+    // **Get the list of owner UIDs if search query is provided**
+    let ownerIds = [];
+    if (search) {
+      const users = await User.find(
+        { email: { $regex: search, $options: "i" } }, // Match emails case-insensitively
+        "uid" // Only return the uid of the matching users
+      );
+      ownerIds = users.map((user) => user.uid); // Extract the list of user UIDs
+    }
+
+    // **Create query for search** (search by name, location, or owner email)
+    const restaurantQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: "i" } }, // Case-insensitive search on restaurant name
+            { location: { $regex: search, $options: "i" } }, // Case-insensitive search on restaurant location
+            { restaurantOwnerId: { $in: ownerIds } }, // Include owner UID from search by email
+          ],
+        }
+      : {};
+
+    // **Find total number of matching restaurants**
+    const totalRestaurants = await Restaurant.countDocuments(restaurantQuery);
+
+    // **Fetch restaurants matching the query (with pagination)**
+    const restaurants = await Restaurant.find(restaurantQuery)
+      .skip(skip)
+      .limit(parseInt(limit))
       .populate("menu")
       .populate("chats");
 
-    const ownerIds = restaurants.map(
+    // **Get all the restaurant owners' UIDs**
+    const allOwnerIds = restaurants.map(
       (restaurant) => restaurant.restaurantOwnerId
     );
-    const owners = await User.find({ uid: { $in: ownerIds } }, "uid email");
 
+    // **Get the owner emails for each restaurant's ownerId**
+    const owners = await User.find({ uid: { $in: allOwnerIds } }, "uid email");
+
+    // **Map the owner emails to each owner UID**
     const ownerEmailMap = owners.reduce((acc, owner) => {
       acc[owner.uid] = owner.email;
       return acc;
     }, {});
 
-    // Find dashboards for owners
+    // **Get dashboard information for each restaurant's ownerId**
     const dashboards = await Dashboard.find(
-      { dashboardOwnerId: { $in: ownerIds } },
+      { dashboardOwnerId: { $in: allOwnerIds } },
       "_id dashboardOwnerId"
     );
 
+    // **Map the dashboards to their owner UID**
     const dashboardMap = dashboards.reduce((acc, dashboard) => {
       acc[dashboard.dashboardOwnerId] = dashboard._id;
       return acc;
     }, {});
 
+    // **Attach owner email and dashboard info to each restaurant**
     const restaurantsWithOwners = restaurants.map((restaurant) => ({
       ...restaurant.toObject(),
       ownerEmail:
@@ -165,7 +201,13 @@ export const getAllRestaurants = async (req, res, next) => {
       dashboardId: dashboardMap[restaurant.restaurantOwnerId] || null,
     }));
 
-    res.status(200).json(restaurantsWithOwners);
+    // **Return the paginated response**
+    res.status(200).json({
+      totalRestaurants,
+      totalPages: Math.ceil(totalRestaurants / limit),
+      currentPage: parseInt(page),
+      restaurants: restaurantsWithOwners,
+    });
   } catch (error) {
     console.error("Error fetching all restaurants:", error);
     next(errorHandler(500, "Failed to fetch restaurants"));
@@ -234,11 +276,34 @@ export const deleteRestaurant = async (req, res, next) => {
     await Menu.deleteMany({ restaurantId: restaurant._id });
     await RestaurantAnalytics.deleteOne({ restaurantId }); // Delete RestaurantAnalytics
 
-    // Update related user and dashboard records
+    // **Update related user records**
+    const usersWithAccess = await User.find(
+      { accessibleRestaurants: restaurant._id.toString() },
+      { uid: 1, accessibleRestaurants: 1, roles: 1 }
+    );
+
+    // **Update accessibleRestaurants for users**
     await User.updateMany(
       { accessibleRestaurants: restaurant._id.toString() },
       { $pull: { accessibleRestaurants: restaurant._id.toString() } }
     );
+
+    // **Check if the user has any accessibleRestaurants left**
+    for (const user of usersWithAccess) {
+      const updatedUser = await User.findOne({ uid: user.uid });
+
+      if (updatedUser && updatedUser.accessibleRestaurants.length === 0) {
+        // **If no more accessible restaurants, remove "restaurant admin" role**
+        if (updatedUser.roles.includes("restaurant admin")) {
+          await User.updateOne(
+            { uid: user.uid },
+            { $pull: { roles: "restaurant admin" } }
+          );
+        }
+      }
+    }
+
+    // **Update dashboard records**
 
     await Dashboard.updateMany(
       { restaurants: restaurant._id },
@@ -340,46 +405,6 @@ export const transferOwnership = async (req, res, next) => {
     if (!newOwner.roles.includes("restaurant main admin")) {
       newOwner.roles.push("restaurant main admin");
       await newOwner.save();
-    }
-
-    // Check if currentOwner is still the owner of any restaurant
-    const stillOwner = await Restaurant.findOne({
-      restaurantOwnerId: currentOwner.uid,
-    });
-
-    // If not owner of any restaurant, remove "restaurant main admin" if present
-    if (!stillOwner && currentOwner.roles.includes("restaurant main admin")) {
-      currentOwner.roles = currentOwner.roles.filter(
-        (r) => r !== "restaurant main admin"
-      );
-
-      // Now that we have removed "restaurant main admin" from currentOwner,
-      // find the dashboard they own and delete it.
-      const currentOwnerDashboard = await Dashboard.findOne({
-        dashboardOwnerId: currentOwner.uid,
-      });
-
-      if (currentOwnerDashboard) {
-        // Remove this dashboard from currentOwner's accessibleDashboards
-        currentOwner.accessibleDashboards =
-          currentOwner.accessibleDashboards.filter(
-            (dbId) => dbId !== currentOwnerDashboard._id.toString()
-          );
-        await currentOwner.save();
-
-        // Delete the dashboard
-        await Dashboard.deleteOne({ _id: currentOwnerDashboard._id });
-      }
-    }
-
-    // Check if currentOwner has no accessible restaurants left
-    if (currentOwner.accessibleRestaurants.length === 0) {
-      // Remove "restaurant admin" if present
-      if (currentOwner.roles.includes("restaurant admin")) {
-        currentOwner.roles = currentOwner.roles.filter(
-          (r) => r !== "restaurant admin"
-        );
-      }
     }
 
     await currentOwner.save();

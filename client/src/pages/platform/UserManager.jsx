@@ -1,6 +1,7 @@
 // frontend/src/components/UserManager.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 import {
   fetchUsers,
@@ -17,6 +18,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { getAuth } from "firebase/auth";
 import { Modal, Button } from "flowbite-react";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function UserManager() {
   const dispatch = useDispatch();
@@ -34,6 +36,8 @@ export default function UserManager() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [userIdToDelete, setUserIdToDelete] = useState(null);
+
+  const navigate = useNavigate();
 
   const totalPages = Math.ceil(total / 20);
 
@@ -107,6 +111,13 @@ export default function UserManager() {
 
   return (
     <div className="p-4">
+      <button
+        onClick={() => navigate(`/platform-control-panel`)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Admin
+      </button>
       <h1 className="text-2xl mb-4">User Manager</h1>
       <div className="mb-4">
         <input

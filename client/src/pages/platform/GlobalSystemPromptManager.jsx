@@ -1,10 +1,13 @@
 // src/platform/GlobalSystemPromptManager.jsx
 import React, { useState, useEffect } from "react";
+import { FiArrowLeft } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function GlobalSystemPromptManager() {
   const [globalPrompt, setGlobalPrompt] = useState("");
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch the current global system prompt
@@ -50,6 +53,13 @@ export default function GlobalSystemPromptManager() {
 
   return (
     <div className=" bg-gray-100 p-6">
+      <button
+        onClick={() => navigate(`/platform-control-panel`)}
+        className="mb-4 flex items-center text-blue-500 hover:underline"
+      >
+        <FiArrowLeft className="mr-2" />
+        Back to Admin
+      </button>
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         Global System Prompt Manager
       </h1>
