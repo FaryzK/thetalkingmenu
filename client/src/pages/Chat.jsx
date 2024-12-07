@@ -286,7 +286,17 @@ export default function Chat() {
                   msg.content.length < 50 ? "rounded-full" : "rounded-2xl"
                 }`}
               >
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-blue-500 underline">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
               </div>
             </div>
           ))}
@@ -295,7 +305,17 @@ export default function Chat() {
           {tempAssistantMessage && (
             <div className="flex justify-start w-full mb-4">
               <div className="markdown bg-transparent text-gray-200 px-4 py-2">
-                <ReactMarkdown>{tempAssistantMessage}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-blue-500 underline">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {tempAssistantMessage}
+                </ReactMarkdown>
               </div>
             </div>
           )}
