@@ -168,7 +168,9 @@ export const sendMessage = async (req, res, next) => {
 
     // Get current date and time
     const now = new Date();
-    const currentDateTime = now.toISOString(); // This can be formatted as needed (e.g., "YYYY-MM-DD HH:mm:ss")
+    const singaporeTime = now.toLocaleString("en-SG", {
+      timeZone: "Asia/Singapore",
+    });
 
     // Prepare the chat messages
     if (chatId) {
@@ -204,7 +206,7 @@ export const sendMessage = async (req, res, next) => {
       },
       {
         role: "system",
-        content: `The current date and time is: ${currentDateTime}`,
+        content: `The current date and time is: ${singaporeTime}`,
       },
       ...chat.messages.map((msg) => ({
         role: msg.sender,
