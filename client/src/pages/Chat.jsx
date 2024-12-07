@@ -417,7 +417,7 @@ export default function Chat() {
               <button
                 onClick={handleSendMessage}
                 disabled={aiTyping}
-                className={`w-10 h-10 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
+                className={`w-12 h-12 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
       ${
         aiTyping
           ? "bg-gray-500 cursor-not-allowed"
