@@ -225,8 +225,8 @@ export default function Home() {
                 Chat Bot Interface
               </h3>
               <iframe
-                width="200"
-                height="300"
+                width="400"
+                height="600"
                 src="https://www.youtube.com/embed/2M_-O2DhqaE"
                 title="Chat Bot Demo"
                 frameBorder="0"
@@ -242,8 +242,8 @@ export default function Home() {
                 Admin Dashboard
               </h3>
               <iframe
-                width="200"
-                height="300"
+                width="400"
+                height="600"
                 src="https://www.youtube.com/embed/4_4OcN6OlEE"
                 title="Admin Dashboard Demo"
                 frameBorder="0"
@@ -251,6 +251,52 @@ export default function Home() {
                 allowFullScreen
                 className="shadow-xl rounded-lg"
               ></iframe>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* FAQ Section */}
+        <motion.section
+          id="faq"
+          className="py-16 bg-gray-200"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={fadeIn}
+        >
+          <div className="max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-8">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-gray-800">
+                  How much does it cost?
+                </h3>
+                <p className="mt-4 text-gray-600">
+                  Our product is currently in the prototyping phase and is
+                  completely free to use. We’re excited to share it with you and
+                  gather your feedback to make it even better.
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-gray-800">
+                  How can I get a chatbot?
+                </h3>
+                <p className="mt-4 text-gray-600">
+                  Joining the waitlist is simple! We're currently offering
+                  access to early adopters during our prototyping phase.{" "}
+                  <button
+                    onClick={handleScheduleDemoClick}
+                    className="text-purple-500 font-semibold underline hover:text-purple-700 transition"
+                  >
+                    Sign up for the waitlist
+                  </button>{" "}
+                  to secure your spot and be among the first to experience our
+                  AI chatbot.
+                </p>
+              </div>
             </div>
           </div>
         </motion.section>
