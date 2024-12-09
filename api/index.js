@@ -55,6 +55,14 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/global-system-prompt", globalSystemPromptRoutes);
 app.use("/api/restaurant-analytics", restaurantAnalyticsRoutes);
 
+// Handle API route 404s (for /api endpoints)
+app.use("/api/*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+  });
+});
+
 app.use(express.static(path.join(__dirname, "client/dist")));
 
 app.get("*", (req, res) =>

@@ -34,6 +34,7 @@ import { Outlet } from "react-router-dom";
 import ChatManager from "./pages/platform/ChatManager.jsx";
 import UserManager from "./pages/platform/UserManager.jsx";
 import Unauthorized from "./pages/Unauthorised.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 const PageLayout = () => {
   return (
@@ -143,6 +144,8 @@ export default function App() {
               element={<ChatManager />}
             />
             <Route path="/user-manager" element={<UserManager />} />
+            {/* Catch-all 404 page */}
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
       </Routes>
