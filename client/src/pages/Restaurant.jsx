@@ -335,7 +335,7 @@ export default function Restaurant() {
               icon: <FiInfo className="text-green-500" />,
             },
             {
-              label: "Update Prompt",
+              label: "Update FAQ",
               route: "system-prompt",
               icon: <FiEdit className="text-purple-500" />,
             },

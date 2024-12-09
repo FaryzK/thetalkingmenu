@@ -68,7 +68,7 @@ export const createRestaurant = async (req, res, next) => {
     const initialChatBot = new ChatBot({
       restaurantId: newRestaurant._id,
       systemPrompt:
-        "Your job is to help answer questions, provide information, and engage in conversations about the restaurant.",
+        "Your job is to help answer questions, provide information, and engage in conversations about our restaurant.",
       suggestedQuestions: defaultQuestions,
     });
     await initialChatBot.save();

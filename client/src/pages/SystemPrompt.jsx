@@ -63,7 +63,7 @@ export default function SystemPrompt() {
         Back to Dashboard
       </button>
 
-      <h2 className="text-2xl font-bold mb-4">Update System Prompt</h2>
+      <h2 className="text-2xl font-bold mb-4">Update FAQ</h2>
 
       {/* Reserved Space for Success/Error Notification */}
       <div className="mb-4">
@@ -83,11 +83,9 @@ export default function SystemPrompt() {
       {/* Accordion */}
       <Accordion collapseAll>
         <Accordion.Panel>
-          <Accordion.Title>What is a prompt?</Accordion.Title>
+          <Accordion.Title>What kinds of FAQ?</Accordion.Title>
           <Accordion.Content>
-            A prompt is a set of instructions for the chatbot to understand how
-            it needs to behave when responding to a customer. It can include
-            information not found in the menu, such as opening hours,
+            Information not found in the menu, such as opening hours,
             promotions, or additional details you want to provide.
           </Accordion.Content>
         </Accordion.Panel>
@@ -99,14 +97,14 @@ export default function SystemPrompt() {
           htmlFor="systemPrompt"
           className="block text-sm font-medium text-gray-700 mb-2"
         >
-          System Prompt
+          FAQ and other information / instructions
         </label>
         <textarea
           id="systemPrompt"
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
           className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          rows="6"
+          rows="17"
         />
       </div>
 

@@ -70,7 +70,7 @@ export default function GlobalSystemPromptManager() {
         <textarea
           value={globalPrompt}
           onChange={(e) => setGlobalPrompt(e.target.value)}
-          rows="5"
+          rows="23"
           placeholder="Enter the global system prompt..."
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

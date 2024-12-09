@@ -3,6 +3,7 @@ import { Button } from "flowbite-react";
 import { ArrowRight, Zap, Users, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { MessageSquare, Server } from "lucide-react";
 
 export default function Home() {
   const handleScheduleDemoClick = () => {
@@ -221,11 +222,12 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row justify-center items-center gap-8">
             {/* Chat Bot Interface */}
             <div className="flex flex-col items-center">
-              <h3 className="text-lg font-bold text-gray-200 mb-4">
+              <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center">
+                <MessageSquare className="h-6 w-6 text-indigo-500 mr-2" />
                 Chat Bot Interface
               </h3>
               <iframe
-                width="400"
+                width="300"
                 height="600"
                 src="https://www.youtube.com/embed/2M_-O2DhqaE"
                 title="Chat Bot Demo"
@@ -236,13 +238,13 @@ export default function Home() {
               ></iframe>
             </div>
 
-            {/* Admin Dashboard */}
             <div className="flex flex-col items-center">
-              <h3 className="text-lg font-bold text-gray-200 mb-4">
+              <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center">
+                <Server className="h-6 w-6 text-indigo-500 mr-2" />
                 Admin Dashboard
               </h3>
               <iframe
-                width="400"
+                width="300"
                 height="600"
                 src="https://www.youtube.com/embed/4_4OcN6OlEE"
                 title="Admin Dashboard Demo"
