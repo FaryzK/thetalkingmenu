@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const chatSchema = new mongoose.Schema({
+  sessionToken: {
+    type: String,
+    required: true,
+    index: true,
+  },
   restaurantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Restaurant",

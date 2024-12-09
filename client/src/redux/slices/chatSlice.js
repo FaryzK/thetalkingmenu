@@ -3,11 +3,15 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // Thunk to initiate a new chat and retrieve chatId
 export const startNewChat = createAsyncThunk(
   "chat/startNewChat",
-  async ({ restaurantId, userId, tableNumber }) => {
+  async ({ restaurantId, tableNumber, userId }, { getState }) => {
+    const sessionToken = getState().user.sessionToken; // Get session token from user slice
     const response = await fetch(`/api/chat/start-new-chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ restaurantId, userId, tableNumber }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-Token": sessionToken,
+      },
+      body: JSON.stringify({ restaurantId, tableNumber, userId }),
     });
     if (!response.ok) throw new Error("Failed to start new chat");
     return await response.json(); // Should return { chatId }
@@ -17,9 +21,13 @@ export const startNewChat = createAsyncThunk(
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
   async ({ restaurantId, userId = null, tableNumber, message }) => {
+    const sessionToken = getState().user.sessionToken; // Get session token from user slice
     const response = await fetch(`/api/chat/send-message`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-Token": sessionToken, // Attach session token
+      },
       body: JSON.stringify({ restaurantId, userId, tableNumber, message }),
     });
     if (!response.ok) throw new Error("Failed to send message");

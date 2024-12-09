@@ -90,6 +90,7 @@ const openai = new OpenAI({
 // Controller to start a new chat session
 export const startNewChat = async (req, res, next) => {
   const { restaurantId, userId = null, tableNumber } = req.body;
+  const sessionToken = req.sessionToken;
 
   if (!restaurantId) {
     return res.status(400).json({ error: "restaurantId is required" });
@@ -98,6 +99,7 @@ export const startNewChat = async (req, res, next) => {
   try {
     // Proceed to create a new chat if token limit has not been reached
     const chat = new Chat({
+      sessionToken,
       userId,
       restaurantId,
       tableNumber,
@@ -153,6 +155,8 @@ export const sendMessage = async (req, res, next) => {
     tableNumber,
   } = req.body;
 
+  const sessionToken = req.sessionToken; // 🟢 Extract session token from req object
+
   if (!restaurantId) {
     return res.status(400).json({ error: "restaurantId is required" });
   }
@@ -184,7 +188,13 @@ export const sendMessage = async (req, res, next) => {
         });
       }
     } else {
-      chat = new Chat({ userId, restaurantId, tableNumber, messages: [] });
+      chat = new Chat({
+        userId,
+        restaurantId,
+        tableNumber,
+        sessionToken,
+        messages: [],
+      });
       await chat.save();
     }
     chat.messages.push({ message, sender: "user", timestamp: new Date() });

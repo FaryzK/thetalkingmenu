@@ -15,6 +15,16 @@ import { Button, TextInput } from "flowbite-react";
 import { AiOutlineSend } from "react-icons/ai";
 import { MdMenuBook } from "react-icons/md"; // Menu Book Icon
 import { FaUtensils } from "react-icons/fa"; // Fork and Spoon Icon
+import { setSessionToken } from "../redux/slices/userSlice";
+// Helper function to create or retrieve a session token
+function getSessionToken() {
+  let sessionToken = localStorage.getItem("session_token");
+  if (!sessionToken) {
+    sessionToken = crypto.randomUUID(); // Generate a unique session token
+    localStorage.setItem("session_token", sessionToken);
+  }
+  return sessionToken;
+}
 
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
@@ -34,10 +44,18 @@ export default function Chat() {
 
   const messages = useSelector((state) => state.chat.messages);
   const chatId = useSelector((state) => state.chat.chatId);
+  const sessionToken = useSelector((state) => state.user.sessionToken);
   const [aiTyping, setAiTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!sessionToken) {
+      const newSessionToken = getSessionToken();
+      dispatch(setSessionToken(newSessionToken)); // 🟢 Dispatch the token to Redux store
+    }
+  }, [dispatch, sessionToken]);
 
   useEffect(() => {
     const auth = getAuth();
@@ -84,9 +102,14 @@ export default function Chat() {
     if (chat_id) {
       // Fetch existing chat
       dispatch(clearMessages());
+      const sessionToken = getSessionToken(); // Get session token here
+
       fetch(`/api/chat/${chat_id}?tableNumber=${tableNumber}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Token": sessionToken, // Attach session token here
+        },
       })
         .then((response) => {
           if (!response.ok) {
@@ -119,102 +142,124 @@ export default function Chat() {
     setAiTyping(true);
     dispatch(addMessage({ role: "user", content: input }));
     setInput("");
-    let currentChatId = chatId;
+
+    let currentChatId = chatId; // Get current chatId from Redux
     if (!currentChatId) {
-      const startChatResponse = await dispatch(
-        startNewChat({ restaurantId, tableNumber, userId })
-      );
-      currentChatId = startChatResponse.payload.chatId;
-      dispatch(setChatId(currentChatId));
+      try {
+        const startChatResponse = await dispatch(
+          startNewChat({ restaurantId, tableNumber, userId })
+        ).unwrap(); // Unwrap the resolved value from Redux async thunk
+        currentChatId = startChatResponse.chatId; // Extract the chatId from the response
+        dispatch(setChatId(currentChatId)); // Update chatId in Redux
+      } catch (error) {
+        console.error("Error starting new chat:", error);
+        return; // Stop further execution if chat creation fails
+      }
     }
-    fetch(`/api/chat/send-message`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        restaurantId,
-        tableNumber,
-        userId,
-        message: input,
-        chatId: currentChatId,
-      }),
-    })
-      .then((response) => {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let assistantMessage = "";
-        function readChunk() {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              setAiTyping(false);
-              dispatch(
-                addMessage({ role: "assistant", content: assistantMessage })
-              );
-              setTempAssistantMessage("");
-              return;
-            }
-            const chunk = decoder.decode(value);
-            assistantMessage += chunk;
-            setTempAssistantMessage(assistantMessage + "⚪");
-            readChunk();
-          });
-        }
-        readChunk();
-      })
-      .catch((error) => {
-        console.error("Error with streaming:", error);
+
+    try {
+      const sessionToken = getSessionToken(); // Get session token
+      const response = await fetch(`/api/chat/send-message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Token": sessionToken,
+        },
+        body: JSON.stringify({
+          restaurantId,
+          tableNumber,
+          userId,
+          message: input,
+          chatId: currentChatId, // Attach the latest chatId
+        }),
       });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = "";
+
+      function readChunk() {
+        reader.read().then(({ done, value }) => {
+          if (done) {
+            setAiTyping(false);
+            dispatch(
+              addMessage({ role: "assistant", content: assistantMessage })
+            );
+            setTempAssistantMessage("");
+            return;
+          }
+          const chunk = decoder.decode(value);
+          assistantMessage += chunk;
+          setTempAssistantMessage(assistantMessage + "⚪");
+          readChunk();
+        });
+      }
+      readChunk();
+    } catch (error) {
+      console.error("Error with streaming:", error);
+    }
   };
 
   const handleSuggestedQuestion = async (question) => {
     setAiTyping(true);
     setShowInfo(false); // Hide the intro immediately
     dispatch(addMessage({ role: "user", content: question })); // Add the question to the messages
-    let currentChatId = chatId;
 
+    let currentChatId = chatId; // Get chatId from Redux
     if (!currentChatId) {
-      const startChatResponse = await dispatch(
-        startNewChat({ restaurantId, tableNumber, userId })
-      );
-      currentChatId = startChatResponse.payload.chatId;
-      dispatch(setChatId(currentChatId));
+      try {
+        const startChatResponse = await dispatch(
+          startNewChat({ restaurantId, tableNumber, userId })
+        ).unwrap();
+        currentChatId = startChatResponse.chatId;
+        dispatch(setChatId(currentChatId));
+      } catch (error) {
+        console.error("Error starting new chat:", error);
+        return;
+      }
     }
 
-    fetch(`/api/chat/send-message`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        restaurantId,
-        userId,
-        tableNumber,
-        message: question,
-        chatId: currentChatId,
-      }),
-    })
-      .then((response) => {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let assistantMessage = "";
-        function readChunk() {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              setAiTyping(false);
-              dispatch(
-                addMessage({ role: "assistant", content: assistantMessage })
-              );
-              setTempAssistantMessage("");
-              return;
-            }
-            const chunk = decoder.decode(value);
-            assistantMessage += chunk;
-            setTempAssistantMessage(assistantMessage + "⚪");
-            readChunk();
-          });
-        }
-        readChunk();
-      })
-      .catch((error) => {
-        console.error("Error with streaming:", error);
+    try {
+      const sessionToken = getSessionToken(); // Get session token
+      const response = await fetch(`/api/chat/send-message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-Token": sessionToken,
+        },
+        body: JSON.stringify({
+          restaurantId,
+          tableNumber,
+          userId,
+          message: question,
+          chatId: currentChatId, // Attach the latest chatId
+        }),
       });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = "";
+
+      function readChunk() {
+        reader.read().then(({ done, value }) => {
+          if (done) {
+            setAiTyping(false);
+            dispatch(
+              addMessage({ role: "assistant", content: assistantMessage })
+            );
+            setTempAssistantMessage("");
+            return;
+          }
+          const chunk = decoder.decode(value);
+          assistantMessage += chunk;
+          setTempAssistantMessage(assistantMessage + "⚪");
+          readChunk();
+        });
+      }
+      readChunk();
+    } catch (error) {
+      console.error("Error with streaming:", error);
+    }
   };
 
   const renderStyledQuestion = (question) => {

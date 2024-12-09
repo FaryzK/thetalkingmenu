@@ -11,14 +11,21 @@ import {
 } from "../controllers/chat.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { isAdmin } from "../utils/isAdmin.js";
+import { sendMessageRateLimiter } from "../utils/sendMessageRateLimiter.js";
+import { validateSessionToken } from "../utils/validateSessionToken.js";
 
 const router = express.Router();
 
 // POST route for starting a new chat session
-router.post("/start-new-chat", startNewChat);
+router.post("/start-new-chat", validateSessionToken, startNewChat);
 
 // POST route for sending a message
-router.post("/send-message", sendMessage);
+router.post(
+  "/send-message",
+  validateSessionToken,
+  sendMessageRateLimiter,
+  sendMessage
+);
 
 // Route to fetch chats with pagination
 router.get("/:restaurantId/chats", isAuthenticated, getChatsByRestaurant);
