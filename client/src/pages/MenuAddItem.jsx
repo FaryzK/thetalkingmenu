@@ -27,7 +27,7 @@ export default function MenuAddItem() {
       setError("Please fill in all fields: Name, Description, and Price.");
       return;
     }
-    if (isNaN(price) || parseFloat(price) <= 0) {
+    if (isNaN(price) || parseFloat(price) < 0) {
       setError("Please enter a valid price greater than 0.");
       return;
     }
