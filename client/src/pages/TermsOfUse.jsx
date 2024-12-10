@@ -15,13 +15,13 @@ const TermsOfUse = () => {
             <strong>Ownership of Content:</strong> Restaurant owners retain
             ownership of all content they upload, including menu details and
             restaurant information. However, questions asked by diners are
-            co-owned by the restaurant owner and us, while chatbot-generated
-            responses are owned solely by us.
+            co-owned by the diners and the Talking Menu, while chatbot-generated
+            responses are owned solely by the Talking Menu.
           </p>
           <p>
             <strong>Data Retention on Cancellation:</strong> If a restaurant
-            owner stops using the service, their data will be retained unless
-            they request deletion via{" "}
+            owner stops using the service, their data (diners and restaurants)
+            will be retained unless they request deletion via{" "}
             <a
               href="https://forms.gle/VukrYeTGEeWiJRYA8"
               target="_blank"

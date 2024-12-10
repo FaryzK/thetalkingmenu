@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   clearMessages,
   addMessage,
@@ -29,6 +29,7 @@ function getSessionToken() {
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [userId, setUserId] = useState(null);
   const [tempAssistantMessage, setTempAssistantMessage] = useState("");
@@ -49,19 +50,6 @@ export default function Chat() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    // Scroll to bottom on render to reveal full chatbox behind android navbar
-    const scrollToBottom = () => {
-      messagesEndRef.current?.scrollIntoView({
-        behavior: "instant", // Use instant for initial load
-        block: "end",
-      });
-    };
-
-    // Scroll immediately on component mount
-    scrollToBottom();
-  }, []); // Empty dependency array ensures it only runs once on mount
 
   useEffect(() => {
     if (!sessionToken) {
@@ -477,11 +465,11 @@ export default function Chat() {
                 onClick={handleSendMessage}
                 disabled={aiTyping}
                 className={`w-12 h-12 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
-      ${
-        aiTyping
-          ? "bg-gray-500 cursor-not-allowed"
-          : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-      }`}
+                    ${
+                      aiTyping
+                        ? "bg-gray-500 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    }`}
               >
                 {aiTyping ? (
                   <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
@@ -490,6 +478,20 @@ export default function Chat() {
                 )}
               </button>
             </div>
+          </div>
+        )}
+        {/* Terms of Use and Privacy Policy Section */}
+        {showInfo && (
+          <div className="text-center text-sm text-gray-400 mt-4 pb-4">
+            By messaging the Talking Menu, you agree to our
+            <Link to="/terms-of-use" className="text-blue-500 underline mx-1">
+              Terms
+            </Link>
+            and have read our
+            <Link to="/privacy-policy" className="text-blue-500 underline mx-1">
+              Privacy Policy
+            </Link>
+            .
           </div>
         )}
       </div>
