@@ -482,7 +482,7 @@ export default function Chat() {
         )}
         {/* Terms of Use and Privacy Policy Section */}
         {showInfo && (
-          <div className="text-center text-sm text-gray-400 mt-4 pb-4">
+          <div className="text-center text-sm text-gray-400 mt-4">
             By messaging the Talking Menu, you agree to our
             <Link to="/terms-of-use" className="text-blue-500 underline mx-1">
               Terms
