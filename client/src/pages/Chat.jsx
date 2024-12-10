@@ -61,13 +61,7 @@ export default function Chat() {
 
     // Scroll immediately on component mount
     scrollToBottom();
-
-    // Also scroll when messages or temporary message changes
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, []);
+  }, []); // Empty dependency array ensures it only runs once on mount
 
   useEffect(() => {
     if (!sessionToken) {
