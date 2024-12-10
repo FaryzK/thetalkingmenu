@@ -86,7 +86,7 @@ export default function MenuAddItem() {
           (item) =>
             !item.name ||
             isNaN(item.price) ||
-            item.price <= 0 ||
+            item.price < 0 ||
             !item.description
         );
 
