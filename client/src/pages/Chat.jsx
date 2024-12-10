@@ -371,7 +371,7 @@ export default function Chat() {
 
         {/* Bottom Section Wrapper */}
         {!chat_id && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 pb-safe-bottom">
             {/* Restaurant name and info */}
             {showInfo && (
               <div className="text-center space-y-4 p-4 rounded-lg">
@@ -415,68 +415,67 @@ export default function Chat() {
             )}
 
             {/* Chatbox Section */}
-            <div className="pb-safe-bottom">
-              <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full">
-                {/* Container for Input and Icons */}
-                <div className="relative flex-grow">
-                  <TextInput
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Send a message..."
-                    className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white !text-base"
-                    style={{ fontSize: "16px" }}
-                  />
 
-                  {/* Icons positioned absolutely within the input container */}
-                  {!input && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
-                      {info.menuLink && (
-                        <button
-                          className="text-gray-500 hover:text-gray-300"
-                          onClick={() => window.open(info.menuLink, "_blank")}
-                          title="Menu"
-                        >
-                          <MdMenuBook size={20} />
-                        </button>
-                      )}
-                      {info.orderLink && (
-                        <button
-                          className="text-gray-500 hover:text-gray-300"
-                          onClick={() => window.open(info.orderLink, "_blank")}
-                          title="Order"
-                        >
-                          <FaUtensils size={20} />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full">
+              {/* Container for Input and Icons */}
+              <div className="relative flex-grow">
+                <TextInput
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Send a message..."
+                  className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white !text-base"
+                  style={{ fontSize: "16px" }}
+                />
 
-                {/* Send Button */}
-                <button
-                  onClick={handleSendMessage}
-                  disabled={aiTyping}
-                  className={`w-12 h-12 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
+                {/* Icons positioned absolutely within the input container */}
+                {!input && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
+                    {info.menuLink && (
+                      <button
+                        className="text-gray-500 hover:text-gray-300"
+                        onClick={() => window.open(info.menuLink, "_blank")}
+                        title="Menu"
+                      >
+                        <MdMenuBook size={20} />
+                      </button>
+                    )}
+                    {info.orderLink && (
+                      <button
+                        className="text-gray-500 hover:text-gray-300"
+                        onClick={() => window.open(info.orderLink, "_blank")}
+                        title="Order"
+                      >
+                        <FaUtensils size={20} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                onClick={handleSendMessage}
+                disabled={aiTyping}
+                className={`w-12 h-12 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
       ${
         aiTyping
           ? "bg-gray-500 cursor-not-allowed"
           : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
       }`}
-                >
-                  {aiTyping ? (
-                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  ) : (
-                    <AiOutlineSend size={20} className="text-white" />
-                  )}
-                </button>
-              </div>
+              >
+                {aiTyping ? (
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                ) : (
+                  <AiOutlineSend size={20} className="text-white" />
+                )}
+              </button>
             </div>
           </div>
         )}
