@@ -307,7 +307,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
+    <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6 pb-[env(safe-area-inset-bottom)] mb-[env(safe-area-inset-bottom)]">
       <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
         <div className="flex flex-col flex-grow overflow-y-auto pr-4 scrollbar-hide">
