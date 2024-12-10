@@ -371,7 +371,7 @@ export default function Chat() {
 
         {/* Bottom Section Wrapper */}
         {!chat_id && (
-          <div className="flex flex-col gap-4 pb-safe-bottom">
+          <div className="flex flex-col gap-4">
             {/* Restaurant name and info */}
             {showInfo && (
               <div className="text-center space-y-4 p-4 rounded-lg">

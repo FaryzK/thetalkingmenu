@@ -4,11 +4,7 @@ const flowbite = require("flowbite-react/tailwind");
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", flowbite.content()],
   theme: {
-    extend: {
-      padding: {
-        "safe-bottom": "env(safe-area-inset-bottom, 16px)", // Custom Tailwind utility
-      },
-    },
+    extend: {},
   },
   plugins: [require("tailwind-scrollbar-hide"), flowbite.plugin()],
 };
