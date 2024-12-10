@@ -51,6 +51,25 @@ export default function Chat() {
   const inputRef = useRef(null);
 
   useEffect(() => {
+    // Scroll to bottom on render to reveal full chatbox behind android navbar
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "instant", // Use instant for initial load
+        block: "end",
+      });
+    };
+
+    // Scroll immediately on component mount
+    scrollToBottom();
+
+    // Also scroll when messages or temporary message changes
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, []);
+
+  useEffect(() => {
     if (!sessionToken) {
       const newSessionToken = getSessionToken();
       dispatch(setSessionToken(newSessionToken)); // 🟢 Dispatch the token to Redux store
