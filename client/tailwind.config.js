@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       padding: {
-        "safe-bottom": "env(safe-area-inset-bottom)", // Custom Tailwind utility
+        "safe-bottom": "env(safe-area-inset-bottom, 16px)", // Custom Tailwind utility
       },
     },
   },
