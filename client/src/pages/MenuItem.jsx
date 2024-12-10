@@ -66,7 +66,7 @@ export default function MenuItem() {
       !name.trim() ||
       !description.trim() ||
       !price ||
-      parseFloat(price) <= 0
+      parseFloat(price) < 0
     ) {
       setError("All fields are required and price must be greater than 0.");
       return;
