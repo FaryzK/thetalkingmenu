@@ -1,23 +1,6 @@
-// src/components/MyRestaurants.js
-import React, { useState } from "react";
-import { Button } from "flowbite-react";
+import React from "react";
 
-export default function MyRestaurants({
-  restaurants,
-  onRestaurantClick,
-  onAddRestaurant,
-}) {
-  const [showRestaurantForm, setShowRestaurantForm] = useState(false);
-  const [restaurantName, setRestaurantName] = useState("");
-  const [restaurantLocation, setRestaurantLocation] = useState("");
-
-  const handleAddRestaurant = () => {
-    onAddRestaurant({ name: restaurantName, location: restaurantLocation });
-    setShowRestaurantForm(false);
-    setRestaurantName("");
-    setRestaurantLocation("");
-  };
-
+export default function MyRestaurants({ restaurants, onRestaurantClick }) {
   return (
     <div>
       {/* Restaurant List */}
@@ -38,38 +21,10 @@ export default function MyRestaurants({
         </div>
       )}
 
-      {/* Add Restaurant Button */}
-      <div className="mt-6 text-center">
-        <Button
-          onClick={() => setShowRestaurantForm(!showRestaurantForm)}
-          color="blue"
-        >
-          Add Restaurant
-        </Button>
-      </div>
-
-      {/* Add Restaurant Form */}
-      {showRestaurantForm && (
-        <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-md">
-          <input
-            type="text"
-            placeholder="Restaurant Name"
-            value={restaurantName}
-            onChange={(e) => setRestaurantName(e.target.value)}
-            className="w-full p-3 border rounded-lg mb-3"
-          />
-          <input
-            type="text"
-            placeholder="Restaurant Location"
-            value={restaurantLocation}
-            onChange={(e) => setRestaurantLocation(e.target.value)}
-            className="w-full p-3 border rounded-lg mb-3"
-          />
-          <div className="flex justify-end">
-            <Button color="green" onClick={handleAddRestaurant}>
-              Save Restaurant
-            </Button>
-          </div>
+      {restaurants?.length === 0 && (
+        <div className="mt-6 text-center text-gray-500">
+          <p>No restaurants added yet.</p>
+          <p>Click "Add Restaurant" to get started!</p>
         </div>
       )}
     </div>
