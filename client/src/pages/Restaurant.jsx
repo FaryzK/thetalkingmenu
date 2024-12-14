@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState  } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -9,6 +9,7 @@ import { fetchChatBot, clearChatBotState } from "../redux/slices/chatBotSlice";
 import {
   fetchRestaurantChats,
   clearRestaurantChatsState,
+  markChatAsSeen
 } from "../redux/slices/restaurantChatsSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -55,6 +56,8 @@ ChartJS.register(
 
 export default function Restaurant() {
   const { dashboardId, restaurantId } = useParams();
+  const [userToken, setUserToken] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -84,6 +87,7 @@ export default function Restaurant() {
     const auth = getAuth();
     const fetchData = async (user) => {
       const token = await user.getIdToken();
+      setUserToken(token);
       dispatch(fetchRestaurant({ token, restaurantId }));
       dispatch(fetchChatBot({ token, restaurantId }));
       dispatch(fetchRestaurantChats({ token, restaurantId }));
@@ -432,13 +436,18 @@ export default function Restaurant() {
           {restaurantChats?.map((chat) => (
             <button
               key={chat._id}
-              onClick={() =>
+              onClick={() =>{
+                dispatch(
+                  markChatAsSeen({ token: userToken, chatId: chat._id })
+                );
                 window.open(
                   `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
                   "_blank"
-                )
-              }
-              className="w-full bg-gray-100 p-4 rounded-lg shadow hover:bg-gray-200 transition flex justify-between items-center text-left"
+                );
+              }}
+              className={`w-full p-4 rounded-lg shadow flex justify-between items-center text-left ${
+                chat.isSeen ? "bg-gray-300" : "bg-gray-100 hover:bg-gray-200"
+              }`}
             >
               <p className="text-gray-800 truncate flex-1 pr-4">
                 {chat.firstMessage}

@@ -311,9 +311,20 @@ export const sendMessage = async (req, res, next) => {
 
 export const getChatsByRestaurant = async (req, res) => {
   const { restaurantId } = req.params; // Get the restaurant ID from the route
+  const { uid } = req.user;
   const page = parseInt(req.query.page) || 1; // Convert to integer, default to 1
   const limit = parseInt(req.query.limit) || 20; // Convert to integer, default to 20
+
+  
   try {
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Extract MongoDB userId (ObjectId) from the user document
+    const userId = user._id;
+
     // Ensure the restaurant exists
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
@@ -325,7 +336,7 @@ export const getChatsByRestaurant = async (req, res) => {
       .sort({ "messages.timestamp": -1 }) // Sort by latest message
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
-      .select("_id messages tableNumber"); // Only fetch required fields
+      .select("_id messages tableNumber seenBy"); // Only fetch required fields
 
     // Count total chats for pagination info
     const totalChats = await Chat.countDocuments({ restaurantId });
@@ -336,6 +347,7 @@ export const getChatsByRestaurant = async (req, res) => {
         firstMessage: chat.messages[0]?.message || "No messages", // Get the first message for preview
         timestamp: chat.messages[0]?.timestamp || null, // Get the timestamp of the first message
         tableNumber: chat.tableNumber || "default", // Include table number
+        isSeen: Array.isArray(chat.seenBy) ? chat.seenBy.includes(userId) : false, // Check if user ID is in the seenBy array
       })),
       totalChats,
     });
@@ -605,5 +617,32 @@ export const deleteChat = async (req, res) => {
   } catch (error) {
     console.error("Error deleting chat:", error);
     res.status(500).json({ error: "Failed to delete chat" });
+  }
+};
+
+export const markChatAsSeen = async (req, res) => {
+  const { chatId } = req.params;
+  const { uid } = req.user; // Extract user ID from authenticated request
+
+  try {
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    if (!chat.seenBy.includes(user._id)) {
+      chat.seenBy.push(user._id);
+      await chat.save();
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error marking chat as seen:", error);
+    res.status(500).json({ error: "Failed to mark chat as seen" });
   }
 };

@@ -8,6 +8,7 @@ import {
   getStarredChatsByRestaurant,
   searchChatsByKeyword,
   deleteChat,
+  markChatAsSeen
 } from "../controllers/chat.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { isAdmin } from "../utils/isAdmin.js";
@@ -45,5 +46,8 @@ router.get("/:restaurantId/search", isAuthenticated, searchChatsByKeyword);
 
 // Route to delete a chat by ID
 router.delete("/:chatId", isAuthenticated, isAdmin, deleteChat);
+
+router.post("/:chatId/markSeen", isAuthenticated, markChatAsSeen);
+
 
 export default router;

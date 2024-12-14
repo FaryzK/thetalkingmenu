@@ -9,6 +9,7 @@ import {
   fetchStarredChats,
   toggleStarChat,
   searchRestaurantChats,
+  markChatAsSeen,
 } from "../redux/slices/restaurantChatsSlice";
 import { Button } from "flowbite-react";
 
@@ -41,18 +42,23 @@ const Tabs = React.memo(({ activeTab, setActiveTab }) => (
 
 // Memoized Chat Row Component
 const ChatRow = React.memo(
-  ({ chat, handleToggleStarChat, isStarred, isLoading, navigate }) => (
+  ({ chat, handleToggleStarChat, isStarred, isSeen, isLoading, navigate, token, restaurantId, dispatch }) => (
     <div
-      className="p-4 mb-2 bg-white shadow-md rounded-lg flex justify-between items-center gap-4" // Added gap for consistent spacing
+      className={`p-4 mb-2 shadow-md rounded-lg flex justify-between items-center gap-4 ${
+        chat.isSeen ? "bg-gray-300" : "bg-gray-100 hover:bg-gray-200"
+      }`}
     >
       <button
         className="text-left flex-grow overflow-hidden"
-        onClick={() =>
+        onClick={() => {
+          dispatch(
+            markChatAsSeen({ token, chatId: chat._id })
+          );
           window.open(
-            `/restaurant/${chat.restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
+            `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
             "_blank"
-          )
-        }
+          );
+        }}
       >
         <p
           className="text-gray-800 truncate"
@@ -67,7 +73,7 @@ const ChatRow = React.memo(
         </small>
       </button>
       <button
-        className="ml-2" // Ensure margin-left is applied
+        className="ml-2"
         onClick={() => handleToggleStarChat(chat._id)}
         disabled={isLoading}
       >
@@ -400,7 +406,11 @@ const RestaurantChats = () => {
               isStarred={isChatStarred(chat._id)}
               isLoading={!!loadingToggles[chat._id]}
               navigate={navigate}
+              token={token} 
+              restaurantId={restaurantId} 
+              dispatch={dispatch} 
             />
+
           ))
         ) : (
           <p>

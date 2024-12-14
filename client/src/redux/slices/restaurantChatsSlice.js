@@ -104,6 +104,25 @@ export const searchRestaurantChats = createAsyncThunk(
   }
 );
 
+export const markChatAsSeen = createAsyncThunk(
+  "restaurantChats/markChatAsSeen",
+  async ({ token, chatId }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/chat/${chatId}/markSeen`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to mark chat as seen");
+      return chatId;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
 const restaurantChatsSlice = createSlice({
   name: "restaurantChats",
   initialState: {
@@ -216,6 +235,12 @@ const restaurantChatsSlice = createSlice({
       .addCase(searchRestaurantChats.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+      .addCase(markChatAsSeen.fulfilled, (state, action) => {
+        const chatId = action.payload;
+        state.allChats = state.allChats.map((chat) =>
+          chat._id === chatId ? { ...chat, isSeen: true } : chat
+        );
       });
   },
 });

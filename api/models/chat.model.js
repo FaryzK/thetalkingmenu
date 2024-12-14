@@ -65,6 +65,11 @@ const chatSchema = new mongoose.Schema({
       default: 0,
     },
   },
+  seenBy: {
+    type: [mongoose.Schema.Types.ObjectId], // Ensure it's always an array
+    ref: "User",
+    default: [], // Set an empty array as the default
+  },
 });
 
 // Indexes for faster queries
