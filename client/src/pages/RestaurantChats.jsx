@@ -42,7 +42,17 @@ const Tabs = React.memo(({ activeTab, setActiveTab }) => (
 
 // Memoized Chat Row Component
 const ChatRow = React.memo(
-  ({ chat, handleToggleStarChat, isStarred, isSeen, isLoading, navigate, token, restaurantId, dispatch }) => (
+  ({
+    chat,
+    handleToggleStarChat,
+    isStarred,
+    isSeen,
+    isLoading,
+    navigate,
+    token,
+    restaurantId,
+    dispatch,
+  }) => (
     <div
       className={`p-4 mb-2 shadow-md rounded-lg flex justify-between items-center gap-4 ${
         chat.isSeen ? "bg-gray-300" : "bg-gray-100 hover:bg-gray-200"
@@ -51,9 +61,7 @@ const ChatRow = React.memo(
       <button
         className="text-left flex-grow overflow-hidden"
         onClick={() => {
-          dispatch(
-            markChatAsSeen({ token, chatId: chat._id })
-          );
+          dispatch(markChatAsSeen({ token, chatId: chat._id }));
           window.open(
             `/restaurant/${restaurantId}/chat/${chat.tableNumber}/${chat._id}`,
             "_blank"
@@ -406,11 +414,10 @@ const RestaurantChats = () => {
               isStarred={isChatStarred(chat._id)}
               isLoading={!!loadingToggles[chat._id]}
               navigate={navigate}
-              token={token} 
-              restaurantId={restaurantId} 
-              dispatch={dispatch} 
+              token={token}
+              restaurantId={restaurantId}
+              dispatch={dispatch}
             />
-
           ))
         ) : (
           <p>

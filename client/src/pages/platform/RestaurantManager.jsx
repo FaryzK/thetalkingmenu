@@ -5,6 +5,7 @@ import {
   fetchAllRestaurants,
   deleteRestaurant,
   transferRestaurantOwnership,
+  createRestaurant,
 } from "../../redux/slices/platformControlPanelRestaurantsSlice";
 import { Modal, Button, TextInput, Alert } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +16,11 @@ export default function RestaurantManager() {
   const dispatch = useDispatch();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isRestaurantFormVisible, setIsRestaurantFormVisible] = useState(false); // For Add Restaurant form
+  const [restaurantName, setRestaurantName] = useState(""); // Restaurant name input
+  const [restaurantLocation, setRestaurantLocation] = useState(""); // Restaurant location input
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [confirmationInput, setConfirmationInput] = useState(""); // Track user input for confirmation
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // Track error state
   const [successMessage, setSuccessMessage] = useState(""); // Track success state
@@ -99,6 +104,33 @@ export default function RestaurantManager() {
     }
   };
 
+  // 🔥 Add new restaurant function
+  const handleAddRestaurant = async () => {
+    const user = getAuth().currentUser;
+
+    if (!user) {
+      alert("No user is logged in");
+      return;
+    }
+
+    try {
+      const token = await user.getIdToken();
+      const restaurantData = {
+        name: restaurantName,
+        location: restaurantLocation,
+      };
+
+      await dispatch(createRestaurant({ token, restaurantData })).unwrap();
+
+      setSuccessMessage("Restaurant added successfully.");
+      setIsRestaurantFormVisible(false);
+      setRestaurantName("");
+      setRestaurantLocation("");
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to add restaurant.");
+    }
+  };
+
   return (
     <div className="bg-gray-100 p-6 ">
       <button
@@ -113,13 +145,45 @@ export default function RestaurantManager() {
           Restaurant Management
         </h1>
 
-        {/* Search Bar */}
-        <TextInput
-          type="text"
-          placeholder="Search by restaurant name or location"
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="mb-6"
-        />
+        {/* Search Bar with Add Restaurant Button */}
+        <div className="flex items-center mb-6 space-x-4">
+          <TextInput
+            type="text"
+            placeholder="Search by restaurant name or location"
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="flex-1"
+          />
+          <Button
+            onClick={() => setIsRestaurantFormVisible(!isRestaurantFormVisible)}
+            color="blue"
+          >
+            Add
+          </Button>
+        </div>
+
+        {/* Add Restaurant Form */}
+        {isRestaurantFormVisible && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold mb-4">Add New Restaurant</h2>
+            <TextInput
+              placeholder="Restaurant Name"
+              value={restaurantName}
+              onChange={(e) => setRestaurantName(e.target.value)}
+              className="mb-4"
+            />
+            <TextInput
+              placeholder="Restaurant Location"
+              value={restaurantLocation}
+              onChange={(e) => setRestaurantLocation(e.target.value)}
+              className="mb-4"
+            />
+            <div className="flex justify-end">
+              <Button onClick={handleAddRestaurant} color="green">
+                Save Restaurant
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Success Alert */}
         {successMessage && (
@@ -227,41 +291,40 @@ export default function RestaurantManager() {
       {/* Delete Modal */}
       <Modal
         show={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setConfirmationInput(""); // 🆕 Reset input when modal closes
+        }}
       >
         <Modal.Header>Confirm Delete</Modal.Header>
         <Modal.Body>
-          Are you sure you want to delete the restaurant{" "}
-          <strong>{selectedRestaurant?.name}</strong>? This action cannot be
-          undone.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button color="red" onClick={handleDeleteRestaurant}>
-            Confirm
-          </Button>
-          <Button color="gray" onClick={() => setIsDeleteModalOpen(false)}>
-            Cancel
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Transfer Ownership Modal */}
-      <Modal
-        show={isTransferModalOpen}
-        onClose={() => setIsTransferModalOpen(false)}
-      >
-        <Modal.Header>Transfer Ownership</Modal.Header>
-        <Modal.Body>
+          <p className="mb-4">
+            To delete this restaurant, please type the restaurant name:{" "}
+            <strong>{selectedRestaurant?.name}</strong>
+          </p>
           <TextInput
-            type="email"
-            placeholder="Enter new owner's email"
-            value={newOwnerEmail}
-            onChange={(e) => setNewOwnerEmail(e.target.value)}
+            type="text"
+            placeholder="Type restaurant name here"
+            value={confirmationInput}
+            onChange={(e) => setConfirmationInput(e.target.value)}
+            className="mb-4"
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={handleOwnershipTransfer}>Confirm</Button>
-          <Button color="gray" onClick={() => setIsTransferModalOpen(false)}>
+          <Button
+            color="red"
+            onClick={handleDeleteRestaurant}
+            disabled={confirmationInput !== selectedRestaurant?.name} // 🆕 Button is disabled until input matches
+          >
+            Confirm
+          </Button>
+          <Button
+            color="gray"
+            onClick={() => {
+              setIsDeleteModalOpen(false);
+              setConfirmationInput(""); // 🆕 Reset input when canceling
+            }}
+          >
             Cancel
           </Button>
         </Modal.Footer>

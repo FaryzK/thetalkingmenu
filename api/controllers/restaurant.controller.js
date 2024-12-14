@@ -107,6 +107,7 @@ export const createRestaurant = async (req, res, next) => {
       menu: initialMenu,
       dashboard: updatedDashboard,
       accessibleRestaurants: owner.accessibleRestaurants,
+      dashboardId: updatedDashboard._id,
     });
   } catch (error) {
     console.error("Error creating restaurant:", error);

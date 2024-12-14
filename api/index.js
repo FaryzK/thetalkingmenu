@@ -47,7 +47,7 @@ app.listen(3000, () => {
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboards", dashboardsRoutes);
-app.use("/api", restaurantsRoutes);
+app.use("/api/restaurants", restaurantsRoutes);
 app.use("/api", menuRoutes);
 app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/employee-access", employeeAccessRoutes);

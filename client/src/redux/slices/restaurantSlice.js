@@ -28,22 +28,16 @@ export const fetchRestaurant = createAsyncThunk(
 // Thunk to create a new restaurant
 export const createRestaurant = createAsyncThunk(
   "restaurant/createRestaurant",
-  async (
-    { token, dashboardId, restaurantData },
-    { rejectWithValue, dispatch }
-  ) => {
+  async ({ token, restaurantData }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await fetch(
-        `/api/dashboards/${dashboardId}/restaurants`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(restaurantData),
-        }
-      );
+      const response = await fetch(`/api/restaurants`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(restaurantData),
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -52,7 +46,10 @@ export const createRestaurant = createAsyncThunk(
 
       // Dispatch an action to add the new restaurant to the dashboard in dashboardsSlice
       dispatch(
-        addRestaurantToDashboard({ dashboardId, restaurant: data.restaurant })
+        addRestaurantToDashboard({
+          dashboardId: data.dashboardId,
+          restaurant: data.restaurant,
+        })
       );
 
       // Dispatch to update accessibleRestaurants in userAccessSlice

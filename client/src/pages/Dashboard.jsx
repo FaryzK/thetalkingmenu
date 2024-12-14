@@ -104,7 +104,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="mt-6 text-center">
+          {/*Can uncomment once we allow users to create their own restaurant. Its working as expected unless there were changes to create Restaurant logic */}
+          {/* <div className="mt-6 text-center">
             <Button
               onClick={() => setShowRestaurantForm(!showRestaurantForm)}
               color="blue"
@@ -135,7 +136,7 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

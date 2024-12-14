@@ -1,6 +1,32 @@
 // platformControlPanelRestaurantsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
+export const createRestaurant = createAsyncThunk(
+  "platformControlPanelRestaurants/createRestaurant",
+  async ({ token, restaurantData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/restaurants`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(restaurantData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return rejectWithValue(data.message || "Failed to create restaurant");
+      }
+
+      return data.restaurant; // Return the new restaurant data
+    } catch (error) {
+      return rejectWithValue(error.message || "Network error occurred");
+    }
+  }
+);
+
 // Fetch restaurants with pagination and search
 export const fetchAllRestaurants = createAsyncThunk(
   "platformControlPanelRestaurants/fetchAllRestaurants",
@@ -93,6 +119,18 @@ const platformControlPanelRestaurantsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(createRestaurant.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(createRestaurant.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.allRestaurants.unshift(action.payload); // Add the new restaurant at the top of the list
+        state.totalRestaurants += 1; // Increase the total number of restaurants
+      })
+      .addCase(createRestaurant.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
       .addCase(fetchAllRestaurants.pending, (state) => {
         state.status = "loading";
       })
