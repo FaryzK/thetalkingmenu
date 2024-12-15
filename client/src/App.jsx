@@ -27,6 +27,7 @@ import EmployeeAccessRevoke from "./pages/EmployeeAccessRevoke.jsx";
 import RestaurantInfo from "./pages/RestaurantInfo.jsx";
 import GlobalSystemPromptManager from "./pages/platform/GlobalSystemPromptManager.jsx";
 import DashboardManager from "./pages/platform/DashboardManager.jsx";
+import ChatbotManager from "./pages/platform/ChatbotManager.jsx";
 import RestaurantChats from "./pages/RestaurantChats.jsx";
 import TermsOfUse from "./pages/TermsOfUse.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
@@ -143,7 +144,8 @@ export default function App() {
               path="/:dashboardId/:restaurantId/chat-manager"
               element={<ChatManager />}
             />
-            <Route path="/user-manager" element={<UserManager />} />
+            <Route path="/dashboard-manager" element={<DashboardManager />} />
+            <Route path="/chatbot-manager" element={<ChatbotManager />} />
             {/* Catch-all 404 page */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>

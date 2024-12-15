@@ -16,6 +16,7 @@ import { AiOutlineSend, AiOutlineAudio } from "react-icons/ai";
 import { MdMenuBook } from "react-icons/md"; // Menu Book Icon
 import { FaUtensils } from "react-icons/fa"; // Fork and Spoon Icon
 import { setSessionToken } from "../redux/slices/userSlice";
+import { Alert } from "flowbite-react";
 
 // Helper function to create or retrieve a session token
 function getSessionToken() {
@@ -33,8 +34,8 @@ const SpeechRecognition =
 
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
+  const [alertMessage, setAlertMessage] = useState("");
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [swipeDistance, setSwipeDistance] = useState(0); // Track swipe distance
@@ -260,6 +261,13 @@ export default function Chat() {
         }),
       });
 
+      if (response.status === 403) {
+        const data = await response.json();
+        setAlertMessage(data.error); // 🟢 Show Flowbite alert with message
+        setAiTyping(false);
+        return; // Stop execution
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
@@ -321,6 +329,13 @@ export default function Chat() {
           chatId: currentChatId, // Attach the latest chatId
         }),
       });
+
+      if (response.status === 403) {
+        const data = await response.json();
+        setAlertMessage(data.error); // 🟢 Show Flowbite alert with message
+        setAiTyping(false);
+        return; // Stop execution
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -394,6 +409,11 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
+      {alertMessage && (
+        <Alert color="failure" onDismiss={() => setAlertMessage("")}>
+          {alertMessage}
+        </Alert>
+      )}
       <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
         <div className="flex flex-col flex-grow overflow-y-auto pr-4 scrollbar-hide">

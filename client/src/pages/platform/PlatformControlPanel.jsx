@@ -22,6 +22,13 @@ export default function PlatformControlPanel() {
         >
           Restaurant Manager
         </button>
+
+        <button
+          onClick={() => navigate("/chatbot-manager")}
+          className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"
+        >
+          Chatbot Manager
+        </button>
         <button
           onClick={() => navigate("/user-manager")}
           className="w-full bg-blue-500 text-white py-2 rounded-lg shadow-md"

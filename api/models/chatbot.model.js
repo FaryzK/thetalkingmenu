@@ -1,4 +1,3 @@
-// models/chatBot.model.js
 import mongoose from "mongoose";
 
 const chatbotSchema = new mongoose.Schema({
@@ -17,7 +16,16 @@ const chatbotSchema = new mongoose.Schema({
       of: mongoose.Schema.Types.Mixed, // store raw JSON content that Draft.js can handle on front end
     },
   ],
+  status: {
+    type: String,
+    enum: ["on", "off"],
+    default: "on",
+  },
 });
 
-const ChatBot = mongoose.model("Chatbot", chatbotSchema);
-export default ChatBot;
+const Chatbot =
+  mongoose.models.Chatbot || mongoose.model("Chatbot", chatbotSchema);
+
+// Done this way because previously we named the db chatBot instead of chatbot
+
+export default Chatbot;

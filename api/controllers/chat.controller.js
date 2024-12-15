@@ -1,5 +1,5 @@
 import Chat from "../models/chat.model.js";
-import ChatBot from "../models/chatbot.model.js";
+import Chatbot from "../models/chatbot.model.js";
 import Menu from "../models/menu.model.js";
 import GlobalSystemPrompt from "../models/globalSystemPrompt.model.js";
 import Restaurant from "../models/restaurant.model.js";
@@ -161,12 +161,24 @@ export const sendMessage = async (req, res, next) => {
     return res.status(400).json({ error: "restaurantId is required" });
   }
 
-  let chat, chatBot, globalSystemPrompt, menu, restaurant;
+  let chat, chatbot, globalSystemPrompt, menu, restaurant;
 
   try {
+    // 🚩 Check if chatbot is active before doing anything else
+    chatbot = await Chatbot.findOne({ restaurantId });
+    if (!chatbot) {
+      return res.status(404).json({ error: "Chatbot not found" });
+    }
+
+    if (chatbot.status === "off") {
+      return res
+        .status(403)
+        .json({ error: "This chatbot has been turned off." });
+    }
+
     // Fetch required documents
     globalSystemPrompt = await GlobalSystemPrompt.findOne();
-    chatBot = await ChatBot.findOne({ restaurantId });
+    chatbot = await Chatbot.findOne({ restaurantId });
     menu = await Menu.findOne({ restaurantId });
     restaurant = await Restaurant.findById(restaurantId);
 
@@ -203,7 +215,7 @@ export const sendMessage = async (req, res, next) => {
     // Estimate prompt tokens
     const openaiMessages = [
       { role: "system", content: globalSystemPrompt.prompt },
-      { role: "system", content: chatBot.systemPrompt },
+      { role: "system", content: chatbot.systemPrompt },
       {
         role: "system",
         content: `Restaurant Name: ${restaurant.name}; Restaurant Location: ${restaurant.location}`,
