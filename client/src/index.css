@@ -13,3 +13,7 @@
   background: #374151; /* Gray color */
   border-radius: 4px;
 }
+
+.text-unselectable {
+  user-select: none; /*For the chat screen. If you hold microphone without this code it will also select the terms of use*/
+}
