@@ -409,11 +409,6 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col flex-1 justify-between bg-gray-900 text-white p-6">
-      {alertMessage && (
-        <Alert color="failure" onDismiss={() => setAlertMessage("")}>
-          {alertMessage}
-        </Alert>
-      )}
       <div className="flex flex-col w-full max-w-3xl mx-auto flex-1">
         {/* Messages Section */}
         <div className="flex flex-col flex-grow overflow-y-auto pr-4 scrollbar-hide">
@@ -474,6 +469,16 @@ export default function Chat() {
           {/* Scroll to this element */}
           <div ref={messagesEndRef} />
         </div>
+
+        {alertMessage && (
+          <Alert
+            color="failure"
+            onDismiss={() => setAlertMessage("")}
+            className="mb-4" // 🔥 Add margin-bottom here
+          >
+            {alertMessage}
+          </Alert>
+        )}
 
         {/* Bottom Section Wrapper */}
         {!chat_id && (
