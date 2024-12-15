@@ -92,8 +92,6 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    const referrer = document.referrer;
-
     fetch(`/api/chatbot/${restaurantId}/info`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -114,13 +112,6 @@ export default function Chat() {
         setQrScanOnly(data.qrScanOnly || false);
 
         if (data.qrScanOnly) {
-          if (referrer === "") {
-            setAlertMessage(
-              `Access denied. Please scan the QR code directly. referrer is ${referrer}`
-            );
-            return;
-          }
-
           const urlParams = new URLSearchParams(window.location.search);
           const encryptedToken = urlParams.get("token");
           if (encryptedToken) {
