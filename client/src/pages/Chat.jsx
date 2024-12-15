@@ -16,6 +16,7 @@ import { AiOutlineSend, AiOutlineAudio } from "react-icons/ai";
 import { MdMenuBook } from "react-icons/md"; // Menu Book Icon
 import { FaUtensils } from "react-icons/fa"; // Fork and Spoon Icon
 import { setSessionToken } from "../redux/slices/userSlice";
+
 // Helper function to create or retrieve a session token
 function getSessionToken() {
   let sessionToken = localStorage.getItem("session_token");
@@ -36,9 +37,11 @@ export default function Chat() {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [swipeDistance, setSwipeDistance] = useState(0); // Track swipe distance
   const [timer, setTimer] = useState(0);
   const recognition = useRef(null);
   const startTime = useRef(null);
+  const startX = useRef(null);
   const [userId, setUserId] = useState(null);
   const [tempAssistantMessage, setTempAssistantMessage] = useState("");
   const [info, setInfo] = useState({
@@ -169,33 +172,40 @@ export default function Chat() {
     }
   }, []);
 
-  const handleStartRecording = () => {
-    if (recognition.current) {
+  const handleStart = (e) => {
+    const clientX = e.clientX || e.touches?.[0]?.clientX; // ⚙️ Support both touch and pointer
+    if (!startX.current) {
+      startX.current = clientX; // Store initial X position
       setIsRecording(true);
-      setTimer(0); // Reset timer
-      startTime.current = Date.now(); // Correctly set the start time using ref
-      recognition.current.start();
+      startTime.current = Date.now();
+      recognition.current?.start(); // ✅ Start speech recognition
+      // console.log("Recording started");
     }
   };
 
-  const handleStopRecording = () => {
-    if (recognition.current) {
-      recognition.current.stop();
-      setIsRecording(false);
-      setTimer(0);
+  const handleMove = (e) => {
+    if (!startX.current) return; // If no start position, return
+
+    const clientX = e.clientX || e.touches?.[0]?.clientX; // ⚙️ Support both touch and pointer
+    const distanceSwiped = startX.current - clientX; // ⚙️ Track distance swiped
+
+    if (distanceSwiped > 0) {
+      setSwipeDistance(-distanceSwiped); // 🔥 Update swipe distance (negative to move left)
+    }
+
+    if (distanceSwiped > 100) {
+      // console.log("Recording canceled by swipe.");
+      handleStop();
     }
   };
 
-  const handleSwipeToCancel = (e) => {
-    if (e.type === "touchmove") {
-      const touch = e.touches[0];
-      if (touch.clientX < window.innerWidth * 0.3) {
-        recognition.current.abort(); // Stop recording
-        setIsRecording(false);
-        setTimer(0);
-        console.log("Recording canceled by swipe.");
-      }
-    }
+  const handleStop = () => {
+    setIsRecording(false);
+    setSwipeDistance(0);
+    startX.current = null; // Reset swipe position
+    startTime.current = null; // Reset start time
+    recognition.current?.stop(); // ✅ Stop speech recognition
+    // console.log("Recording stopped");
   };
 
   // Timer Logic (milliseconds)
@@ -491,36 +501,23 @@ export default function Chat() {
             )}
 
             {/* Chatbox Section */}
+            <div className="flex items-center bg-gray-800 p-2 px-2 rounded-full relative">
+              {/* Left Side: Dynamic content changes based on recording state */}
+              <div className="flex-grow flex items-center">
+                {isRecording ? (
+                  <div className="flex items-center justify-between  w-full">
+                    {/* Timer */}
+                    <div className="text-white text-sm font-mono ml-4">
+                      {String(Math.floor(timer / 1000)).padStart(2, "0")}:
+                      {String(Math.floor((timer % 1000) / 10)).padStart(2, "0")}
+                    </div>
 
-            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full relative">
-              {/* Recording Feedback */}
-              {isRecording ? (
-                <div className="flex items-center justify-between w-full">
-                  {/* Timer on the Left in milliseconds */}
-                  <div className="text-white text-sm font-mono">
-                    {String(Math.floor(timer / 1000)).padStart(2, "0")}:
-                    {String(Math.floor((timer % 1000) / 10)).padStart(2, "0")}
+                    {/* Center Text Feedback */}
+                    <div className="text-gray-400 text-sm animate-pulse whitespace-nowrap mr-6">
+                      &lt; Swipe left to cancel
+                    </div>
                   </div>
-
-                  {/* Center Text Feedback */}
-                  <div className="text-gray-400 text-sm animate-pulse">
-                    &lt; Swipe left to cancel
-                  </div>
-
-                  {/* Enlarged Microphone */}
-                  <div
-                    className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center shadow-lg scale-110"
-                    onMouseUp={handleStopRecording}
-                    onTouchEnd={handleStopRecording}
-                    onTouchMove={handleSwipeToCancel}
-                  >
-                    <AiOutlineAudio size={30} className="text-white" />
-                  </div>
-                </div>
-              ) : (
-                // Default Chatbox when NOT Recording
-                <>
-                  {/* Container for Input and Icons */}
+                ) : (
                   <div className="relative flex-grow">
                     <TextInput
                       ref={inputRef}
@@ -563,33 +560,49 @@ export default function Chat() {
                       </div>
                     )}
                   </div>
+                )}
+              </div>
 
-                  {/* Microphone or Send Button */}
-                  {!input ? (
-                    // Microphone Button for Voice Input
-                    <button
-                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-600 hover:bg-gray-500"
-                      onMouseDown={handleStartRecording}
-                      onTouchStart={handleStartRecording}
-                    >
-                      <AiOutlineAudio size={20} className="text-white" />
-                    </button>
-                  ) : (
-                    // Send Button when Text is Input
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={aiTyping}
-                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
-                        aiTyping
-                          ? "bg-gray-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                      }`}
-                    >
-                      <AiOutlineSend size={20} className="text-white" />
-                    </button>
-                  )}
-                </>
-              )}
+              {/* Right Side: Microphone or Send Button */}
+              <div className="flex-shrink-0">
+                {input ? (
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={aiTyping}
+                    className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
+                      aiTyping
+                        ? "bg-gray-500 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    }`}
+                  >
+                    <AiOutlineSend size={20} className="text-white" />
+                  </button>
+                ) : (
+                  <div
+                    id="microphone-button"
+                    className={`${
+                      isRecording
+                        ? "w-16 h-16 bg-red-500 scale-110"
+                        : "w-12 h-12 bg-gray-600 hover:bg-gray-500"
+                    } rounded-full flex items-center justify-center shadow-lg transition-all`}
+                    onPointerDown={handleStart} // Desktop + Mobile
+                    onPointerMove={handleMove} // Desktop + Mobile
+                    onPointerUp={handleStop} // Desktop + Mobile
+                    onTouchStart={handleStart} // Mobile only
+                    onTouchMove={handleMove} // Mobile only
+                    onTouchEnd={handleStop} // Mobile only
+                    style={{
+                      transform: `translateX(${swipeDistance}px)`, // 🔥 Move the microphone icon
+                      transition: !isRecording ? "transform 0.3s ease" : "none", // Smooth reset when stopping
+                    }}
+                  >
+                    <AiOutlineAudio
+                      size={isRecording ? 30 : 20}
+                      className="text-white transition-all"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
