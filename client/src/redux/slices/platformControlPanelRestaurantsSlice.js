@@ -77,14 +77,17 @@ export const transferRestaurantOwnership = createAsyncThunk(
   "platformControlPanelRestaurants/transferRestaurantOwnership",
   async ({ token, restaurantId, newOwnerEmail }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/restaurant/${restaurantId}/transfer`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ newOwnerEmail }),
-      });
+      const response = await fetch(
+        `/api/restaurants/${restaurantId}/transfer`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ newOwnerEmail }),
+        }
+      );
 
       const data = await response.json();
 

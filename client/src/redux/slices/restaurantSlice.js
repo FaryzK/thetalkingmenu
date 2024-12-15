@@ -8,7 +8,7 @@ export const fetchRestaurant = createAsyncThunk(
   "restaurant/fetchRestaurant",
   async ({ token, restaurantId }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/restaurant/${restaurantId}`, {
+      const response = await fetch(`/api/restaurants/${restaurantId}`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -67,7 +67,7 @@ export const updateRestaurantInfo = createAsyncThunk(
   "restaurant/updateRestaurantInfo",
   async ({ token, restaurantId, updatedData }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/restaurant/${restaurantId}`, {
+      const response = await fetch(`/api/restaurants/${restaurantId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

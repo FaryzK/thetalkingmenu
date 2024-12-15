@@ -12,7 +12,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ReactMarkdown from "react-markdown";
 
 import { Button, TextInput } from "flowbite-react";
-import { AiOutlineSend } from "react-icons/ai";
+import { AiOutlineSend, AiOutlineAudio } from "react-icons/ai";
 import { MdMenuBook } from "react-icons/md"; // Menu Book Icon
 import { FaUtensils } from "react-icons/fa"; // Fork and Spoon Icon
 import { setSessionToken } from "../redux/slices/userSlice";
@@ -26,11 +26,19 @@ function getSessionToken() {
   return sessionToken;
 }
 
+// For speech to text
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [input, setInput] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const recognition = useRef(null);
+  const startTime = useRef(null);
   const [userId, setUserId] = useState(null);
   const [tempAssistantMessage, setTempAssistantMessage] = useState("");
   const [info, setInfo] = useState({
@@ -137,11 +145,78 @@ export default function Chat() {
     }
   }, [chat_id, dispatch]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
+  useEffect(() => {
+    if (SpeechRecognition) {
+      recognition.current = new SpeechRecognition();
+      recognition.current.continuous = true;
+      recognition.current.interimResults = false;
+      recognition.current.lang = "en-US";
+
+      recognition.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setIsRecording(false); // Stop recording
+        handleSendMessage(transcript); // Send the recognized text immediately
+      };
+
+      recognition.current.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+      };
+
+      recognition.current.onend = () => {
+        setIsRecording(false);
+        setTimer(0);
+      };
+    }
+  }, []);
+
+  const handleStartRecording = () => {
+    if (recognition.current) {
+      setIsRecording(true);
+      setTimer(0); // Reset timer
+      startTime.current = Date.now(); // Correctly set the start time using ref
+      recognition.current.start();
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (recognition.current) {
+      recognition.current.stop();
+      setIsRecording(false);
+      setTimer(0);
+    }
+  };
+
+  const handleSwipeToCancel = (e) => {
+    if (e.type === "touchmove") {
+      const touch = e.touches[0];
+      if (touch.clientX < window.innerWidth * 0.3) {
+        recognition.current.abort(); // Stop recording
+        setIsRecording(false);
+        setTimer(0);
+        console.log("Recording canceled by swipe.");
+      }
+    }
+  };
+
+  // Timer Logic (milliseconds)
+  useEffect(() => {
+    let interval;
+    if (isRecording) {
+      interval = setInterval(() => {
+        if (startTime.current) {
+          const elapsed = Date.now() - startTime.current; // Calculate elapsed time
+          setTimer(elapsed); // Update timer state
+        }
+      }, 10); // Update every 10ms
+    }
+    return () => clearInterval(interval); // Cleanup interval on stop
+  }, [isRecording]);
+
+  const handleSendMessage = async (message = input) => {
+    if (!message.trim()) return;
     setShowInfo(false); // Hide intro after first message
     setAiTyping(true);
-    dispatch(addMessage({ role: "user", content: input }));
+    dispatch(addMessage({ role: "user", content: message }));
     setInput("");
 
     let currentChatId = chatId; // Get current chatId from Redux
@@ -170,7 +245,7 @@ export default function Chat() {
           restaurantId,
           tableNumber,
           userId,
-          message: input,
+          message,
           chatId: currentChatId, // Attach the latest chatId
         }),
       });
@@ -417,66 +492,104 @@ export default function Chat() {
 
             {/* Chatbox Section */}
 
-            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full">
-              {/* Container for Input and Icons */}
-              <div className="relative flex-grow">
-                <TextInput
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="Send a message..."
-                  className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white !text-base"
-                  style={{ fontSize: "16px" }}
-                />
+            <div className="flex items-center bg-gray-800 p-2 px-4 rounded-full relative">
+              {/* Recording Feedback */}
+              {isRecording ? (
+                <div className="flex items-center justify-between w-full">
+                  {/* Timer on the Left in milliseconds */}
+                  <div className="text-white text-sm font-mono">
+                    {String(Math.floor(timer / 1000)).padStart(2, "0")}:
+                    {String(Math.floor((timer % 1000) / 10)).padStart(2, "0")}
+                  </div>
 
-                {/* Icons positioned absolutely within the input container */}
-                {!input && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
-                    {info.menuLink && (
-                      <button
-                        className="text-gray-500 hover:text-gray-300"
-                        onClick={() => window.open(info.menuLink, "_blank")}
-                        title="Menu"
-                      >
-                        <MdMenuBook size={20} />
-                      </button>
-                    )}
-                    {info.orderLink && (
-                      <button
-                        className="text-gray-500 hover:text-gray-300"
-                        onClick={() => window.open(info.orderLink, "_blank")}
-                        title="Order"
-                      >
-                        <FaUtensils size={20} />
-                      </button>
+                  {/* Center Text Feedback */}
+                  <div className="text-gray-400 text-sm animate-pulse">
+                    &lt; Swipe left to cancel
+                  </div>
+
+                  {/* Enlarged Microphone */}
+                  <div
+                    className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center shadow-lg scale-110"
+                    onMouseUp={handleStopRecording}
+                    onTouchEnd={handleStopRecording}
+                    onTouchMove={handleSwipeToCancel}
+                  >
+                    <AiOutlineAudio size={30} className="text-white" />
+                  </div>
+                </div>
+              ) : (
+                // Default Chatbox when NOT Recording
+                <>
+                  {/* Container for Input and Icons */}
+                  <div className="relative flex-grow">
+                    <TextInput
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Send a message..."
+                      className="w-full pl-2 pr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-white !text-base"
+                      style={{ fontSize: "16px" }}
+                    />
+
+                    {/* Icons positioned within input container */}
+                    {!input && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2 pr-2">
+                        {info.menuLink && (
+                          <button
+                            className="text-gray-500 hover:text-gray-300"
+                            onClick={() => window.open(info.menuLink, "_blank")}
+                            title="Menu"
+                          >
+                            <MdMenuBook size={20} />
+                          </button>
+                        )}
+                        {info.orderLink && (
+                          <button
+                            className="text-gray-500 hover:text-gray-300"
+                            onClick={() =>
+                              window.open(info.orderLink, "_blank")
+                            }
+                            title="Order"
+                          >
+                            <FaUtensils size={20} />
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
 
-              {/* Send Button */}
-              <button
-                onClick={handleSendMessage}
-                disabled={aiTyping}
-                className={`w-12 h-12 flex items-center justify-center rounded-full transition-all relative before:absolute before:inset-[-10px] before:z-[-1]
-                    ${
-                      aiTyping
-                        ? "bg-gray-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                    }`}
-              >
-                {aiTyping ? (
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                ) : (
-                  <AiOutlineSend size={20} className="text-white" />
-                )}
-              </button>
+                  {/* Microphone or Send Button */}
+                  {!input ? (
+                    // Microphone Button for Voice Input
+                    <button
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-600 hover:bg-gray-500"
+                      onMouseDown={handleStartRecording}
+                      onTouchStart={handleStartRecording}
+                    >
+                      <AiOutlineAudio size={20} className="text-white" />
+                    </button>
+                  ) : (
+                    // Send Button when Text is Input
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={aiTyping}
+                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
+                        aiTyping
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                      }`}
+                    >
+                      <AiOutlineSend size={20} className="text-white" />
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
