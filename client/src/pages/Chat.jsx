@@ -118,7 +118,7 @@ export default function Chat() {
   const checkUserAgent = () => {
     const userAgent = navigator.userAgent || "";
     const allowedUserAgents =
-      /AppleWebKit\/605.1.15|Line|MicroMessenger|Android; Mobile|wv|Snapchat|Instagram/i;
+      /AppleWebKit\/605.1.15|Line|MicroMessenger|Android; Mobile|wv|Snapchat|Instagram|SamsungBrowser|EdgA|CriOS|Mobile Safari/i;
 
     if (!allowedUserAgents.test(userAgent)) {
       setAlertMessage("Chat is only accessible via QR code");
