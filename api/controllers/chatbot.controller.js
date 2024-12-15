@@ -1,5 +1,5 @@
 // src/controllers/chatbot.controller.js
-import Chatbot from "../models/chatBot.model.js";
+import Chatbot from "../models/chatbot.model.js";
 import { errorHandler } from "../utils/error.js";
 import Restaurant from "../models/restaurant.model.js";
 import Dashboard from "../models/dashboard.model.js";
