@@ -32,10 +32,15 @@ function getSessionToken() {
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Encrypt and Decrpyt the session token
+const encryptToken = (token) => btoa(token);
+const decryptToken = (encryptedToken) => atob(encryptedToken);
+
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
   const [alertMessage, setAlertMessage] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [swipeDistance, setSwipeDistance] = useState(0); // Track swipe distance
@@ -87,6 +92,8 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
+    const referrer = document.referrer;
+
     fetch(`/api/chatbot/${restaurantId}/info`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -97,33 +104,43 @@ export default function Chat() {
           restaurantName: data.restaurantName || "",
           restaurantLogo:
             data.restaurantLogo ||
-            "https://cdn-icons-png.flaticon.com/512/4352/4352627.png", // Fallback to placeholder
+            "https://cdn-icons-png.flaticon.com/512/4352/4352627.png",
           suggestedQuestions: data.suggestedQuestions || [],
           restaurantLocation: data.restaurantLocation || "",
           menuLink: data.menuLink || "",
           orderLink: data.orderLink || "",
         });
 
-        // Set qrScanOnly directly from the API response
         setQrScanOnly(data.qrScanOnly || false);
 
-        // If qrScanOnly is true, check the User-Agent to restrict access
         if (data.qrScanOnly) {
-          checkUserAgent();
+          if (!referrer) {
+            setAlertMessage(`Access denied. Please scan the QR code directly.`);
+            return;
+          }
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const encryptedToken = urlParams.get("token");
+          if (encryptedToken) {
+            const decryptedToken = decryptToken(encryptedToken);
+            if (decryptedToken !== sessionToken) {
+              setAlertMessage(
+                "This link is not valid. Please scan the QR code again."
+              );
+              return;
+            }
+          } else {
+            const newEncryptedToken = encryptToken(sessionToken);
+            window.history.replaceState(
+              null,
+              "",
+              `${window.location.pathname}?token=${newEncryptedToken}`
+            );
+          }
         }
       })
       .catch((error) => console.error("Error fetching info:", error));
-  }, [restaurantId]);
-
-  const checkUserAgent = () => {
-    const userAgent = navigator.userAgent || "";
-    const allowedUserAgents =
-      /AppleWebKit\/605.1.15|Line|MicroMessenger|Android; Mobile|wv|Snapchat|Instagram|SamsungBrowser|EdgA|CriOS|Mobile Safari/i;
-
-    if (!allowedUserAgents.test(userAgent)) {
-      setAlertMessage("Chat is only accessible via QR code");
-    }
-  };
+  }, [restaurantId, tableNumber, navigate, sessionToken]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -493,7 +510,6 @@ export default function Chat() {
         {alertMessage && !chat_id && (
           <Alert
             color="failure"
-            onDismiss={() => setAlertMessage("")}
             className="mb-4" // 🔥 Add margin-bottom here
           >
             {alertMessage}
