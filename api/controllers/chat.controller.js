@@ -1,5 +1,5 @@
 import Chat from "../models/chat.model.js";
-import ChatBot from "../models/chatBot.model.js";
+import ChatBot from "../models/chatbot.model.js";
 import Menu from "../models/menu.model.js";
 import GlobalSystemPrompt from "../models/globalSystemPrompt.model.js";
 import Restaurant from "../models/restaurant.model.js";
@@ -315,7 +315,6 @@ export const getChatsByRestaurant = async (req, res) => {
   const page = parseInt(req.query.page) || 1; // Convert to integer, default to 1
   const limit = parseInt(req.query.limit) || 20; // Convert to integer, default to 20
 
-  
   try {
     const user = await User.findOne({ uid });
     if (!user) {
@@ -347,7 +346,9 @@ export const getChatsByRestaurant = async (req, res) => {
         firstMessage: chat.messages[0]?.message || "No messages", // Get the first message for preview
         timestamp: chat.messages[0]?.timestamp || null, // Get the timestamp of the first message
         tableNumber: chat.tableNumber || "default", // Include table number
-        isSeen: Array.isArray(chat.seenBy) ? chat.seenBy.includes(userId) : false, // Check if user ID is in the seenBy array
+        isSeen: Array.isArray(chat.seenBy)
+          ? chat.seenBy.includes(userId)
+          : false, // Check if user ID is in the seenBy array
       })),
       totalChats,
     });

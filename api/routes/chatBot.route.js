@@ -1,22 +1,22 @@
 // src/routes/chatBot.route.js
 import express from "express";
 import {
-  getChatBot,
+  getChatbot,
   updateSystemPrompt,
-  getChatBotAndRestaurantInfo,
-} from "../controllers/chatBot.controller.js";
+  getChatbotAndRestaurantInfo,
+} from "../controllers/chatbot.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
-import { updateSuggestedQuestions } from "../controllers/chatBot.controller.js";
+import { updateSuggestedQuestions } from "../controllers/chatbot.controller.js";
 
 const router = express.Router();
 
-router.get("/:restaurantId", isAuthenticated, getChatBot);
+router.get("/:restaurantId", isAuthenticated, getChatbot);
 router.patch("/:restaurantId", isAuthenticated, updateSystemPrompt);
 router.patch(
   "/:restaurantId/suggested-questions",
   isAuthenticated,
   updateSuggestedQuestions
 );
-router.get("/:restaurantId/info", getChatBotAndRestaurantInfo);
+router.get("/:restaurantId/info", getChatbotAndRestaurantInfo);
 
 export default router;

@@ -1,7 +1,7 @@
 // models/chatBot.model.js
 import mongoose from "mongoose";
 
-const chatBotSchema = new mongoose.Schema({
+const chatbotSchema = new mongoose.Schema({
   restaurantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Restaurant",
@@ -19,5 +19,5 @@ const chatBotSchema = new mongoose.Schema({
   ],
 });
 
-const ChatBot = mongoose.model("ChatBot", chatBotSchema);
+const ChatBot = mongoose.model("Chatbot", chatbotSchema);
 export default ChatBot;

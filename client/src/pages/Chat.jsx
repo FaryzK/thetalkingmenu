@@ -567,7 +567,7 @@ export default function Chat() {
               <div className="flex-shrink-0">
                 {input ? (
                   <button
-                    onClick={handleSendMessage}
+                    onClick={() => handleSendMessage()}
                     disabled={aiTyping}
                     className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${
                       aiTyping

@@ -2,7 +2,7 @@ import pkg from "draft-js";
 import Restaurant from "../models/restaurant.model.js";
 import Menu from "../models/menu.model.js";
 import Chat from "../models/chat.model.js";
-import ChatBot from "../models/chatBot.model.js";
+import ChatBot from "../models/chatbot.model.js";
 import Dashboard from "../models/dashboard.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
