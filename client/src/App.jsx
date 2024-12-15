@@ -145,6 +145,7 @@ export default function App() {
               element={<ChatManager />}
             />
             <Route path="/dashboard-manager" element={<DashboardManager />} />
+            <Route path="/user-manager" element={<UserManager />} />
             <Route path="/chatbot-manager" element={<ChatbotManager />} />
             {/* Catch-all 404 page */}
             <Route path="*" element={<NotFoundPage />} />

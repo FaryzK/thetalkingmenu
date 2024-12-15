@@ -329,6 +329,36 @@ export default function RestaurantManager() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {isTransferModalOpen && (
+        <Modal
+          show={isTransferModalOpen}
+          onClose={() => setIsTransferModalOpen(false)}
+        >
+          <Modal.Header>Transfer Ownership</Modal.Header>
+          <Modal.Body>
+            <p className="mb-4">
+              Enter the email of the new owner for{" "}
+              <strong>{selectedRestaurant?.name}</strong>:
+            </p>
+            <TextInput
+              type="email"
+              placeholder="New owner's email"
+              value={newOwnerEmail}
+              onChange={(e) => setNewOwnerEmail(e.target.value)}
+              className="mb-4"
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={handleOwnershipTransfer} color="green">
+              Confirm
+            </Button>
+            <Button color="gray" onClick={() => setIsTransferModalOpen(false)}>
+              Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 }
