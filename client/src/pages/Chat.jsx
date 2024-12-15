@@ -114,8 +114,10 @@ export default function Chat() {
         setQrScanOnly(data.qrScanOnly || false);
 
         if (data.qrScanOnly) {
-          if (!referrer) {
-            setAlertMessage(`Access denied. Please scan the QR code directly.`);
+          if (referrer === "") {
+            setAlertMessage(
+              `Access denied. Please scan the QR code directly. referrer is ${referrer}`
+            );
             return;
           }
 
