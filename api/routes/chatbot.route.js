@@ -8,6 +8,7 @@ import {
   updateSuggestedQuestions,
   searchChatbots,
   updateChatbotStatus,
+  updateQrScanOnly,
 } from "../controllers/chatbot.controller.js";
 import { isAuthenticated } from "../utils/isAuthenticated.js";
 import { isAdmin } from "../utils/isAdmin.js";
@@ -29,5 +30,6 @@ router.patch(
   isAdmin,
   updateChatbotStatus
 );
+router.patch("/:restaurantId/qr-scan-only", isAuthenticated, updateQrScanOnly); // Add route for updating qrScanOnly
 
 export default router;

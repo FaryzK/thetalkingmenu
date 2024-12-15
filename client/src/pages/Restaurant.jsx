@@ -1,4 +1,4 @@
-import React, { useEffect, useState  } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -9,7 +9,7 @@ import { fetchChatBot, clearChatBotState } from "../redux/slices/chatBotSlice";
 import {
   fetchRestaurantChats,
   clearRestaurantChatsState,
-  markChatAsSeen
+  markChatAsSeen,
 } from "../redux/slices/restaurantChatsSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
@@ -339,7 +339,7 @@ export default function Restaurant() {
               icon: <FiInfo className="text-green-500" />,
             },
             {
-              label: "Update FAQ",
+              label: "Update Knowledgebase",
               route: "system-prompt",
               icon: <FiEdit className="text-purple-500" />,
             },
@@ -436,7 +436,7 @@ export default function Restaurant() {
           {restaurantChats?.map((chat) => (
             <button
               key={chat._id}
-              onClick={() =>{
+              onClick={() => {
                 dispatch(
                   markChatAsSeen({ token: userToken, chatId: chat._id })
                 );

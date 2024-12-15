@@ -69,6 +69,7 @@ export const getChatbotAndRestaurantInfo = async (req, res, next) => {
       menuLink: restaurant.menuLink,
       orderLink: restaurant.orderLink,
       suggestedQuestions: chatbot.suggestedQuestions,
+      qrScanOnly: chatbot.qrScanOnly,
     });
   } catch (error) {
     next(errorHandler(500, "Failed to fetch data"));
@@ -122,6 +123,7 @@ export const searchChatbots = async (req, res, next) => {
   }
 };
 
+//turn on off chatbot
 export const updateChatbotStatus = async (req, res, next) => {
   const { restaurantId } = req.params;
   const { status } = req.body;
@@ -162,5 +164,29 @@ export const updateChatbotStatus = async (req, res, next) => {
   } catch (error) {
     console.error("Error updating chatbot status:", error);
     next(error);
+  }
+};
+
+export const updateQrScanOnly = async (req, res, next) => {
+  const { restaurantId } = req.params;
+  const { qrScanOnly } = req.body;
+
+  try {
+    const chatbot = await Chatbot.findOneAndUpdate(
+      { restaurantId },
+      { qrScanOnly },
+      { new: true } // Return the updated document
+    );
+
+    if (!chatbot) {
+      return next(errorHandler(404, "Chatbot not found"));
+    }
+
+    res.status(200).json({
+      message: "qrScanOnly updated successfully",
+      qrScanOnly: chatbot.qrScanOnly,
+    });
+  } catch (error) {
+    next(errorHandler(500, "Failed to update qrScanOnly"));
   }
 };

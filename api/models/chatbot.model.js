@@ -21,6 +21,10 @@ const chatbotSchema = new mongoose.Schema({
     enum: ["on", "off"],
     default: "on",
   },
+  qrScanOnly: {
+    type: Boolean,
+    default: false, // Default is false, which means copy-pasting is allowed
+  },
 });
 
 const Chatbot =

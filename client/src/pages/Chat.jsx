@@ -53,6 +53,7 @@ export default function Chat() {
     menuLink: "",
     orderLink: "",
   });
+  const [qrScanOnly, setQrScanOnly] = useState(false);
   const [showInfo, setShowInfo] = useState(true); // Controls visibility of intro
 
   const messages = useSelector((state) => state.chat.messages);
@@ -102,9 +103,27 @@ export default function Chat() {
           menuLink: data.menuLink || "",
           orderLink: data.orderLink || "",
         });
+
+        // Set qrScanOnly directly from the API response
+        setQrScanOnly(data.qrScanOnly || false);
+
+        // If qrScanOnly is true, check the User-Agent to restrict access
+        if (data.qrScanOnly) {
+          checkUserAgent();
+        }
       })
       .catch((error) => console.error("Error fetching info:", error));
   }, [restaurantId]);
+
+  const checkUserAgent = () => {
+    const userAgent = navigator.userAgent || "";
+    const allowedUserAgents =
+      /AppleWebKit\/605.1.15|Line|MicroMessenger|Android; Mobile|wv|Snapchat|Instagram/i;
+
+    if (!allowedUserAgents.test(userAgent)) {
+      setAlertMessage("Chat is only accessible via QR code");
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -470,7 +489,8 @@ export default function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {alertMessage && (
+        {/*Exclude no chatid or off-ed chatbot for admin checking chat history*/}
+        {alertMessage && !chat_id && (
           <Alert
             color="failure"
             onDismiss={() => setAlertMessage("")}
@@ -481,7 +501,7 @@ export default function Chat() {
         )}
 
         {/* Bottom Section Wrapper */}
-        {!chat_id && (
+        {!alertMessage && !chat_id && (
           <div className="flex flex-col gap-4">
             {/* Restaurant name and info */}
             {showInfo && (

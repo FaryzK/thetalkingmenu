@@ -63,7 +63,7 @@ export default function SystemPrompt() {
         Back to Dashboard
       </button>
 
-      <h2 className="text-2xl font-bold mb-4">Update FAQ</h2>
+      <h2 className="text-2xl font-bold mb-4">Update Knowledgebase</h2>
 
       {/* Reserved Space for Success/Error Notification */}
       <div className="mb-4">
@@ -83,10 +83,13 @@ export default function SystemPrompt() {
       {/* Accordion */}
       <Accordion collapseAll>
         <Accordion.Panel>
-          <Accordion.Title>What kinds of FAQ?</Accordion.Title>
+          <Accordion.Title>
+            What kinds of information goes into knowledgebase?
+          </Accordion.Title>
           <Accordion.Content>
             Information not found in the menu, such as opening hours,
-            promotions, or additional details you want to provide.
+            promotions, to additional instructions you want to provide, such as
+            instructions to upsell without being pushy.
           </Accordion.Content>
         </Accordion.Panel>
       </Accordion>
@@ -114,7 +117,7 @@ export default function SystemPrompt() {
         color="blue"
         className="mt-4 font-semibold rounded transition"
       >
-        Update Prompt
+        Update Knowledgebase
       </Button>
     </div>
   );

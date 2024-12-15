@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Spinner, Button } from "flowbite-react";
+import { Spinner, Button, ToggleSwitch } from "flowbite-react";
 import { FiArrowLeft } from "react-icons/fi";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function QRCode() {
   const { restaurantId, dashboardId } = useParams();
@@ -12,8 +13,69 @@ export default function QRCode() {
   const [tableNumber, setTableNumber] = useState("");
   const [qrSize, setQrSize] = useState(256); // Adjustable QR code size
   const [isDownloading, setIsDownloading] = useState(false); // Loading state
-
+  const [qrScanOnly, setQrScanOnly] = useState(false);
+  const [token, setToken] = useState(null); // Store Firebase token
+  const [loading, setLoading] = useState(true); // Show loading until token is available
   const navigate = useNavigate();
+
+  // Get token and fetch chatbot info
+  useEffect(() => {
+    const auth = getAuth();
+
+    const fetchData = async (user) => {
+      try {
+        const token = await user.getIdToken();
+        setToken(token);
+
+        const response = await fetch(`/api/chatbot/${restaurantId}/info`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        setQrScanOnly(data.qrScanOnly || false);
+      } catch (error) {
+        console.error("Error fetching chatbot info:", error);
+      } finally {
+        setLoading(false); // Loading done once the token and data are loaded
+      }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchData(user);
+      } else {
+        console.warn("User is not authenticated");
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe(); // Clean up the listener
+  }, [restaurantId]);
+
+  // Update qrScanOnly
+  const updateQrScanOnly = async (value) => {
+    try {
+      if (!token) {
+        console.error("No token found, cannot update qrScanOnly");
+        return;
+      }
+
+      await fetch(`/api/chatbot/${restaurantId}/qr-scan-only`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ qrScanOnly: value }),
+      });
+    } catch (error) {
+      console.error("Error updating QR scan only:", error);
+    }
+  };
 
   const qrUrl = `${window.location.origin}/restaurant/${restaurantId}/chat/${
     tableNumber || "default"
@@ -61,6 +123,16 @@ export default function QRCode() {
         <p className="text-gray-500 mb-4">
           Generate a QR code for table-specific chats.
         </p>
+
+        <ToggleSwitch
+          checked={qrScanOnly}
+          label="Chat only accessible via QR scan"
+          onChange={(value) => {
+            setQrScanOnly(value);
+            updateQrScanOnly(value);
+          }}
+          className="p-4 mb-4 bg-slate-300 rounded-3xl"
+        />
 
         {/* Input Section */}
         <input
