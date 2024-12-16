@@ -32,10 +32,6 @@ function getSessionToken() {
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// Encrypt and Decrpyt the session token
-const encryptToken = (token) => btoa(token);
-const decryptToken = (encryptedToken) => atob(encryptedToken);
-
 export default function Chat() {
   const { restaurantId, chat_id, tableNumber } = useParams();
   const [alertMessage, setAlertMessage] = useState("");
@@ -58,8 +54,8 @@ export default function Chat() {
     menuLink: "",
     orderLink: "",
   });
-  const [qrScanOnly, setQrScanOnly] = useState(false);
   const [showInfo, setShowInfo] = useState(true); // Controls visibility of intro
+  const didStripUUID = useRef(false);
 
   const messages = useSelector((state) => state.chat.messages);
   const chatId = useSelector((state) => state.chat.chatId);
@@ -92,6 +88,18 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
+    const currentPathname = window.location.pathname;
+    if (currentPathname.endsWith("/8921b963-7e0e-4511-a160-7c9149a5f077")) {
+      const newPathname = currentPathname.replace(
+        "/8921b963-7e0e-4511-a160-7c9149a5f077",
+        ""
+      );
+      window.history.replaceState({}, "", newPathname); // Remove /start from the URL
+      didStripUUID.current = true; // Set the flag to true (this persists without causing re-renders)
+    }
+  }, []);
+
+  useEffect(() => {
     fetch(`/api/chatbot/${restaurantId}/info`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -109,27 +117,8 @@ export default function Chat() {
           orderLink: data.orderLink || "",
         });
 
-        setQrScanOnly(data.qrScanOnly || false);
-
-        if (data.qrScanOnly) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const encryptedToken = urlParams.get("token");
-          if (encryptedToken) {
-            const decryptedToken = decryptToken(encryptedToken);
-            if (decryptedToken !== sessionToken) {
-              setAlertMessage(
-                "This link is not valid. Please scan the QR code again."
-              );
-              return;
-            }
-          } else {
-            const newEncryptedToken = encryptToken(sessionToken);
-            window.history.replaceState(
-              null,
-              "",
-              `${window.location.pathname}?token=${newEncryptedToken}`
-            );
-          }
+        if (data.qrScanOnly && !didStripUUID.current) {
+          setAlertMessage("Access denied. Please scan the QR code directly.");
         }
       })
       .catch((error) => console.error("Error fetching info:", error));

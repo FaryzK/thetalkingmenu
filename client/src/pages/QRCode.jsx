@@ -79,7 +79,7 @@ export default function QRCode() {
 
   const qrUrl = `${window.location.origin}/restaurant/${restaurantId}/chat/${
     tableNumber || "default"
-  }`;
+  }/8921b963-7e0e-4511-a160-7c9149a5f077`;
 
   const downloadQRCode = async () => {
     try {

@@ -54,11 +54,15 @@ export default function App() {
       <Routes>
         <Route element={<PageLayout />}>
           <Route
-            path="/restaurant/:restaurantId/chat/:tableNumber/:chat_id"
+            path="/restaurant/:restaurantId/chat/:tableNumber/8921b963-7e0e-4511-a160-7c9149a5f077"
             element={<Chat />}
           />
           <Route
             path="/restaurant/:restaurantId/chat/:tableNumber"
+            element={<Chat />}
+          />
+          <Route
+            path="/restaurant/:restaurantId/chat/:tableNumber/:chat_id"
             element={<Chat />}
           />
           <Route path="/" element={<Home />} />
